@@ -18,6 +18,10 @@ using NLog;
 using System.Collections.Concurrent;
 using Microsoft.Win32;
 using System.Xml;
+using Windows.Management.Deployment;
+using System.Security.Principal;
+using Windows.Foundation.Metadata;
+using Windows.ApplicationModel;
 
 namespace Wox.Plugin.Program.Programs
 {
@@ -41,6 +45,14 @@ namespace Wox.Plugin.Program.Programs
             string[] parts = id.Split(new char[] { '_' }, StringSplitOptions.RemoveEmptyEntries);
             FamilyName = $"{parts[0]}_{parts[parts.Length - 1]}";
             Location = location;
+        }
+
+        public UWP(string name, string fullName, string familyName, string location)
+        {
+            this.Name = name;
+            this.FullName = fullName;
+            this.FamilyName = familyName;
+            this.Location = location;
         }
 
 
@@ -86,7 +98,7 @@ namespace Wox.Plugin.Program.Programs
                 if (!success) { throw new ArgumentException($"Cannot read Identity key from {path}"); }
                 if (success)
                 {
-                    Name = reader.GetAttribute("Name");
+                    //Name = reader.GetAttribute("Name");
                 }
 
                 success = reader.ReadToFollowing("Applications");
@@ -143,26 +155,9 @@ namespace Wox.Plugin.Program.Programs
 
         public static Application[] All()
         {
-            ConcurrentBag<Application> bag = new ConcurrentBag<Application>();
-            Parallel.ForEach(PackageFoldersFromRegistry(), (package, state) =>
-            {
-                try
-                {
-                    package.InitializeAppInfo();
-                    foreach (var a in package.Apps)
-                    {
-                        bag.Add(a);
-                    }
-                }
-                catch (Exception e)
-                {
-                    e.Data.Add(nameof(package.FullName), package.FullName);
-                    e.Data.Add(nameof(package.Location), package.Location);
-                    Logger.WoxError($"Cannot parse UWP {package.Location}", e);
-                }
-            }
-            );
-            return bag.ToArray();
+            return Packages()
+                .SelectMany(p => p.Apps)
+                .ToArray();
         }
 
         public static List<UWP> PackageFoldersFromRegistry()
@@ -210,6 +205,59 @@ namespace Wox.Plugin.Program.Programs
             return packages;
         }
 
+        public static IEnumerable<UWP> Packages()
+        {
+            var user = WindowsIdentity.GetCurrent().User;
+            if (user == null)
+                return Enumerable.Empty<UWP>();
+            PackageManager packageManager = new PackageManager();
+            var uwps = new List<UWP>();
+            foreach (var package in packageManager.FindPackagesForUser(user.Value).Where(p => !p.IsFramework))
+            {
+                var path = GetInstallPath(package);
+                if (string.IsNullOrEmpty(path))
+                    continue;
+
+                uwps.Add(new UWP(package.Id.Name, package.Id.FullName, package.Id.FamilyName, path));
+            }
+
+            uwps.AsParallel()
+                .ForAll(p =>
+                {
+                    try
+                    {
+                        p.InitializeAppInfo();
+                    }
+                    catch (Exception e)
+                    {
+                        p.Apps = new Application[0];
+                        e.Data.Add(nameof(p.FullName), p.FullName);
+                        e.Data.Add(nameof(p.Location), p.Location);
+                        Logger.WoxError($"Cannot parse UWP {p.Location}", e, false);
+                    }
+                });
+
+            return uwps;
+
+        }
+        private static readonly Lazy<bool> IsPackageDotInstallationPathAvailable = new Lazy<bool>(() =>
+                ApiInformation.IsPropertyPresent(typeof(Package).FullName, nameof(Package.InstalledPath)));
+        private static string GetInstallPath(Package package)
+        {
+            try
+            {
+                if (IsPackageDotInstallationPathAvailable.Value)
+                    return package.InstalledPath;
+                else
+                    return package.InstalledLocation.Path;
+            }
+            catch (Exception)
+            {
+
+                return string.Empty;
+            }
+        }
+
         public override string ToString()
         {
             return FullName;
@@ -252,7 +300,7 @@ namespace Wox.Plugin.Program.Programs
             {
                 var result = new Result
                 {
-                    SubTitle = Package.Location,
+                    SubTitle = "Windows Ó¦ÓÃ³ÌÐò",
                     Icon = Logo,
                     ContextData = this,
                     Action = e =>

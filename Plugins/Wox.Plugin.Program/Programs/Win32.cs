@@ -34,7 +34,7 @@ namespace Wox.Plugin.Program.Programs
         {
             var result = new Result
             {
-                SubTitle = FullPath,
+                SubTitle = "Win32 Ó¦ÓÃ³ÌÐò",
                 IcoPath = IcoPath,
                 ContextData = this,
                 Action = e =>
