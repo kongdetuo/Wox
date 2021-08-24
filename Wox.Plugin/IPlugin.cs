@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Wox.Plugin
 {
@@ -6,5 +7,10 @@ namespace Wox.Plugin
     {
         List<Result> Query(Query query);
         void Init(PluginInitContext context);
+    }
+
+    public interface IAsyncPlugin : IPlugin
+    {
+        Task<List<Result>> QueryAsync(Query query);
     }
 }

@@ -77,6 +77,7 @@ namespace Wox.ViewModel
             History = new ResultsViewModel(_settings);
             _selectedResults = Results;
 
+            this.SynchronizationContext = SynchronizationContext.Current;
             if (useUI)
             {
                 _translator = InternationalizationManager.Instance;
@@ -89,12 +90,11 @@ namespace Wox.ViewModel
 
             RegisterResultConsume();
 
-            var context = SynchronizationContext.Current;
             Observable.FromEventPattern<PropertyChangedEventArgs>(this, nameof(this.PropertyChanged))
                 .Select(p => p.EventArgs.PropertyName)
                 .Where(p => p == nameof(this.QueryText))
-                .Throttle(TimeSpan.FromMilliseconds(200))
-                .ObserveOn(context)
+                //.Throttle(TimeSpan.FromMilliseconds(50))
+                .ObserveOn(SynchronizationContext)
                 .Subscribe(p => Query());
         }
 
@@ -162,7 +162,6 @@ namespace Wox.ViewModel
                 };
             }
         }
-
 
         private void InitializeKeyCommands()
         {
@@ -300,6 +299,8 @@ namespace Wox.ViewModel
         public bool QueryTextCursorMovedToEnd { get; set; }
 
         private ResultsViewModel _selectedResults;
+        private SynchronizationContext SynchronizationContext;
+
         private ResultsViewModel SelectedResults
         {
             get { return _selectedResults; }
@@ -440,6 +441,7 @@ namespace Wox.ViewModel
                 History.AddResults(results, id);
             }
         }
+
         private void QueryResults()
         {
             if (_updateSource != null && !_updateSource.IsCancellationRequested)
@@ -454,37 +456,29 @@ namespace Wox.ViewModel
             _updateSource = source;
             var token = source.Token;
 
-            ProgressBarVisibility = Visibility.Hidden;
-
             var queryText = QueryText.Trim();
             var query = QueryBuilder.Build(queryText, PluginManager.NonGlobalPlugins);
             _lastQuery = query;
 
-
-            bool completed = false;
-            Wox.Core.Services.QueryService.Query(query)
-                .ObserveOn(ThreadPoolScheduler.Instance)
+            var showProgressTokenSource = new CancellationTokenSource();
+            Wox.Core.Services.QueryService.Query(query, token)
                 .Select(p => new ResultsForUpdate(p.Results, PluginManager.GetPluginForId(p.PluginID).Metadata, p.Query, token, null))
-                .ObserveOn(SynchronizationContext.Current)
+                .Buffer(TimeSpan.FromMilliseconds(50))
+                .Where(p => p.Count > 0)
+                .ObserveOn(SynchronizationContext)
                 .Subscribe(
-                    onNext: _resultsQueue.Add,
-                    onError: p =>
-                        completed = true,
+                    onNext: p => UpdateResultView(p.ToList()),
                     onCompleted: () =>
                     {
-                        completed = true;
+                        showProgressTokenSource.Cancel();
                         ProgressBarVisibility = Visibility.Hidden;
                     },
                     token);
 
-            Observable.Interval(TimeSpan.FromMilliseconds(200))
-                .ObserveOn(SynchronizationContext.Current)
-                .Take(1)
-                .Subscribe(p =>
-                {
-                    if (!completed)
-                        ProgressBarVisibility = Visibility.Visible;
-                }, token);
+            var source1 = CancellationTokenSource.CreateLinkedTokenSource(showProgressTokenSource.Token, token);
+            Observable.Timer(TimeSpan.FromMilliseconds(200))
+                .ObserveOn(SynchronizationContext)
+                .Subscribe(p => ProgressBarVisibility = Visibility.Visible, source1.Token);
         }
 
         private void Refresh()

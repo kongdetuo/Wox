@@ -18,29 +18,22 @@ namespace Wox.Core.Services
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        public static IObservable<PluginQueryResult> Query(Query query)
+        public static IObservable<PluginQueryResult> Query(Query query, System.Threading.CancellationToken token)
         {
             var plugins = PluginManager.AllPlugins;
-            if (query == null)
-            {
-                return plugins.ToObservable()
-                    .Select(p => new PluginQueryResult()
-                    {
-                        PluginID = p.Metadata.ID,
-                        Query = query,
-                        Results = new List<Result>()
-                    });
-            }
-            else
-            {
-                return plugins.ToObservable()
-                    .ObserveOn(ThreadPoolScheduler.Instance)
-                    .SelectMany(plugin => Observable.FromAsync(() => QueryForPluginAsync(plugin, query)));
-            }
+            return plugins.ToObservable()
+                .SelectMany(plugin => Observable.FromAsync(() => QueryForPluginAsync(plugin, query, token)));
         }
 
-        public static async Task<PluginQueryResult> QueryForPluginAsync(PluginPair pair, Query query)
+        public static async Task<PluginQueryResult> QueryForPluginAsync(PluginPair pair, Query query, System.Threading.CancellationToken t)
         {
+            if (query == null || t.IsCancellationRequested)
+                return new PluginQueryResult()
+                {
+                    PluginID = pair.Metadata.ID,
+                    Query = query,
+                    Results = new List<Result>()
+                };
             await Task.Yield();
             var results = PluginManager.QueryForPlugin(pair, query);
             return new PluginQueryResult()
