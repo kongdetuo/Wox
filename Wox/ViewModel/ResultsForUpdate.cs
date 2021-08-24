@@ -13,11 +13,12 @@ namespace Wox.ViewModel
         public List<Result> Results { get; }
 
         public PluginMetadata Metadata { get; }
+
         public string ID { get; }
 
         public Query Query { get; }
+
         public CancellationToken Token { get; }
-        public CountdownEvent Countdown { get; }
 
         public ResultsForUpdate(List<Result> results, string resultID, CancellationToken token)
         {
@@ -27,13 +28,12 @@ namespace Wox.ViewModel
         }
 
 
-        public ResultsForUpdate(List<Result> results, PluginMetadata metadata, Query query, CancellationToken token, CountdownEvent countdown)
+        public ResultsForUpdate(List<Result> results, PluginMetadata metadata, Query query, CancellationToken token)
         {
             Results = results;
             Metadata = metadata;
             Query = query;
             Token = token;
-            Countdown = countdown;
             ID = metadata.ID;
         }
 

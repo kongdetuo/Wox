@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Collections.Concurrent;
@@ -25,7 +23,6 @@ using Wox.Infrastructure.Storage;
 using Wox.Infrastructure.UserSettings;
 using Wox.Plugin;
 using Wox.Storage;
-using System.Reactive.Concurrency;
 
 namespace Wox.ViewModel
 {
@@ -33,7 +30,6 @@ namespace Wox.ViewModel
     {
         #region Private Fields
 
-        private Query _lastQuery;
         private string _queryTextBeforeLeaveResults;
 
         private readonly WoxJsonStorage<History> _historyItemsStorage;
@@ -43,7 +39,6 @@ namespace Wox.ViewModel
         private readonly History _history;
         private readonly UserSelectedRecord _userSelectedRecord;
         private readonly TopMostRecord _topMostRecord;
-        private BlockingCollection<ResultsForUpdate> _resultsQueue;
 
         private CancellationTokenSource _updateSource;
         private bool _saved;
@@ -61,7 +56,6 @@ namespace Wox.ViewModel
             _saved = false;
             _queryTextBeforeLeaveResults = "";
             _queryText = "";
-            _lastQuery = new Query();
 
             _settings = Settings.Instance;
 
@@ -82,85 +76,16 @@ namespace Wox.ViewModel
             {
                 _translator = InternationalizationManager.Instance;
                 InitializeKeyCommands();
-                RegisterResultsUpdatedEvent();
-
                 SetHotkey(_settings.Hotkey, OnHotkey);
                 SetCustomPluginHotkey();
             }
 
-            RegisterResultConsume();
-
             Observable.FromEventPattern<PropertyChangedEventArgs>(this, nameof(this.PropertyChanged))
                 .Select(p => p.EventArgs.PropertyName)
                 .Where(p => p == nameof(this.QueryText))
-                //.Throttle(TimeSpan.FromMilliseconds(50))
+                .Throttle(TimeSpan.FromMilliseconds(50))
                 .ObserveOn(SynchronizationContext)
                 .Subscribe(p => Query());
-        }
-
-        private void RegisterResultConsume()
-        {
-            _resultsQueue = new BlockingCollection<ResultsForUpdate>();
-            Task.Run(() =>
-            {
-                while (true)
-                {
-                    ResultsForUpdate first = _resultsQueue.Take();
-                    List<ResultsForUpdate> updates = new List<ResultsForUpdate>() { first };
-
-                    DateTime startTime = DateTime.Now;
-                    int timeout = 50;
-                    DateTime takeExpired = startTime.AddMilliseconds(timeout / 10);
-
-                    ResultsForUpdate tempUpdate;
-                    while (_resultsQueue.TryTake(out tempUpdate) && DateTime.Now < takeExpired)
-                    {
-                        updates.Add(tempUpdate);
-                    }
-
-
-                    UpdateResultView(updates);
-
-                    DateTime currentTime = DateTime.Now;
-                    Logger.WoxTrace($"start {startTime.Millisecond} end {currentTime.Millisecond}");
-                    foreach (var update in updates)
-                    {
-                        Logger.WoxTrace($"update name:{update.Metadata.Name} count:{update.Results.Count} query:{update.Query} token:{update.Token.IsCancellationRequested}");
-                        update.Countdown?.Signal();
-                    }
-                    DateTime viewExpired = startTime.AddMilliseconds(timeout);
-                    if (currentTime < viewExpired)
-                    {
-                        TimeSpan span = viewExpired - currentTime;
-                        Logger.WoxTrace($"expired { viewExpired.Millisecond} span {span.TotalMilliseconds}");
-                        Thread.Sleep(span);
-                    }
-                }
-            }).ContinueWith(ErrorReporting.UnhandledExceptionHandleTask, TaskContinuationOptions.OnlyOnFaulted);
-        }
-
-        private void RegisterResultsUpdatedEvent()
-        {
-            foreach (var pair in PluginManager.GetPluginsForInterface<IResultUpdated>())
-            {
-                var plugin = (IResultUpdated)pair.Plugin;
-                plugin.ResultsUpdated += (s, e) =>
-                {
-                    if (!_updateSource.IsCancellationRequested)
-                    {
-                        CancellationToken token = _updateSource.Token;
-                        // todo async update don't need count down
-                        // init with 1 since every ResultsForUpdate will be countdown.signal()
-                        CountdownEvent countdown = new CountdownEvent(1);
-                        Task.Run(() =>
-                        {
-                            if (token.IsCancellationRequested) { return; }
-                            PluginManager.UpdatePluginMetadata(e.Results, pair.Metadata, e.Query);
-                            _resultsQueue.Add(new ResultsForUpdate(e.Results, pair.Metadata, e.Query, token, countdown));
-                        }, token);
-                    }
-                };
-            }
         }
 
         private void InitializeKeyCommands()
@@ -456,13 +381,25 @@ namespace Wox.ViewModel
             _updateSource = source;
             var token = source.Token;
 
-            var queryText = QueryText.Trim();
-            var query = QueryBuilder.Build(queryText, PluginManager.NonGlobalPlugins);
-            _lastQuery = query;
+            var query = QueryBuilder.Build(QueryText.Trim(), PluginManager.NonGlobalPlugins);
 
-            var showProgressTokenSource = new CancellationTokenSource();
+            foreach (var pair in PluginManager.GetPluginsForInterface<IResultUpdated>())
+            {
+                Observable.FromEventPattern<ResultUpdatedEventArgs>(pair.Plugin, nameof(IResultUpdated.ResultsUpdated))
+                    .Select(p => p.EventArgs)
+                    .Where(p => p.Query == query)
+                    .Select(e =>
+                    {
+                        PluginManager.UpdatePluginMetadata(e.Results, pair.Metadata, e.Query);
+                        return new ResultsForUpdate(e.Results, pair.Metadata, e.Query, token);
+                    })
+                    .ObserveOn(this.SynchronizationContext)
+                    .Subscribe(p => UpdateResultView(new List<ResultsForUpdate>() { p }), token);
+            }
+
+            var showProgressTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
             Wox.Core.Services.QueryService.Query(query, token)
-                .Select(p => new ResultsForUpdate(p.Results, PluginManager.GetPluginForId(p.PluginID).Metadata, p.Query, token, null))
+                .Select(p => new ResultsForUpdate(p.Results, PluginManager.GetPluginForId(p.PluginID).Metadata, p.Query, token))
                 .Buffer(TimeSpan.FromMilliseconds(50))
                 .Where(p => p.Count > 0)
                 .ObserveOn(SynchronizationContext)
@@ -475,10 +412,10 @@ namespace Wox.ViewModel
                     },
                     token);
 
-            var source1 = CancellationTokenSource.CreateLinkedTokenSource(showProgressTokenSource.Token, token);
             Observable.Timer(TimeSpan.FromMilliseconds(200))
                 .ObserveOn(SynchronizationContext)
-                .Subscribe(p => ProgressBarVisibility = Visibility.Visible, source1.Token);
+                .Subscribe(p => ProgressBarVisibility = Visibility.Visible, showProgressTokenSource.Token);
+
         }
 
         private void Refresh()
@@ -680,10 +617,9 @@ namespace Wox.ViewModel
 
         public void UpdateResultView(List<Result> list, PluginMetadata metadata, Query originQuery, CancellationToken token)
         {
-            CountdownEvent countdown = new CountdownEvent(1);
             List<ResultsForUpdate> updates = new List<ResultsForUpdate>()
             {
-                new ResultsForUpdate(list, metadata, originQuery, token, countdown)
+                new ResultsForUpdate(list, metadata, originQuery, token)
             };
             UpdateResultView(updates);
         }
