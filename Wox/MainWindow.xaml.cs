@@ -281,34 +281,6 @@ namespace Wox
             return top;
         }
 
-        /// <summary>
-        /// Register up and down key
-        /// todo: any way to put this in xaml ?
-        /// </summary>
-        private void OnKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Down)
-            {
-                _viewModel.SelectNextItemCommand.Execute(null);
-                e.Handled = true;
-            }
-            else if (e.Key == Key.Up)
-            {
-                _viewModel.SelectPrevItemCommand.Execute(null);
-                e.Handled = true;
-            }
-            else if (e.Key == Key.PageDown)
-            {
-                _viewModel.SelectNextPageCommand.Execute(null);
-                e.Handled = true;
-            }
-            else if (e.Key == Key.PageUp)
-            {
-                _viewModel.SelectPrevPageCommand.Execute(null);
-                e.Handled = true;
-            }
-        }
-
         private void OnTextChanged(object sender, TextChangedEventArgs e)
         {
             if (_viewModel.QueryTextCursorMovedToEnd)

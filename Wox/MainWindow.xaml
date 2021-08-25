@@ -24,7 +24,6 @@
         Drop="OnDrop"
         LocationChanged="OnLocationChanged"
         Deactivated="OnDeactivated"
-        PreviewKeyDown="OnKeyDown"
         Visibility="{Binding MainWindowVisibility, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
         d:DataContext="{d:DesignInstance vm:MainViewModel}">
     <Window.Resources>
@@ -88,6 +87,12 @@
                             <MenuItem Header="Settings" Click="OnContextMenusForSettingsClick" />
                         </ContextMenu>
                     </TextBox.ContextMenu>
+                    <TextBox.InputBindings>
+                        <KeyBinding Key="Up" Command="{Binding SelectPrevItemCommand}"/>
+                        <KeyBinding Key="Down" Command="{Binding SelectNextItemCommand}"/>
+                        <KeyBinding Key="PageUp" Command="{Binding SelectPrevPageCommand}"/>
+                        <KeyBinding Key="PageDown" Command="{Binding SelectNextPageCommand}"/>
+                    </TextBox.InputBindings>
                 </TextBox>
             </Grid>
             <Line x:Name="ProgressBar" HorizontalAlignment="Right"
