@@ -8,8 +8,6 @@ namespace Wox.Plugin
 
     public class Result : BaseModel
     {
-        private string _icoPath;
-
         public string Title { get; set; }
 
         public string SubTitle { get; set; }
@@ -73,21 +71,6 @@ namespace Wox.Plugin
         public override string ToString()
         {
             return Title + SubTitle;
-        }
-
-
-        /// <summary>
-        /// Context menus associate with this result
-        /// </summary>
-        [Obsolete("Use IContextMenu instead")]
-        public List<Result> ContextMenu { get; set; }
-
-        [Obsolete("Use Object initializer instead")]
-        public Result(string Title, string IcoPath, string SubTitle = null)
-        {
-            this.Title = Title;
-            this.IcoPath = IcoPath;
-            this.SubTitle = SubTitle;
         }
 
         public Result() { }

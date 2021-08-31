@@ -95,13 +95,5 @@ namespace Wox.Plugin
 
         public override string ToString() => RawQuery;
 
-        [Obsolete("Use ActionKeyword, this property will be removed in v1.4.0")]
-        public string ActionName { get;  set; }
-
-        [Obsolete("Use Search instead, this property will be removed in v1.4.0")]
-        public List<string> ActionParameters { get;  set; }
-
-        [Obsolete("Use Search instead, this method will be removed in v1.4.0")]
-        public string GetAllRemainingParameter() => Search;
     }
 }

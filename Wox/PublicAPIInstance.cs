@@ -42,16 +42,6 @@ namespace Wox
             _mainVM.ChangeQueryText(query);
         }
 
-        public void ChangeQueryText(string query, bool selectAll = false)
-        {
-            _mainVM.ChangeQueryText(query);
-        }
-
-        [Obsolete]
-        public void CloseApp()
-        {
-            Application.Current.MainWindow.Close();
-        }
 
         public void RestarApp()
         {
@@ -82,17 +72,6 @@ namespace Wox
             PluginManager.ReloadData();
         }
 
-        [Obsolete]
-        public void HideApp()
-        {
-            _mainVM.MainWindowVisibility = Visibility.Hidden;
-        }
-
-        [Obsolete]
-        public void ShowApp()
-        {
-            _mainVM.MainWindowVisibility = Visibility.Visible;
-        }
 
         public void ShowMsg(string title, string subTitle = "", string iconPath = "")
         {
@@ -116,16 +95,6 @@ namespace Wox
             });
         }
 
-        public void StartLoadingBar()
-        {
-            _mainVM.ProgressBarVisibility = Visibility.Visible;
-        }
-
-        public void StopLoadingBar()
-        {
-            _mainVM.ProgressBarVisibility = Visibility.Hidden;
-        }
-
         public void InstallPlugin(string path)
         {
             Application.Current.Dispatcher.Invoke(() => PluginManager.InstallPlugin(path));
@@ -142,23 +111,6 @@ namespace Wox
         }
 
         public event WoxGlobalKeyboardEventHandler GlobalKeyboardEvent;
-
-        [Obsolete("This will be removed in Wox 1.4")]
-        public void PushResults(Query query, PluginMetadata plugin, List<Result> results)
-        {
-            results.ForEach(o =>
-            {
-                o.PluginDirectory = plugin.PluginDirectory;
-                o.PluginID = plugin.ID;
-                o.OriginQuery = query;
-            });
-            Task.Run(() =>
-            {
-
-                var t = new CancellationTokenSource().Token;
-                _mainVM.UpdateResultView(results, plugin, query, t);
-            });
-        }
 
         #endregion
 

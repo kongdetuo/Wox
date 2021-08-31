@@ -19,30 +19,25 @@ namespace Wox.Core.Plugin
             var rawQuery = string.Join(Query.TermSeperater, terms);
             string actionKeyword, search;
             string possibleActionKeyword = terms[0];
-            List<string> actionParameters;
+
             if (nonGlobalPlugins.TryGetValue(possibleActionKeyword, out var pluginPair) && !pluginPair.Metadata.Disabled)
             { // use non global plugin for query
                 actionKeyword = possibleActionKeyword;
-                actionParameters = terms.Skip(1).ToList();
+                var actionParameters = terms.Skip(1).ToList();
                 search = actionParameters.Count > 0 ? rawQuery.Substring(actionKeyword.Length + 1) : string.Empty;
             }
             else
             { // non action keyword
                 actionKeyword = string.Empty;
-                actionParameters = terms.ToList();
                 search = rawQuery;
             }
 
             var query = new Query
             {
-
                 Terms = terms,
                 RawQuery = rawQuery,
                 ActionKeyword = actionKeyword,
                 Search = search,
-                // Obsolete value initialisation
-                ActionName = actionKeyword,
-                ActionParameters = actionParameters
             };
 
             return query;

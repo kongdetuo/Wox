@@ -9,15 +9,6 @@ namespace Wox.Plugin
     public interface IPublicAPI
     {
         /// <summary>
-        /// Push result to query box
-        /// </summary>
-        /// <param name="query"></param>
-        /// <param name="plugin"></param>
-        /// <param name="results"></param>
-        [Obsolete("This method will be removed in Wox 1.4")]
-        void PushResults(Query query, PluginMetadata plugin, List<Result> results);
-
-        /// <summary>
         /// Change Wox query
         /// </summary>
         /// <param name="query">query text</param>
@@ -28,34 +19,9 @@ namespace Wox.Plugin
         void ChangeQuery(string query, bool requery = false);
 
         /// <summary>
-        /// Just change the query text, this won't raise search
-        /// </summary>
-        /// <param name="query"></param>
-        [Obsolete]
-        void ChangeQueryText(string query, bool selectAll = false);
-
-        /// <summary>
-        /// Close Wox
-        /// </summary>
-        [Obsolete]
-        void CloseApp();
-
-        /// <summary>
         /// Restart Wox
         /// </summary>
         void RestarApp();
-
-        /// <summary>
-        /// Hide Wox
-        /// </summary>
-        [Obsolete]
-        void HideApp();
-
-        /// <summary>
-        /// Show Wox
-        /// </summary>
-        [Obsolete]
-        void ShowApp();
 
         /// <summary>
         /// Save all Wox settings
@@ -96,18 +62,6 @@ namespace Wox.Plugin
         /// Open setting dialog
         /// </summary>
         void OpenSettingDialog();
-
-        /// <summary>
-        /// Show loading animation
-        /// </summary>
-        [Obsolete("automatically start")]
-        void StartLoadingBar();
-
-        /// <summary>
-        /// Stop loading animation
-        /// </summary>
-        [Obsolete("automatically stop")]
-        void StopLoadingBar();
 
         /// <summary>
         /// Install Wox plugin
