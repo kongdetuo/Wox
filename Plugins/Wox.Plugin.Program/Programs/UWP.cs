@@ -208,7 +208,7 @@ namespace Wox.Plugin.Program.Programs
         public static IEnumerable<UWP> Packages()
         {
             var user = WindowsIdentity.GetCurrent().User;
-            if (user == null)
+            //if (user == null)
                 return Enumerable.Empty<UWP>();
             PackageManager packageManager = new PackageManager();
             var uwps = new List<UWP>();

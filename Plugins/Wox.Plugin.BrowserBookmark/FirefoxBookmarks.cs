@@ -27,7 +27,7 @@ namespace Wox.Plugin.BrowserBookmark
             var bookmarList = new List<Bookmark>();
 
             // create the connection string and init the connection
-
+            //return new List<Bookmark>();
             string dbPath = $"Data Source={PlacesPath}";
             using (var dbConnection = new SqliteConnection(dbPath))
             {

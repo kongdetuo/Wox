@@ -80,12 +80,15 @@ namespace Wox.ViewModel
                 SetCustomPluginHotkey();
             }
 
+
             Observable.FromEventPattern<PropertyChangedEventArgs>(this, nameof(this.PropertyChanged))
                 .Select(p => p.EventArgs.PropertyName)
                 .Where(p => p == nameof(this.QueryText))
                 .Throttle(TimeSpan.FromMilliseconds(50))
                 .ObserveOn(SynchronizationContext)
                 .Subscribe(p => Query());
+
+
         }
 
         private void InitializeKeyCommands()
@@ -206,7 +209,6 @@ namespace Wox.ViewModel
             set
             {
                 _queryText = value;
-                //Query();
             }
         }
 
@@ -382,7 +384,7 @@ namespace Wox.ViewModel
             var token = source.Token;
 
             var query = QueryBuilder.Build(QueryText.Trim(), PluginManager.NonGlobalPlugins);
-
+            var st1 = System.Diagnostics.Stopwatch.StartNew();
             foreach (var pair in PluginManager.GetPluginsForInterface<IResultUpdated>())
             {
                 Observable.FromEventPattern<ResultUpdatedEventArgs>(pair.Plugin, nameof(IResultUpdated.ResultsUpdated))
@@ -404,7 +406,7 @@ namespace Wox.ViewModel
                 .Where(p => p.Count > 0)
                 .ObserveOn(SynchronizationContext)
                 .Subscribe(
-                    onNext: p => UpdateResultView(p.ToList()),
+                    onNext: p =>  UpdateResultView(p.ToList()),
                     onCompleted: () =>
                     {
                         showProgressTokenSource.Cancel();
@@ -415,7 +417,6 @@ namespace Wox.ViewModel
             Observable.Timer(TimeSpan.FromMilliseconds(200))
                 .ObserveOn(SynchronizationContext)
                 .Subscribe(p => ProgressBarVisibility = Visibility.Visible, showProgressTokenSource.Token);
-
         }
 
         private void Refresh()

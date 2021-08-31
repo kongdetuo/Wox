@@ -31,7 +31,7 @@ namespace Wox.Infrastructure
             _cache = new MemoryCache("StringMatcherCache", config);
         }
 
-        public static StringMatcher Instance { get; internal set; }
+        public static StringMatcher Instance { get;  set; }
 
         public static MatchResult FuzzySearch(string query, string stringToCompare)
         {

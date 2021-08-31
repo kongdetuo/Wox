@@ -1,11 +1,9 @@
-﻿using System.Runtime.Remoting.Contexts;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace Wox
 {
-    [Synchronization]
     public partial class ResultListBox
     {
         private Point _lastpos;

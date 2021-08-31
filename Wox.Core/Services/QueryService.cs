@@ -28,12 +28,15 @@ namespace Wox.Core.Services
         public static async Task<PluginQueryResult> QueryForPluginAsync(PluginPair pair, Query query, System.Threading.CancellationToken t)
         {
             if (query == null || t.IsCancellationRequested)
+            {
+
                 return new PluginQueryResult()
                 {
                     PluginID = pair.Metadata.ID,
                     Query = query,
                     Results = new List<Result>()
                 };
+            }
             await Task.Yield();
             var results = PluginManager.QueryForPlugin(pair, query);
             return new PluginQueryResult()

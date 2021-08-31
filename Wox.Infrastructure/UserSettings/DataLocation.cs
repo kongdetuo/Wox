@@ -15,18 +15,28 @@ namespace Wox.Infrastructure.UserSettings
         public static string RoamingDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constant.Wox);
         public static string DataDirectory()
         {
-            if (PortableDataLocationInUse())
+            try
+            {
+                if (PortableDataLocationInUse())
                 return PortableDataPath;
 
             return RoamingDataPath;
+            }
+            catch (System.Exception)
+            {
+                return null;
+            }
         }
 
         public static bool PortableDataLocationInUse()
         {
-            if (Directory.Exists(PortableDataPath) && !File.Exists(DeletionIndicatorFile))
-                return true;
 
-            return false;
+                if (Directory.Exists(PortableDataPath) && !File.Exists(DeletionIndicatorFile))
+                    return true;
+
+                return false;
+
+
         }
 
         public static readonly string PluginsDirectory = Path.Combine(DataDirectory(), Constant.Plugins);

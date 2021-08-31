@@ -33,22 +33,28 @@ namespace Wox.Core.Plugin
         {
             var plugins = new List<PluginPair>();
             var metadatas = source.Where(o => o.Language.ToUpper() == AllowedLanguage.CSharp);
+            metadatas.ToList().GroupBy(p => p.ExecuteFilePath).ToList();
 
-            Parallel.ForEach(metadatas, metadata =>
+            metadatas.ToList().ForEach(metadata =>
+            //Parallel.ForEach(metadatas, metadata =>
             {
                 var milliseconds = Logger.StopWatchDebug($"Constructor init cost for {metadata.Name}", () =>
                 {
 
 #if DEBUG
-                    var assembly = Assembly.Load(AssemblyName.GetAssemblyName(metadata.ExecuteFilePath));
+
+                    var context = new PluginLoadContext(metadata.ExecuteFilePath);
+                    var assembly = context.LoadFromAssemblyName(new AssemblyName(Path.GetFileNameWithoutExtension(metadata.ExecuteFilePath)));
+
+                    //var assembly = Assembly.LoadFrom(metadata.ExecuteFilePath);
                     var types = assembly.GetTypes();
-                    var type = types.First(o => o.IsClass && !o.IsAbstract && o.GetInterfaces().Contains(typeof(IPlugin)));
+                    var type = types.First(type=> typeof(IPlugin).IsAssignableFrom(type));
                     var plugin = (IPlugin)Activator.CreateInstance(type);
 #else
                     Assembly assembly;
                     try
                     {
-                        assembly = Assembly.Load(AssemblyName.GetAssemblyName(metadata.ExecuteFilePath));
+                        assembly = Assembly.LoadFrom(metadata.ExecuteFilePath);
                     }
                     catch (Exception e)
                     {

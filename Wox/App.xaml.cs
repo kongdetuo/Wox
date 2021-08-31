@@ -80,7 +80,7 @@ namespace Wox
 
         private void OnStartup(object sender, StartupEventArgs e)
         {
-            Logger.StopWatchNormal("Startup cost", () =>
+            var time = Logger.StopWatchNormal("Startup cost", () =>
             {
                 RegisterAppDomainExceptions();
                 RegisterDispatcherUnhandledException();
@@ -130,6 +130,7 @@ namespace Wox
                 Logger.WoxInfo($"SDK Info: {ExceptionFormatter.SDKInfo()}");
                 Logger.WoxInfo("End Wox startup ----------------------------------------------------  ");
             });
+            System.Windows.Forms.MessageBox.Show(time.ToString());
         }
 
         private static void InsertWoxLanguageIntoLog()
@@ -197,9 +198,9 @@ namespace Wox
             Logger.WoxInfo("Wox End Displose");
         }
 
-        public void OnSecondAppStarted(IList<string> args)
+        public void OnSecondAppStarted()
         {
-            ParseCommandLineArgs(args);
+            //ParseCommandLineArgs(args);
             Current.MainWindow.Visibility = Visibility.Visible;
         }
     }

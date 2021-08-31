@@ -3,20 +3,18 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.IO.Pipes;
 using System.Runtime.InteropServices;
-using System.Runtime.Remoting;
-using System.Runtime.Remoting.Channels;
-using System.Runtime.Remoting.Channels.Ipc;
-using System.Runtime.Serialization.Formatters;
 using System.Security;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 
 // http://blogs.microsoft.co.il/arik/2010/05/28/wpf-single-instance-application/
 // modified to allow single instace restart
-namespace Wox.Helper 
+namespace Wox.Helper
 {
     internal enum WM
     {
@@ -182,12 +180,12 @@ namespace Wox.Helper
             }
         }
 
-    } 
+    }
 
-    public interface ISingleInstanceApp 
-    { 
-        void OnSecondAppStarted(IList<string> args);
-    } 
+    public interface ISingleInstanceApp
+    {
+        void OnSecondAppStarted();
+    }
 
     /// <summary>
     /// This class checks to make sure that only one instance of 
@@ -200,9 +198,9 @@ namespace Wox.Helper
     /// running as Administrator, can activate it with command line arguments.
     /// For most apps, this will not be much of an issue.
     /// </remarks>
-    public static class SingleInstance<TApplication>  
-                where   TApplication: Application ,  ISingleInstanceApp 
-                                    
+    public static class SingleInstance<TApplication>
+                where TApplication : Application, ISingleInstanceApp
+
     {
         #region Private Fields
 
@@ -217,24 +215,9 @@ namespace Wox.Helper
         private const string ChannelNameSuffix = "SingeInstanceIPCChannel";
 
         /// <summary>
-        /// Remote service name.
-        /// </summary>
-        private const string RemoteServiceName = "SingleInstanceApplicationService";
-
-        /// <summary>
-        /// IPC protocol used (string).
-        /// </summary>
-        private const string IpcProtocol = "ipc://";
-
-        /// <summary>
         /// Application mutex.
         /// </summary>
         internal static Mutex singleInstanceMutex;
-
-        /// <summary>
-        /// IPC channel for communications.
-        /// </summary>
-        private static IpcServerChannel channel;
 
         /// <summary>
         /// List of command line arguments for the application.
@@ -262,7 +245,7 @@ namespace Wox.Helper
         /// If not, activates the first instance.
         /// </summary>
         /// <returns>True if this is the first instance of the application.</returns>
-        public static bool InitializeAsFirstInstance( string uniqueName )
+        public static bool InitializeAsFirstInstance(string uniqueName)
         {
             commandLineArgs = GetCommandLineArgs(uniqueName);
             commandLineArgs.RemoveAt(0);
@@ -277,12 +260,12 @@ namespace Wox.Helper
             singleInstanceMutex = new Mutex(true, applicationIdentifier, out firstInstance);
             if (firstInstance)
             {
-                CreateRemoteService(channelName);
+                _ = CreateRemoteService(channelName);
                 return true;
             }
             else
             {
-                SignalFirstInstance(channelName, commandLineArgs);
+                _ = SignalFirstInstance(channelName);
                 return false;
             }
         }
@@ -293,12 +276,6 @@ namespace Wox.Helper
         public static void Cleanup()
         {
             singleInstanceMutex?.ReleaseMutex();
-
-            if (channel != null)
-            {
-                ChannelServices.UnregisterChannel(channel);
-                channel = null;
-            }
         }
 
         #endregion
@@ -309,41 +286,39 @@ namespace Wox.Helper
         /// Gets command line args - for ClickOnce deployed applications, command line args may not be passed directly, they have to be retrieved.
         /// </summary>
         /// <returns>List of command line arg strings.</returns>
-        private static IList<string> GetCommandLineArgs( string uniqueApplicationName )
+        private static IList<string> GetCommandLineArgs(string uniqueApplicationName)
         {
             string[] args = null;
-            if (AppDomain.CurrentDomain.ActivationContext == null)
-            {
-                // The application was not clickonce deployed, get args from standard API's
-                args = Environment.GetCommandLineArgs();
-            }
-            else
-            {
-                // The application was clickonce deployed
-                // Clickonce deployed apps cannot recieve traditional commandline arguments
-                // As a workaround commandline arguments can be written to a shared location before 
-                // the app is launched and the app can obtain its commandline arguments from the 
-                // shared location               
-                string appFolderPath = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), uniqueApplicationName);
 
-                string cmdLinePath = Path.Combine(appFolderPath, "cmdline.txt");
-                if (File.Exists(cmdLinePath))
+            // The application was not clickonce deployed, get args from standard API's
+            args = Environment.GetCommandLineArgs();
+
+
+            // The application was clickonce deployed
+            // Clickonce deployed apps cannot recieve traditional commandline arguments
+            // As a workaround commandline arguments can be written to a shared location before 
+            // the app is launched and the app can obtain its commandline arguments from the 
+            // shared location               
+            string appFolderPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), uniqueApplicationName);
+
+            string cmdLinePath = Path.Combine(appFolderPath, "cmdline.txt");
+            if (File.Exists(cmdLinePath))
+            {
+                try
                 {
-                    try
+                    using (TextReader reader = new StreamReader(cmdLinePath, Encoding.Unicode))
                     {
-                        using (TextReader reader = new StreamReader(cmdLinePath, Encoding.Unicode))
-                        {
-                            args = NativeMethods.CommandLineToArgvW(reader.ReadToEnd());
-                        }
+                        args = NativeMethods.CommandLineToArgvW(reader.ReadToEnd());
+                    }
 
-                        File.Delete(cmdLinePath);
-                    }
-                    catch (IOException)
-                    {
-                    }
+                    File.Delete(cmdLinePath);
+                }
+                catch (IOException)
+                {
                 }
             }
+
 
             if (args == null)
             {
@@ -354,28 +329,27 @@ namespace Wox.Helper
         }
 
         /// <summary>
-        /// Creates a remote service for communication.
+        /// Creates a remote server pipe for communication. 
+        /// Once receives signal from client, will activate first instance.
         /// </summary>
         /// <param name="channelName">Application's IPC channel name.</param>
-        private static void CreateRemoteService(string channelName)
+        private static async Task CreateRemoteService(string channelName)
         {
-            BinaryServerFormatterSinkProvider serverProvider = new BinaryServerFormatterSinkProvider();
-            serverProvider.TypeFilterLevel = TypeFilterLevel.Full;
-            IDictionary props = new Dictionary<string, string>();
-
-            props["name"] = channelName;
-            props["portName"] = channelName;
-            props["exclusiveAddressUse"] = "false";
-
-            // Create the IPC Server channel with the channel properties
-            channel = new IpcServerChannel(props, serverProvider);
-
-            // Register the channel with the channel services
-            ChannelServices.RegisterChannel(channel, true);
-
-            // Expose the remote service with the REMOTE_SERVICE_NAME
-            IPCRemoteService remoteService = new IPCRemoteService();
-            RemotingServices.Marshal(remoteService, RemoteServiceName);
+            using (NamedPipeServerStream pipeServer = new NamedPipeServerStream(channelName, PipeDirection.In))
+            {
+                while (true)
+                {
+                    // Wait for connection to the pipe
+                    await pipeServer.WaitForConnectionAsync();
+                    if (Application.Current != null)
+                    {
+                        // Do an asynchronous call to ActivateFirstInstance function
+                        Application.Current.Dispatcher.Invoke(ActivateFirstInstance);
+                    }
+                    // Disconect client
+                    pipeServer.Disconnect();
+                }
+            }
         }
 
         /// <summary>
@@ -387,23 +361,12 @@ namespace Wox.Helper
         /// <param name="args">
         /// Command line arguments for the second instance, passed to the first instance to take appropriate action.
         /// </param>
-        private static void SignalFirstInstance(string channelName, IList<string> args)
+        private static async Task SignalFirstInstance(string channelName)
         {
-            IpcClientChannel secondInstanceChannel = new IpcClientChannel();
-            ChannelServices.RegisterChannel(secondInstanceChannel, true);
-
-            string remotingServiceUrl = IpcProtocol + channelName + "/" + RemoteServiceName;
-
-            // Obtain a reference to the remoting service exposed by the server i.e the first instance of the application
-            IPCRemoteService firstInstanceRemoteServiceReference = (IPCRemoteService)RemotingServices.Connect(typeof(IPCRemoteService), remotingServiceUrl);
-
-            // Check that the remote service exists, in some cases the first instance may not yet have created one, in which case
-            // the second instance should just exit
-            if (firstInstanceRemoteServiceReference != null)
+            using (NamedPipeClientStream pipeClient = new NamedPipeClientStream(".", channelName, PipeDirection.Out))
             {
-                // Invoke a method of the remote service exposed by the first instance passing on the command line
-                // arguments and causing the first instance to activate itself
-                firstInstanceRemoteServiceReference.InvokeFirstInstance(args);
+                // Connect to the available pipe
+                await pipeClient.ConnectAsync(0);
             }
         }
 
@@ -414,9 +377,7 @@ namespace Wox.Helper
         /// <returns>Always null.</returns>
         private static object ActivateFirstInstanceCallback(object arg)
         {
-            // Get command line args to be passed to first instance
-            IList<string> args = arg as IList<string>;
-            ActivateFirstInstance(args);
+            ActivateFirstInstance();
             return null;
         }
 
@@ -424,7 +385,7 @@ namespace Wox.Helper
         /// Activates the first instance of the application with arguments from a second instance.
         /// </summary>
         /// <param name="args">List of arguments to supply the first instance of the application.</param>
-        private static void ActivateFirstInstance(IList<string> args)
+        private static void ActivateFirstInstance()
         {
             // Set main window state and process command line args
             if (Application.Current == null)
@@ -432,7 +393,7 @@ namespace Wox.Helper
                 return;
             }
 
-            ((TApplication)Application.Current).OnSecondAppStarted(args);
+            ((TApplication)Application.Current).OnSecondAppStarted();
         }
 
         #endregion

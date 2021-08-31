@@ -12,18 +12,19 @@ namespace HelloWorldCSharp
     {
         public List<Result> Query(Query query)
         {
+            System.Reactive.Linq.Observable.Return(1);
             var result = new Result
             {
                 Title = "Hello World from CSharp",
                 SubTitle = $"Query: {query.Search}",
                 IcoPath = Path.Combine("Images", "app.png")
             };
-            return new List<Result> {result};
+            return new List<Result> { result };
         }
 
         public void Init(PluginInitContext context)
         {
-            
+
         }
-    }
+}
 }

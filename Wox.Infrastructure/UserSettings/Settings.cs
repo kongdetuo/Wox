@@ -50,7 +50,7 @@ namespace Wox.Infrastructure.UserSettings
         /// </summary>
         public bool ShouldUsePinyin { get; set; } = false;
 
-        internal StringMatcher.SearchPrecisionScore QuerySearchPrecision { get; private set; } = StringMatcher.SearchPrecisionScore.Regular;
+        public StringMatcher.SearchPrecisionScore QuerySearchPrecision { get; private set; } = StringMatcher.SearchPrecisionScore.Regular;
         private static readonly NLog.Logger Logger = LogManager.GetCurrentClassLogger();
 
         [JsonIgnore]
