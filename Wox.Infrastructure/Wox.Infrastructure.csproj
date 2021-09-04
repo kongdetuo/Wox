@@ -39,12 +39,7 @@
     <PackageReference Include="Sentry">
       <Version>2.1.1</Version>
     </PackageReference>
-    <PackageReference Include="ToolGood.Words">
-      <Version>3.0.1.2</Version>
-    </PackageReference>
-    <PackageReference Include="Microsoft.DotNet.UpgradeAssistant.Extensions.Default.Analyzers" Version="0.2.241603">
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
+    <PackageReference Include="ToolGood.Words.Pinyin" Version="3.0.2.6" />
   </ItemGroup>
   <PropertyGroup />
 </Project>

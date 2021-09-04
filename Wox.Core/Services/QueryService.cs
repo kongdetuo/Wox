@@ -20,16 +20,16 @@ namespace Wox.Core.Services
 
         public static IObservable<PluginQueryResult> Query(Query query, System.Threading.CancellationToken token)
         {
-            var plugins = PluginManager.AllPlugins;
+            var plugins = PluginManager.AllPlugins.Where(p=>p.Metadata.Name.Contains("程序"));
             return plugins.ToObservable()
+                //.ObserveOn(ThreadPoolScheduler.Instance)
                 .SelectMany(plugin => Observable.FromAsync(() => QueryForPluginAsync(plugin, query, token)));
         }
 
         public static async Task<PluginQueryResult> QueryForPluginAsync(PluginPair pair, Query query, System.Threading.CancellationToken t)
         {
-            if (query == null || t.IsCancellationRequested)
+            if (query == null || t.IsCancellationRequested || pair.Metadata.Disabled)
             {
-
                 return new PluginQueryResult()
                 {
                     PluginID = pair.Metadata.ID,
@@ -46,7 +46,6 @@ namespace Wox.Core.Services
                 Results = results,
             };
         }
-
     }
 
     public class PluginQueryResult

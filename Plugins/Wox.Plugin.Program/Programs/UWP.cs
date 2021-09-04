@@ -8,11 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using AppxPackaing;
-using Shell;
 using Wox.Infrastructure;
 using Wox.Infrastructure.Logger;
-using IStream = AppxPackaing.IStream;
 using Rect = System.Windows.Rect;
 using NLog;
 using System.Collections.Concurrent;
@@ -22,6 +19,7 @@ using Windows.Management.Deployment;
 using System.Security.Principal;
 using Windows.Foundation.Metadata;
 using Windows.ApplicationModel;
+using Shell;
 
 namespace Wox.Plugin.Program.Programs
 {
@@ -209,9 +207,12 @@ namespace Wox.Plugin.Program.Programs
         {
             var user = WindowsIdentity.GetCurrent().User;
             //if (user == null)
-                return Enumerable.Empty<UWP>();
-            PackageManager packageManager = new PackageManager();
+            PackageManager packageManager =  new PackageManager();
+
+                
             var uwps = new List<UWP>();
+            if (packageManager == null)
+                return uwps;
             foreach (var package in packageManager.FindPackagesForUser(user.Value).Where(p => !p.IsFramework))
             {
                 var path = GetInstallPath(package);
@@ -530,25 +531,6 @@ namespace Wox.Plugin.Program.Programs
                 }
             }
 
-            internal string LogoUriFromManifest(IAppxManifestApplication app)
-            {
-                var logoKeyFromVersion = new Dictionary<PackageVersion, string>
-                {
-                    { PackageVersion.Windows10, "Square44x44Logo" },
-                    { PackageVersion.Windows81, "Square30x30Logo" },
-                    { PackageVersion.Windows8, "SmallLogo" },
-                };
-                if (logoKeyFromVersion.ContainsKey(Package.Version))
-                {
-                    var key = logoKeyFromVersion[Package.Version];
-                    var logoUri = app.GetStringValue(key);
-                    return logoUri;
-                }
-                else
-                {
-                    return string.Empty;
-                }
-            }
 
             public ImageSource Logo()
             {
@@ -655,9 +637,6 @@ namespace Wox.Plugin.Program.Programs
             Ok = 0x0000,
         }
 
-        [DllImport("shlwapi.dll", CharSet = CharSet.Unicode)]
-        private static extern Hresult SHCreateStreamOnFileEx(string fileName, Stgm grfMode, uint attributes, bool create,
-            IStream reserved, out IStream stream);
 
         [DllImport("shlwapi.dll", CharSet = CharSet.Unicode)]
         private static extern Hresult SHLoadIndirectString(string pszSource, StringBuilder pszOutBuf, uint cchOutBuf,

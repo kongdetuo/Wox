@@ -1,97 +1,94 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net6.0-windows10.0.19041.0</TargetFramework>
-    <OutputType>Library</OutputType>
-    <RootNamespace>Wox.Plugin.Caculator</RootNamespace>
-    <AssemblyName>Wox.Plugin.Caculator</AssemblyName>
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
-    <UseWPF>true</UseWPF>
-    <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
-	  <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-	  <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-	  <EnableDynamicLoading>true</EnableDynamicLoading>
-	  <Platforms>AnyCPU;x64</Platforms>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <OutputPath>..\..\Output\Debug\Plugins\Wox.Plugin.Caculator\</OutputPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutputPath>..\..\Output\Debug\Plugins\Wox.Plugin.Caculator\</OutputPath>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <OutputPath>..\..\Output\Release\Plugins\Wox.Plugin.Caculator\</OutputPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutputPath>..\..\Output\Release\Plugins\Wox.Plugin.Caculator\</OutputPath>
-  </PropertyGroup>
-  <ItemGroup>
-    <Page Remove="Languages\de.xaml" />
-    <Page Remove="Languages\en.xaml" />
-    <Page Remove="Languages\he.xaml" />
-    <Page Remove="Languages\pl.xaml" />
-    <Page Remove="Languages\pt.xaml" />
-    <Page Remove="Languages\tr.xaml" />
-    <Page Remove="Languages\zh-cn.xaml" />
-    <Page Remove="Languages\zh-tw.xaml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Languages\de.xaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Languages\en.xaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Languages\he.xaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Languages\pl.xaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Languages\pt.xaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Languages\tr.xaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Languages\zh-cn.xaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Languages\zh-tw.xaml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="plugin.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-	  <ProjectReference Include="..\..\Wox.Core\Wox.Core.csproj">
-		  <Private>false</Private>
-		  <ExcludeAssets>runtime</ExcludeAssets>
-	  </ProjectReference>
-	  <ProjectReference Include="..\..\Wox.Infrastructure\Wox.Infrastructure.csproj">
-		  <Private>false</Private>
-		  <ExcludeAssets>runtime</ExcludeAssets>
-	  </ProjectReference>
-	  <ProjectReference Include="..\..\Wox.Plugin\Wox.Plugin.csproj">
-		  <Private>false</Private>
-		  <ExcludeAssets>runtime</ExcludeAssets>
-	  </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="Images\calculator.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Mages" Version="2.0.0" />
-    <PackageReference Include="Microsoft.DotNet.UpgradeAssistant.Extensions.Default.Analyzers" Version="0.2.241603">
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-  </ItemGroup>
-  <PropertyGroup>
-    <ApplicationIcon />
-    <StartupObject />
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net6.0-windows10.0.19041.0</TargetFramework>
+		<OutputType>Library</OutputType>
+		<RootNamespace>Wox.Plugin.Caculator</RootNamespace>
+		<AssemblyName>Wox.Plugin.Caculator</AssemblyName>
+		<SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
+		<UseWPF>true</UseWPF>
+		<ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+		<Platforms>AnyCPU</Platforms>
+	</PropertyGroup>
+	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+		<OutputPath>..\..\Output\Debug\Plugins\Wox.Plugin.Caculator\</OutputPath>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+		<OutputPath>..\..\Output\Debug\Plugins\Wox.Plugin.Caculator\</OutputPath>
+	</PropertyGroup>
+	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+		<OutputPath>..\..\Output\Release\Plugins\Wox.Plugin.Caculator\</OutputPath>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+		<OutputPath>..\..\Output\Release\Plugins\Wox.Plugin.Caculator\</OutputPath>
+	</PropertyGroup>
+	<ItemGroup>
+		<Page Remove="Languages\de.xaml" />
+		<Page Remove="Languages\en.xaml" />
+		<Page Remove="Languages\he.xaml" />
+		<Page Remove="Languages\pl.xaml" />
+		<Page Remove="Languages\pt.xaml" />
+		<Page Remove="Languages\tr.xaml" />
+		<Page Remove="Languages\zh-cn.xaml" />
+		<Page Remove="Languages\zh-tw.xaml" />
+	</ItemGroup>
+	<ItemGroup>
+		<Content Include="Languages\de.xaml">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Languages\en.xaml">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Languages\he.xaml">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Languages\pl.xaml">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Languages\pt.xaml">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Languages\tr.xaml">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Languages\zh-cn.xaml">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+		<Content Include="Languages\zh-tw.xaml">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</Content>
+	</ItemGroup>
+	<ItemGroup>
+		<None Update="plugin.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\Wox.Core\Wox.Core.csproj">
+			<Private>false</Private>
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</ProjectReference>
+		<ProjectReference Include="..\..\Wox.Infrastructure\Wox.Infrastructure.csproj">
+			<Private>false</Private>
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</ProjectReference>
+		<ProjectReference Include="..\..\Wox.Plugin\Wox.Plugin.csproj">
+			<Private>false</Private>
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</ProjectReference>
+	</ItemGroup>
+	<ItemGroup>
+		<None Update="Images\calculator.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Mages" Version="2.0.0" />
+	</ItemGroup>
+	<PropertyGroup>
+		<ApplicationIcon />
+		<StartupObject />
+	</PropertyGroup>
 </Project>

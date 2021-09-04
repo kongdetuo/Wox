@@ -2,13 +2,12 @@
   <PropertyGroup>
     <TargetFramework>net6.0-windows7.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <UseWPF>true</UseWPF>
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
 	  <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 	  <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-	  <EnableDynamicLoading>true</EnableDynamicLoading>
-	  <Platforms>AnyCPU;x64</Platforms>
+	  <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+	  <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <OutputPath>..\..\Output\Debug\Plugins\Wox.Plugin.ControlPanel\</OutputPath>
@@ -32,11 +31,6 @@
     <Page Remove="Languages\tr.xaml" />
     <Page Remove="Languages\zh-cn.xaml" />
     <Page Remove="Languages\zh-tw.xaml" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\..\SolutionAssemblyInfo.cs">
-      <Link>Properties\SolutionAssemblyInfo.cs</Link>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Languages\de.xaml">
@@ -86,10 +80,5 @@
     <None Update="Images\ControlPanel.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.DotNet.UpgradeAssistant.Extensions.Default.Analyzers" Version="0.2.241603">
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
   </ItemGroup>
 </Project>

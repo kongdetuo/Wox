@@ -2,22 +2,14 @@
 	<PropertyGroup>
 		<TargetFramework>net6.0-windows10.0.19041.0</TargetFramework>
 		<OutputType>Library</OutputType>
-
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-		<EnableDynamicLoading>true</EnableDynamicLoading>
-		<Platforms>AnyCPU;x64</Platforms>
+		<Platforms>AnyCPU</Platforms>
 	</PropertyGroup>
 	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
 		<OutputPath>..\..\Output\Debug\Plugins\HelloWorldCSharp\</OutputPath>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-		<OutputPath>..\..\Output\Debug\Plugins\HelloWorldCSharp\</OutputPath>
-	</PropertyGroup>
 	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-		<OutputPath>..\..\Output\Release\Plugins\HelloWorldCSharp\</OutputPath>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
 		<OutputPath>..\..\Output\Release\Plugins\HelloWorldCSharp\</OutputPath>
 	</PropertyGroup>
 	<PropertyGroup>

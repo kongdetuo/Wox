@@ -27,8 +27,8 @@ namespace Wox.Plugin.ControlPanel
 
         public List<Result> Query(Query query)
         {
+            var st = System.Diagnostics.Stopwatch.StartNew();
             List<Result> results = new List<Result>();
-
             foreach (var item in controlPanelItems)
             {
                 var titleMatch = StringMatcher.FuzzySearch(query.Search, item.LocalizedString);
@@ -61,11 +61,12 @@ namespace Wox.Plugin.ControlPanel
                         }
                     };
 
-                    
+
 
                     results.Add(result);
                 }
             }
+            var s = st.ElapsedMilliseconds;
 
             List<Result> panelItems = results.OrderByDescending(o => o.Score).Take(5).ToList();
             return panelItems;

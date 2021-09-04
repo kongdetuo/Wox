@@ -162,31 +162,26 @@ namespace Wox.Core.Plugin
             try
             {
                 var metadata = pair.Metadata;
-                if (!metadata.Disabled)
+
+                bool validGlobalQuery = string.IsNullOrEmpty(query.ActionKeyword) && pair.Metadata.ActionKeywords[0] == Query.GlobalPluginWildcardSign;
+                bool validNonGlobalQuery = pair.Metadata.ActionKeywords.Contains(query.ActionKeyword);
+                if (validGlobalQuery || validNonGlobalQuery)
                 {
-                    bool validGlobalQuery = string.IsNullOrEmpty(query.ActionKeyword) && pair.Metadata.ActionKeywords[0] == Query.GlobalPluginWildcardSign;
-                    bool validNonGlobalQuery = pair.Metadata.ActionKeywords.Contains(query.ActionKeyword);
-                    if (validGlobalQuery || validNonGlobalQuery)
+                    List<Result> results = new List<Result>();
+                    var milliseconds = Logger.StopWatchDebug($"Query <{query.RawQuery}> Cost for {metadata.Name}", () =>
                     {
-                        List<Result> results = new List<Result>();
-                        var milliseconds = Logger.StopWatchDebug($"Query <{query.RawQuery}> Cost for {metadata.Name}", () =>
-                        {
-                            results = pair.Plugin.Query(query) ?? new List<Result>();
-                            UpdatePluginMetadata(results, metadata, query);
-                        });
-                        metadata.QueryCount += 1;
-                        metadata.AvgQueryTime = metadata.QueryCount == 1 ? milliseconds : (metadata.AvgQueryTime + milliseconds) / 2;
-                        return results;
-                    }
-                    else
-                    {
-                        return new List<Result>();
-                    }
+                        results = pair.Plugin.Query(query) ?? new List<Result>();
+                    });
+                    UpdatePluginMetadata(results, metadata, query);
+                    metadata.QueryCount += 1;
+                    metadata.AvgQueryTime = metadata.QueryCount == 1 ? milliseconds : (metadata.AvgQueryTime + milliseconds) / 2;
+                    return results;
                 }
                 else
                 {
                     return new List<Result>();
                 }
+
             }
             catch (Exception e)
             {

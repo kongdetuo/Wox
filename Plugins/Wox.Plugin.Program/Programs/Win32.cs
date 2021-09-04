@@ -13,6 +13,7 @@ using Wox.Infrastructure;
 using Wox.Infrastructure.Logger;
 using Microsoft.WindowsAPICodePack.Shell;
 using Windows.ApplicationModel.Resources;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Wox.Plugin.Program.Programs
 {
@@ -42,7 +43,8 @@ namespace Wox.Plugin.Program.Programs
                     var info = new ProcessStartInfo
                     {
                         FileName = FullPath,
-                        WorkingDirectory = ParentDirectory
+                        WorkingDirectory = ParentDirectory,
+                        UseShellExecute = true
                     };
 
                     if (e.SpecialKeyState.CtrlPressed)
@@ -145,46 +147,22 @@ namespace Wox.Plugin.Program.Programs
         private static IEnumerable<string> ProgramPaths(string directory, string[] suffixes)
         {
             if (!Directory.Exists(directory))
-                return new string[] { };
-            var paths = new List<string>();
-            try
-            {
-                IEnumerable<string> files = Directory.EnumerateFiles(directory, "*", SearchOption.AllDirectories);
-                foreach (var path in files)
-                {
-                    var extension = Path.GetExtension(path);
-                    if (extension.Length > 1)
-                    {
-                        if (suffixes.Contains(extension.Substring(1)))
-                        {
-                            paths.Add(path);
-                        }
-                    }
-                }
-            }
-            catch (Exception e) when (e is SecurityException || e is UnauthorizedAccessException)
-            {
-                Logger.WoxError($"Permission denied {directory}");
-            }
-            catch (DirectoryNotFoundException)
-            {
-                Logger.WoxError($"Directory not found {directory}");
-            }
+                return Enumerable.Empty<string>();
 
-            return paths;
+            var options = new EnumerationOptions
+            {
+                IgnoreInaccessible = true,
+                RecurseSubdirectories = true
+            };
+
+            var list = Directory.EnumerateFiles(directory, "*", options).Where(x => suffixes.Any(s => IsExtension(x, s)));
+            return list;
         }
 
-        private static string Extension(string path)
+
+        private static bool IsExtension(string path, string extension)
         {
-            var extension = Path.GetExtension(path)?.ToLower();
-            if (!string.IsNullOrEmpty(extension))
-            {
-                return extension.Substring(1);
-            }
-            else
-            {
-                return string.Empty;
-            }
+            return Path.GetExtension(path.AsSpan()).Slice(1).Equals(extension.AsSpan(), StringComparison.OrdinalIgnoreCase);
         }
 
         private static ParallelQuery<Win32> UnregisteredPrograms(List<ProgramSource> sources, string[] suffixes)
@@ -232,7 +210,7 @@ namespace Wox.Plugin.Program.Programs
                 }
             }
 
-            var filtered = programs.AsParallel().Where(p => suffixes.Contains(Extension(p.ExecutableName)));
+            var filtered = programs.AsParallel().Where(p => suffixes.Any(s=>IsExtension(p.ExecutableName, s)));
             return filtered;
         }
 

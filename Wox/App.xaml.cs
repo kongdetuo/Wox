@@ -130,7 +130,6 @@ namespace Wox
                 Logger.WoxInfo($"SDK Info: {ExceptionFormatter.SDKInfo()}");
                 Logger.WoxInfo("End Wox startup ----------------------------------------------------  ");
             });
-            System.Windows.Forms.MessageBox.Show(time.ToString());
         }
 
         private static void InsertWoxLanguageIntoLog()

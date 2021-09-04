@@ -7,6 +7,7 @@ using NLog;
 using ToolGood.Words;
 using Wox.Infrastructure.Logger;
 using Wox.Infrastructure.UserSettings;
+using ToolGood.Words.Pinyin;
 
 namespace Wox.Infrastructure
 {
