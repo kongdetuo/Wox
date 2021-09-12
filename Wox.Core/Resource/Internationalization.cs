@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Windows;
 using NLog;
 using Wox.Core.Plugin;
@@ -94,6 +96,9 @@ namespace Wox.Core.Resource
             language = language.NonNull();
 
             Settings.Language = language.LanguageCode;
+
+            Thread.CurrentThread.CurrentCulture = CultureInfo.GetCultureInfo(language.LanguageCode);
+            Thread.CurrentThread.CurrentUICulture = CultureInfo.GetCultureInfo(language.LanguageCode);
 
             RemoveOldLanguageFiles();
             if (language != AvailableLanguages.English)

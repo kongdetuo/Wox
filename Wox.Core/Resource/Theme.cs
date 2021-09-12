@@ -96,7 +96,7 @@ namespace Wox.Core.Resource
                 HighLightStyle = new HightLightStyle(false);
                 HighLightSelectedStyle = new HightLightStyle(true);
 
-                SetBlurForWindow();
+                //SetBlurForWindow();
             }
             catch (DirectoryNotFoundException)
             {
@@ -308,6 +308,15 @@ namespace Wox.Core.Resource
 
                 var accent = blur ? AccentState.ACCENT_ENABLE_BLURBEHIND : AccentState.ACCENT_DISABLED;
                 SetWindowAccent(Application.Current.MainWindow, accent);
+            }
+        }
+
+        public void DisableBlur()
+        {
+            // Exception of FindResource can't be cathed if global exception handle is set
+            if (Environment.OSVersion.Version >= new Version(6, 2))
+            {
+                SetWindowAccent(Application.Current.MainWindow, AccentState.ACCENT_DISABLED);
             }
         }
 

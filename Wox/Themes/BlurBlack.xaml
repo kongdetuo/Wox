@@ -6,20 +6,20 @@
     </ResourceDictionary.MergedDictionaries>
 
     <system:Boolean x:Key="ThemeBlurEnabled">True</system:Boolean>
-
+    
     <Style x:Key="QueryBoxStyle" BasedOn="{StaticResource BaseQueryBoxStyle}" TargetType="{x:Type TextBox}">
         <Setter Property="Foreground" Value="#FFFFFFFF" />
         <Setter Property="CaretBrush" Value="#FFFFFFFF"/>
     </Style>
 
     <Style x:Key="QueryTextSuggestionBoxStyle" BasedOn="{StaticResource BaseQueryTextSuggestionBoxStyle}" TargetType="{x:Type TextBox}">
-        <Setter Property="Background" Value="#01000001" />
+        <!--<Setter Property="Background" Value="#01000001" />-->
     </Style>
 
     <Style x:Key="WindowBorderStyle" BasedOn="{StaticResource BaseWindowBorderStyle}" TargetType="{x:Type Border}">
         <Setter Property="Background">
             <Setter.Value>
-                <SolidColorBrush Color="Black" Opacity="0.3" />
+                <SolidColorBrush Color="Black" Opacity="0.7" />
             </Setter.Value>
         </Setter>
     </Style>
@@ -27,7 +27,7 @@
     <Style x:Key="WindowStyle" BasedOn="{StaticResource BaseWindowStyle}" TargetType="{x:Type Window}">
         <Setter Property="Background">
             <Setter.Value>
-                <SolidColorBrush Color="Black" Opacity="0.3" />
+                <SolidColorBrush Color="Black" Opacity="0.7" />
             </Setter.Value>
         </Setter>
     </Style>

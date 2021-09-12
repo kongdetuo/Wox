@@ -20,7 +20,8 @@ using DragEventArgs = System.Windows.DragEventArgs;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 using MessageBox = System.Windows.MessageBox;
 using NotifyIcon = System.Windows.Forms.NotifyIcon;
-
+using System.Reactive.Linq;
+using System.Reactive;
 
 namespace Wox
 {
@@ -59,7 +60,7 @@ namespace Wox
         {
             InitializeNotifyIcon();
             // todo is there a way to set blur only once?
-            ThemeManager.Instance.SetBlurForWindow();
+            //ThemeManager.Instance.SetBlurForWindow();
             WindowsInteropHelper.DisableControlBox(this);
             InitProgressbarAnimation();
             InitializePosition();
@@ -107,7 +108,6 @@ namespace Wox
             };
             InitializePosition();
         }
-
         private void InitializePosition()
         {
             Top = WindowTop();
@@ -166,17 +166,14 @@ namespace Wox
 
         private void OnMouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.ChangedButton == MouseButton.Left)
+            try
             {
-                try
-                {
-                    DragMove();
-                }
-                catch (InvalidOperationException ex)
-                {
-                    // https://github.com/Wox-launcher/Wox/issues/811
-                    Logger.WoxError($"Cannot dray {ex.Message}");
-                }
+                DragMove();
+            }
+            catch (InvalidOperationException ex)
+            {
+                // https://github.com/Wox-launcher/Wox/issues/811
+                Logger.WoxError($"Cannot dray {ex.Message}");
             }
         }
 
@@ -230,8 +227,10 @@ namespace Wox
         {
             App.API.OpenSettingDialog();
         }
-
-
+        private void Window_Activated(object sender, EventArgs e)
+        {
+            ThemeManager.Instance.SetBlurForWindow();
+        }
         private void OnDeactivated(object sender, EventArgs e)
         {
             if (_settings.HideWhenDeactive)
@@ -290,6 +289,12 @@ namespace Wox
             }
         }
 
-
+        private void Window_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (this.Visibility != Visibility.Visible)
+            {
+                ThemeManager.Instance.DisableBlur();
+            }
+        }
     }
 }

@@ -15,7 +15,7 @@
     <system:String x:Key="iconTrayExit">退出</system:String>
     
     <!--设置，通用-->
-    <system:String x:Key="wox_settings">Wox设置</system:String>
+    <system:String x:Key="wox_settings">Wox 设置</system:String>
     <system:String x:Key="general">通用</system:String>
     <system:String x:Key="portableMode">便携模式</system:String>
     <system:String x:Key="startWoxOnSystemStartup">开机启动</system:String>

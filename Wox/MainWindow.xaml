@@ -23,91 +23,111 @@
         Closing="OnClosing"
         Drop="OnDrop"
         LocationChanged="OnLocationChanged"
+        Activated="Window_Activated"
         Deactivated="OnDeactivated"
+        Background="Transparent"
+        IsVisibleChanged="Window_IsVisibleChanged"
         Visibility="{Binding MainWindowVisibility, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
         d:DataContext="{d:DesignInstance vm:MainViewModel}">
     <Window.Resources>
         <converters:QuerySuggestionBoxConverter x:Key="QuerySuggestionBoxConverter"/>
     </Window.Resources>
     <Window.InputBindings>
-        <KeyBinding Key="Escape" Command="{Binding EscCommand}"></KeyBinding>
-        <KeyBinding Key="F1" Command="{Binding StartHelpCommand}"></KeyBinding>
-        <KeyBinding Key="F5" Command="{Binding RefreshCommand}"></KeyBinding>
-        <KeyBinding Key="Tab" Command="{Binding SelectNextItemCommand}"></KeyBinding>
-        <KeyBinding Key="Tab" Modifiers="Shift" Command="{Binding SelectPrevItemCommand}"></KeyBinding>
-        <KeyBinding Key="N" Modifiers="Ctrl" Command="{Binding SelectNextItemCommand}"></KeyBinding>
-        <KeyBinding Key="J" Modifiers="Ctrl" Command="{Binding SelectNextItemCommand}"></KeyBinding>
-        <KeyBinding Key="D" Modifiers="Ctrl" Command="{Binding SelectNextPageCommand}"></KeyBinding>
-        <KeyBinding Key="P" Modifiers="Ctrl" Command="{Binding SelectPrevItemCommand}"></KeyBinding>
-        <KeyBinding Key="K" Modifiers="Ctrl" Command="{Binding SelectPrevItemCommand}"></KeyBinding>
-        <KeyBinding Key="U" Modifiers="Ctrl" Command="{Binding SelectPrevPageCommand}"></KeyBinding>
-        <KeyBinding Key="Home" Modifiers="Alt" Command="{Binding SelectFirstResultCommand}"></KeyBinding>
-        <KeyBinding Key="O" Modifiers="Ctrl" Command="{Binding LoadContextMenuCommand}"></KeyBinding>
-        <KeyBinding Key="H" Modifiers="Ctrl" Command="{Binding LoadHistoryCommand}"></KeyBinding>
-        <KeyBinding Key="Enter" Modifiers="Shift" Command="{Binding LoadContextMenuCommand}"></KeyBinding>
-        <KeyBinding Key="Enter" Command="{Binding OpenResultCommand}"></KeyBinding>
-        <KeyBinding Key="Enter" Modifiers="Ctrl" Command="{Binding OpenResultCommand}"></KeyBinding>
-        <KeyBinding Key="Enter" Modifiers="Alt" Command="{Binding OpenResultCommand}"></KeyBinding>
-        <KeyBinding Key="D1" Modifiers="Alt" Command="{Binding OpenResultCommand}" CommandParameter="0"></KeyBinding>
-        <KeyBinding Key="D2" Modifiers="Alt" Command="{Binding OpenResultCommand}" CommandParameter="1"></KeyBinding>
-        <KeyBinding Key="D3" Modifiers="Alt" Command="{Binding OpenResultCommand}" CommandParameter="2"></KeyBinding>
-        <KeyBinding Key="D4" Modifiers="Alt" Command="{Binding OpenResultCommand}" CommandParameter="3"></KeyBinding>
-        <KeyBinding Key="D5" Modifiers="Alt" Command="{Binding OpenResultCommand}" CommandParameter="4"></KeyBinding>
-        <KeyBinding Key="D6" Modifiers="Alt" Command="{Binding OpenResultCommand}" CommandParameter="5"></KeyBinding>
-        <KeyBinding Key="D7" Modifiers="Alt" Command="{Binding OpenResultCommand}" CommandParameter="6"></KeyBinding>
-        <KeyBinding Key="D8" Modifiers="Alt" Command="{Binding OpenResultCommand}" CommandParameter="7"></KeyBinding>
-        <KeyBinding Key="D9" Modifiers="Alt" Command="{Binding OpenResultCommand}" CommandParameter="8"></KeyBinding>
+        <KeyBinding Key="Escape" Command="{Binding EscCommand}"/>
+        <KeyBinding Key="F1" Command="{Binding StartHelpCommand}"/>
+        <KeyBinding Key="F5" Command="{Binding RefreshCommand}"/>
+        <KeyBinding Key="Tab" Command="{Binding SelectNextItemCommand}"/>
+        <KeyBinding Key="Tab" Modifiers="Shift" Command="{Binding SelectPrevItemCommand}"/>
+        <KeyBinding Key="N" Modifiers="Ctrl" Command="{Binding SelectNextItemCommand}"/>
+        <KeyBinding Key="J" Modifiers="Ctrl" Command="{Binding SelectNextItemCommand}"/>
+        <KeyBinding Key="D" Modifiers="Ctrl" Command="{Binding SelectNextPageCommand}"/>
+        <KeyBinding Key="P" Modifiers="Ctrl" Command="{Binding SelectPrevItemCommand}"/>
+        <KeyBinding Key="K" Modifiers="Ctrl" Command="{Binding SelectPrevItemCommand}"/>
+        <KeyBinding Key="U" Modifiers="Ctrl" Command="{Binding SelectPrevPageCommand}"/>
+        <KeyBinding Key="Home" Modifiers="Alt" Command="{Binding SelectFirstResultCommand}"/>
+        <KeyBinding Key="O" Modifiers="Ctrl" Command="{Binding LoadContextMenuCommand}"/>
+        <KeyBinding Key="H" Modifiers="Ctrl" Command="{Binding LoadHistoryCommand}"/>
+        <KeyBinding Key="Enter" Modifiers="Shift" Command="{Binding LoadContextMenuCommand}"/>
+        <KeyBinding Key="Enter" Command="{Binding OpenResultCommand}"/>
+        <KeyBinding Key="Enter" Modifiers="Ctrl" Command="{Binding OpenResultCommand}"/>
+        <KeyBinding Key="Enter" Modifiers="Alt" Command="{Binding OpenResultCommand}"/>
+        <KeyBinding Key="D1" Modifiers="Alt" Command="{Binding OpenResultCommand}" CommandParameter="0"/>
+        <KeyBinding Key="D2" Modifiers="Alt" Command="{Binding OpenResultCommand}" CommandParameter="1"/>
+        <KeyBinding Key="D3" Modifiers="Alt" Command="{Binding OpenResultCommand}" CommandParameter="2"/>
+        <KeyBinding Key="D4" Modifiers="Alt" Command="{Binding OpenResultCommand}" CommandParameter="3"/>
+        <KeyBinding Key="D5" Modifiers="Alt" Command="{Binding OpenResultCommand}" CommandParameter="4"/>
+        <KeyBinding Key="D6" Modifiers="Alt" Command="{Binding OpenResultCommand}" CommandParameter="5"/>
+        <KeyBinding Key="D7" Modifiers="Alt" Command="{Binding OpenResultCommand}" CommandParameter="6"/>
+        <KeyBinding Key="D8" Modifiers="Alt" Command="{Binding OpenResultCommand}" CommandParameter="7"/>
+        <KeyBinding Key="D9" Modifiers="Alt" Command="{Binding OpenResultCommand}" CommandParameter="8"/>
+        <KeyBinding Key="Up" Command="{Binding SelectPrevItemCommand}"/>
+        <KeyBinding Key="Down" Command="{Binding SelectNextItemCommand}"/>
+        <KeyBinding Key="PageUp" Command="{Binding SelectPrevPageCommand}"/>
+        <KeyBinding Key="PageDown" Command="{Binding SelectNextPageCommand}"/>
     </Window.InputBindings>
-    <Border Style="{DynamicResource WindowBorderStyle}" MouseDown="OnMouseDown" >
-        <StackPanel Orientation="Vertical">
-            <Grid>
-                <TextBox x:Name="QueryTextSuggestionBox"
+    <StackPanel Orientation="Vertical">
+        <Border Style="{DynamicResource WindowBorderStyle}" MouseLeftButtonDown="OnMouseDown" CornerRadius="4">
+            <StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBox x:Name="QueryTextSuggestionBox"
                          Style="{DynamicResource QueryTextSuggestionBoxStyle}"
                          IsEnabled="False">
-                    <TextBox.Text>
-                        <MultiBinding Converter="{StaticResource QuerySuggestionBoxConverter}">
-                            <Binding ElementName="QueryTextBox" Path="Text"/>
-                            <Binding ElementName="ResultListBox" Path="SelectedItem"/>
-                        </MultiBinding>
-                    </TextBox.Text>
-                </TextBox>
-                <TextBox x:Name="QueryTextBox"
-                    Style="{DynamicResource QueryBoxStyle}"
-                     Text="{Binding QueryText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                     PreviewDragOver="OnPreviewDragOver"
-                     TextChanged="OnTextChanged"
-                     AllowDrop="True"
-                     Visibility="Visible">
-                    <TextBox.ContextMenu>
-                        <ContextMenu>
-                            <MenuItem Command="ApplicationCommands.Cut"/>
-                            <MenuItem Command="ApplicationCommands.Copy"/>
-                            <MenuItem Command="ApplicationCommands.Paste"/>
-                            <Separator />
-                            <MenuItem Header="Settings" Click="OnContextMenusForSettingsClick" />
-                        </ContextMenu>
-                    </TextBox.ContextMenu>
-                    <TextBox.InputBindings>
-                        <KeyBinding Key="Up" Command="{Binding SelectPrevItemCommand}"/>
-                        <KeyBinding Key="Down" Command="{Binding SelectNextItemCommand}"/>
-                        <KeyBinding Key="PageUp" Command="{Binding SelectPrevPageCommand}"/>
-                        <KeyBinding Key="PageDown" Command="{Binding SelectNextPageCommand}"/>
-                    </TextBox.InputBindings>
-                </TextBox>
-            </Grid>
-            <Line x:Name="ProgressBar" HorizontalAlignment="Right"
+                        <TextBox.Text>
+                            <MultiBinding Converter="{StaticResource QuerySuggestionBoxConverter}">
+                                <Binding ElementName="QueryTextBox" Path="Text"/>
+                                <Binding ElementName="ResultListBox" Path="SelectedItem"/>
+                            </MultiBinding>
+                        </TextBox.Text>
+                    </TextBox>
+                    <TextBox x:Name="QueryTextBox"
+                             Style="{DynamicResource QueryBoxStyle}"
+                             Text="{Binding QueryText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             PreviewDragOver="OnPreviewDragOver"
+                             TextChanged="OnTextChanged"
+                             AllowDrop="True"
+                             Visibility="Visible">
+                        <TextBox.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Command="ApplicationCommands.Cut"/>
+                                <MenuItem Command="ApplicationCommands.Copy"/>
+                                <MenuItem Command="ApplicationCommands.Paste"/>
+                                <Separator />
+                                <MenuItem Header="{DynamicResource iconTraySettings}" Click="OnContextMenusForSettingsClick" />
+                            </ContextMenu>
+                        </TextBox.ContextMenu>
+                        <TextBox.InputBindings>
+                            <KeyBinding Key="Up" Command="{Binding SelectPrevItemCommand}"/>
+                            <KeyBinding Key="Down" Command="{Binding SelectNextItemCommand}"/>
+                            <KeyBinding Key="PageUp" Command="{Binding SelectPrevPageCommand}"/>
+                            <KeyBinding Key="PageDown" Command="{Binding SelectNextPageCommand}"/>
+                        </TextBox.InputBindings>
+                    </TextBox>
+
+                    <TextBlock Grid.Column="1" VerticalAlignment="Center" Margin="10,0"
+                               FontFamily="Segoe MDL2 Assets" FontSize="36" Text="&#xe71e;" FontWeight="Bold"/>
+                </Grid>
+                <Line x:Name="ProgressBar" HorizontalAlignment="Right"
                   Style="{DynamicResource PendingLineStyle}" Visibility="{Binding ProgressBarVisibility, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
                   Y1="0" Y2="0" X2="100" Height="2" Width="752" StrokeThickness="1">
-            </Line>
-            <ContentControl>
-                <wox:ResultListBox x:Name="ResultListBox" DataContext="{Binding Results}" PreviewMouseDown="OnPreviewMouseButtonDown" />
-            </ContentControl>
-            <ContentControl>
-                <wox:ResultListBox DataContext="{Binding ContextMenu}" PreviewMouseDown="OnPreviewMouseButtonDown" />
-            </ContentControl>
-            <ContentControl>
-                <wox:ResultListBox DataContext="{Binding History}" PreviewMouseDown="OnPreviewMouseButtonDown" />
-            </ContentControl>
-        </StackPanel>
-    </Border>
+                </Line>
+            </StackPanel>
+        </Border>
+
+        <Border Style="{DynamicResource WindowBorderStyle}" Margin="0,4,0,0" Visibility="{Binding Results.Visbility}" CornerRadius="4">
+            <wox:ResultListBox x:Name="ResultListBox" DataContext="{Binding Results}" PreviewMouseDown="OnPreviewMouseButtonDown" />
+        </Border>
+
+        <Border Style="{DynamicResource WindowBorderStyle}" Margin="0,4,0,0"  Visibility="{Binding ContextMenu.Visbility}" CornerRadius="4">
+            <wox:ResultListBox DataContext="{Binding ContextMenu}" PreviewMouseDown="OnPreviewMouseButtonDown" />
+        </Border>
+
+        <Border Style="{DynamicResource WindowBorderStyle}" Margin="0,4,0,0" Visibility="{Binding History.Visbility}" CornerRadius="4">
+            <wox:ResultListBox DataContext="{Binding History}" PreviewMouseDown="OnPreviewMouseButtonDown" />
+        </Border>
+
+    </StackPanel>
 </Window>

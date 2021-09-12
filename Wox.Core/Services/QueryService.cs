@@ -20,9 +20,9 @@ namespace Wox.Core.Services
 
         public static IObservable<PluginQueryResult> Query(Query query, System.Threading.CancellationToken token)
         {
-            var plugins = PluginManager.AllPlugins.Where(p=>p.Metadata.Name.Contains("程序"));
+            var plugins = PluginManager.AllPlugins;//.Where(p => p.Metadata.Name.Contains("程序"));
             return plugins.ToObservable()
-                //.ObserveOn(ThreadPoolScheduler.Instance)
+                .ObserveOn(ThreadPoolScheduler.Instance)
                 .SelectMany(plugin => Observable.FromAsync(() => QueryForPluginAsync(plugin, query, token)));
         }
 
@@ -45,6 +45,13 @@ namespace Wox.Core.Services
                 Query = query,
                 Results = results,
             };
+        }
+
+        private static bool TryMatch(PluginPair pair, Query query)
+        {
+            bool validGlobalQuery = string.IsNullOrEmpty(query.ActionKeyword) && pair.Metadata.ActionKeywords[0] == Wox.Plugin.Query.GlobalPluginWildcardSign;
+            bool validNonGlobalQuery = pair.Metadata.ActionKeywords.Contains(query.ActionKeyword);
+            return validGlobalQuery || validNonGlobalQuery;
         }
     }
 

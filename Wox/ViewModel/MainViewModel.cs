@@ -7,7 +7,6 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Input;
-using System.Collections.Concurrent;
 
 using NHotkey;
 using NHotkey.Wpf;
@@ -46,6 +45,7 @@ namespace Wox.ViewModel
         private readonly Internationalization _translator;
 
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        private readonly SynchronizationContext SynchronizationContext;
 
         #endregion
 
@@ -55,7 +55,7 @@ namespace Wox.ViewModel
         {
             _saved = false;
             _queryTextBeforeLeaveResults = "";
-            _queryText = "";
+            QueryText = "";
 
             _settings = Settings.Instance;
 
@@ -80,15 +80,12 @@ namespace Wox.ViewModel
                 SetCustomPluginHotkey();
             }
 
-
-            Observable.FromEventPattern<PropertyChangedEventArgs>(this, nameof(this.PropertyChanged))
+            _ = Observable.FromEventPattern<PropertyChangedEventArgs>(this, nameof(this.PropertyChanged))
                 .Select(p => p.EventArgs.PropertyName)
                 .Where(p => p == nameof(this.QueryText))
                 .Throttle(TimeSpan.FromMilliseconds(50))
                 .ObserveOn(SynchronizationContext)
                 .Subscribe(p => Query());
-
-
         }
 
         private void InitializeKeyCommands()
@@ -105,32 +102,17 @@ namespace Wox.ViewModel
                 }
             });
 
-            SelectNextItemCommand = new RelayCommand(_ =>
-            {
-                SelectedResults.SelectNextResult();
-            });
+            SelectNextItemCommand = new RelayCommand(_ => SelectedResults.SelectNextResult());
 
-            SelectPrevItemCommand = new RelayCommand(_ =>
-            {
-                SelectedResults.SelectPrevResult();
-            });
+            SelectPrevItemCommand = new RelayCommand(_ => SelectedResults.SelectPrevResult());
 
-            SelectNextPageCommand = new RelayCommand(_ =>
-            {
-                SelectedResults.SelectNextPage();
-            });
+            SelectNextPageCommand = new RelayCommand(_ => SelectedResults.SelectNextPage());
 
-            SelectPrevPageCommand = new RelayCommand(_ =>
-            {
-                SelectedResults.SelectPrevPage();
-            });
+            SelectPrevPageCommand = new RelayCommand(_ => SelectedResults.SelectPrevPage());
 
             SelectFirstResultCommand = new RelayCommand(_ => SelectedResults.SelectFirstResult());
 
-            StartHelpCommand = new RelayCommand(_ =>
-            {
-                Process.Start("http://doc.wox.one/");
-            });
+            StartHelpCommand = new RelayCommand(_ => Process.Start(new ProcessStartInfo() { FileName = "http://doc.wox.one/", UseShellExecute = true }));
 
             RefreshCommand = new RelayCommand(_ => Refresh());
 
@@ -201,16 +183,7 @@ namespace Wox.ViewModel
         public ResultsViewModel Results { get; private set; }
         public ResultsViewModel ContextMenu { get; private set; }
         public ResultsViewModel History { get; private set; }
-
-        private string _queryText;
-        public string QueryText
-        {
-            get { return _queryText; }
-            set
-            {
-                _queryText = value;
-            }
-        }
+        public string QueryText { get; set; }
 
         /// <summary>
         /// we need move cursor to end when we manually changed query
@@ -226,7 +199,6 @@ namespace Wox.ViewModel
         public bool QueryTextCursorMovedToEnd { get; set; }
 
         private ResultsViewModel _selectedResults;
-        private SynchronizationContext SynchronizationContext;
 
         private ResultsViewModel SelectedResults
         {
@@ -236,37 +208,23 @@ namespace Wox.ViewModel
                 _selectedResults = value;
                 if (SelectedIsFromQueryResults())
                 {
-                    ContextMenu.Visbility = Visibility.Collapsed;
-                    History.Visbility = Visibility.Collapsed;
-                    ChangeQueryText(_queryTextBeforeLeaveResults);
+                    if (_queryTextBeforeLeaveResults == QueryText)
+                        UpdateResultVisible();
+                    else
+                        ChangeQueryText(_queryTextBeforeLeaveResults);
                 }
                 else
                 {
-                    Results.Visbility = Visibility.Collapsed;
                     _queryTextBeforeLeaveResults = QueryText;
-
-
-                    // Because of Fody's optimization
-                    // setter won't be called when property value is not changed.
-                    // so we need manually call Query()
-                    // http://stackoverflow.com/posts/25895769/revisions
                     if (string.IsNullOrEmpty(QueryText))
-                    {
-                        Query();
-                    }
-                    else
-                    {
-                        QueryText = string.Empty;
-                    }
+                        OnPropertyChanged(nameof(QueryText));
+                    QueryText = string.Empty;
                 }
-                _selectedResults.Visbility = Visibility.Visible;
             }
         }
 
         public Visibility ProgressBarVisibility { get; set; }
-
         public Visibility MainWindowVisibility { get; set; }
-
         public ICommand EscCommand { get; set; }
         public ICommand SelectNextItemCommand { get; set; }
         public ICommand SelectPrevItemCommand { get; set; }
@@ -295,6 +253,7 @@ namespace Wox.ViewModel
             {
                 QueryHistory();
             }
+            UpdateResultVisible();
         }
 
         private void QueryContextMenu()
@@ -312,18 +271,9 @@ namespace Wox.ViewModel
                 results.Add(ContextMenuPluginInfo(selected.PluginID));
 
                 if (!string.IsNullOrEmpty(query))
-                {
-                    var filtered = results.Where
-                    (
-                        r => StringMatcher.FuzzySearch(query, r.Title).IsSearchPrecisionScoreMet()
-                            || StringMatcher.FuzzySearch(query, r.SubTitle).IsSearchPrecisionScoreMet()
-                    ).ToList();
-                    ContextMenu.AddResults(filtered, id);
-                }
-                else
-                {
-                    ContextMenu.AddResults(results, id);
-                }
+                    results = results.Where(r => MatchResult(r, query)).ToList();
+
+                ContextMenu.AddResults(results, id);
             }
         }
 
@@ -355,18 +305,15 @@ namespace Wox.ViewModel
             }
 
             if (!string.IsNullOrEmpty(query))
-            {
-                var filtered = results.Where
-                (
-                    r => StringMatcher.FuzzySearch(query, r.Title).IsSearchPrecisionScoreMet() ||
-                         StringMatcher.FuzzySearch(query, r.SubTitle).IsSearchPrecisionScoreMet()
-                ).ToList();
-                History.AddResults(filtered, id);
-            }
-            else
-            {
-                History.AddResults(results, id);
-            }
+                results = results.Where(r => MatchResult(r, query)).ToList();
+
+            History.AddResults(results, id);
+        }
+
+        private static bool MatchResult(Result result, string query)
+        {
+            return StringMatcher.FuzzySearch(query, result.Title).IsSearchPrecisionScoreMet()
+                || StringMatcher.FuzzySearch(query, result.SubTitle).IsSearchPrecisionScoreMet();
         }
 
         private void QueryResults()
@@ -401,12 +348,12 @@ namespace Wox.ViewModel
 
             var showProgressTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
             Wox.Core.Services.QueryService.Query(query, token)
-                .Select(p => new ResultsForUpdate(p.Results, PluginManager.GetPluginForId(p.PluginID).Metadata, p.Query, token))
+                .Select(p => new ResultsForUpdate(p.Results, PluginManager.GetPluginForId(p.PluginID)?.Metadata, p.Query, token))
                 .Buffer(TimeSpan.FromMilliseconds(50))
                 .Where(p => p.Count > 0)
                 .ObserveOn(SynchronizationContext)
                 .Subscribe(
-                    onNext: p =>  UpdateResultView(p.ToList()),
+                    onNext: p => UpdateResultView(p.ToList()),
                     onCompleted: () =>
                     {
                         showProgressTokenSource.Cancel();
@@ -540,11 +487,7 @@ namespace Wox.ViewModel
         private bool ShouldIgnoreHotkeys()
         {
             //double if to omit calling win32 function
-            if (_settings.IgnoreHotkeysOnFullscreen)
-                if (WindowsInteropHelper.IsWindowFullscreen())
-                    return true;
-
-            return false;
+            return _settings.IgnoreHotkeysOnFullscreen && WindowsInteropHelper.IsWindowFullscreen();
         }
 
         private void SetCustomPluginHotkey()
@@ -565,7 +508,6 @@ namespace Wox.ViewModel
         {
             if (!ShouldIgnoreHotkeys())
             {
-
                 if (_settings.LastQueryMode == LastQueryMode.Empty)
                 {
                     ChangeQueryText(string.Empty);
@@ -616,27 +558,24 @@ namespace Wox.ViewModel
             }
         }
 
-        public void UpdateResultView(List<Result> list, PluginMetadata metadata, Query originQuery, CancellationToken token)
-        {
-            List<ResultsForUpdate> updates = new List<ResultsForUpdate>()
-            {
-                new ResultsForUpdate(list, metadata, originQuery, token)
-            };
-            UpdateResultView(updates);
-        }
-
         /// <summary>
         /// To avoid deadlock, this method should not called from main thread
         /// </summary>
         public void UpdateResultView(List<ResultsForUpdate> updates)
         {
+            UpdateScore(updates);
+            Results.AddResults(updates);
+            UpdateResultVisible();
+        }
+
+        private void UpdateScore(List<ResultsForUpdate> updates)
+        {
             foreach (ResultsForUpdate update in updates)
             {
-                //Logger.WoxTrace($"{update.Metadata.Name}:{update.Query.RawQuery}");
+                var queryHasTopMoustRecord = _topMostRecord.HasTopMost(update.Query);
                 foreach (var result in update.Results)
                 {
-                    if (update.Token.IsCancellationRequested) { return; }
-                    if (_topMostRecord.IsTopMost(result))
+                    if (queryHasTopMoustRecord && _topMostRecord.IsTopMost(result))
                     {
                         result.Score = int.MaxValue;
                     }
@@ -650,15 +589,19 @@ namespace Wox.ViewModel
                     }
                 }
             }
-
-            Results.AddResults(updates);
-
-            if (Results.Visbility != Visibility.Visible && Results.Count > 0)
-            {
-                Results.Visbility = Visibility.Visible;
-            }
         }
 
+        private void UpdateResultVisible()
+        {
+            if (ContextMenu != SelectedResults)
+                ContextMenu.Visbility = Visibility.Collapsed;
+            if (Results != SelectedResults)
+                Results.Visbility = Visibility.Collapsed;
+            if (History != SelectedResults)
+                History.Visbility = Visibility.Collapsed;
+
+            SelectedResults.Visbility = SelectedResults.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        }
         #endregion
     }
 }

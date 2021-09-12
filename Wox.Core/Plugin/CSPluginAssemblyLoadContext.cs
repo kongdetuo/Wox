@@ -4,11 +4,11 @@ using System.Runtime.Loader;
 
 namespace Wox.Core.Plugin
 {
-    class PluginLoadContext : AssemblyLoadContext
+    class CsharpPluginAssemblyLoadContext : AssemblyLoadContext
     {
         private AssemblyDependencyResolver _resolver;
 
-        public PluginLoadContext(string pluginPath)
+        public CsharpPluginAssemblyLoadContext(string pluginPath)
         {
             _resolver = new AssemblyDependencyResolver(pluginPath);
         }

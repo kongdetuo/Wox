@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -31,81 +32,73 @@ namespace Wox.Core.Plugin
 
         public static IEnumerable<PluginPair> CSharpPlugins(List<PluginMetadata> source)
         {
-            var plugins = new List<PluginPair>();
-            var metadatas = source.Where(o => o.Language.ToUpper() == AllowedLanguage.CSharp);
-            metadatas.ToList().GroupBy(p => p.ExecuteFilePath).ToList();
+            var metadatas = source
+                .Where(IsCSharpPlugin);
 
-            metadatas.ToList().ForEach(metadata =>
-            //Parallel.ForEach(metadatas, metadata =>
+            return metadatas.AsParallel()
+                .Select(LoadCSharpPlugin)
+                .Where(p => p != null)
+                .ToList();
+        }
+
+        private static PluginPair LoadCSharpPlugin(PluginMetadata metadata)
+        {
+            PluginPair pair = null;
+            var milliseconds = Logger.StopWatchDebug($"Constructor init cost for {metadata.Name}", () =>
             {
-                var milliseconds = Logger.StopWatchDebug($"Constructor init cost for {metadata.Name}", () =>
+                Assembly assembly;
+                try
                 {
-
-#if DEBUG
-
-                    var context = new PluginLoadContext(metadata.ExecuteFilePath);
-                    var assembly = context.LoadFromAssemblyName(new AssemblyName(Path.GetFileNameWithoutExtension(metadata.ExecuteFilePath)));
-
-                    //var assembly = Assembly.LoadFrom(metadata.ExecuteFilePath);
+                    var context = new CsharpPluginAssemblyLoadContext(metadata.ExecuteFilePath);
+                    assembly = context.LoadFromAssemblyName(new AssemblyName(Path.GetFileNameWithoutExtension(metadata.ExecuteFilePath)));
+                }
+                catch (Exception e)
+                {
+                    e.Data.Add(nameof(metadata.ID), metadata.ID);
+                    e.Data.Add(nameof(metadata.Name), metadata.Name);
+                    e.Data.Add(nameof(metadata.PluginDirectory), metadata.PluginDirectory);
+                    e.Data.Add(nameof(metadata.Website), metadata.Website);
+                    Logger.WoxError($"Couldn't load assembly for {metadata.Name}", e);
+                    return;
+                }
+                Type type;
+                try
+                {
                     var types = assembly.GetTypes();
-                    var type = types.First(type=> typeof(IPlugin).IsAssignableFrom(type));
-                    var plugin = (IPlugin)Activator.CreateInstance(type);
-#else
-                    Assembly assembly;
-                    try
-                    {
-                        assembly = Assembly.LoadFrom(metadata.ExecuteFilePath);
-                    }
-                    catch (Exception e)
-                    {
-                        e.Data.Add(nameof(metadata.ID), metadata.ID);
-                        e.Data.Add(nameof(metadata.Name), metadata.Name);
-                        e.Data.Add(nameof(metadata.PluginDirectory), metadata.PluginDirectory);
-                        e.Data.Add(nameof(metadata.Website), metadata.Website);
-                        Logger.WoxError($"Couldn't load assembly for {metadata.Name}", e);
-                        return;
-                    }
-                    var types = assembly.GetTypes();
-                    Type type;
-                    try
-                    {
-                        type = types.First(o => o.IsClass && !o.IsAbstract && o.GetInterfaces().Contains(typeof(IPlugin)));
-                    }
-                    catch (InvalidOperationException e)
-                    {
-                        e.Data.Add(nameof(metadata.ID), metadata.ID);
-                        e.Data.Add(nameof(metadata.Name), metadata.Name);
-                        e.Data.Add(nameof(metadata.PluginDirectory), metadata.PluginDirectory);
-                        e.Data.Add(nameof(metadata.Website), metadata.Website);
-                        Logger.WoxError($"Can't find class implement IPlugin for <{metadata.Name}>", e);
-                        return;
-                    }
-                    IPlugin plugin;
-                    try
-                    {
-                        plugin = (IPlugin)Activator.CreateInstance(type);
-                    }
-                    catch (Exception e)
-                    {
-                        e.Data.Add(nameof(metadata.ID), metadata.ID);
-                        e.Data.Add(nameof(metadata.Name), metadata.Name);
-                        e.Data.Add(nameof(metadata.PluginDirectory), metadata.PluginDirectory);
-                        e.Data.Add(nameof(metadata.Website), metadata.Website);
-                        Logger.WoxError($"Can't create instance for <{metadata.Name}>", e);
-                        return;
-                    }
-#endif
-                    PluginPair pair = new PluginPair
-                    {
-                        Plugin = plugin,
-                        Metadata = metadata
-                    };
-                    plugins.Add(pair);
-                });
-                metadata.InitTime += milliseconds;
+                    type = types.First(type => typeof(IPlugin).IsAssignableFrom(type)); ;
+                }
+                catch (InvalidOperationException e)
+                {
+                    e.Data.Add(nameof(metadata.ID), metadata.ID);
+                    e.Data.Add(nameof(metadata.Name), metadata.Name);
+                    e.Data.Add(nameof(metadata.PluginDirectory), metadata.PluginDirectory);
+                    e.Data.Add(nameof(metadata.Website), metadata.Website);
+                    Logger.WoxError($"Can't find class implement IPlugin for <{metadata.Name}>", e);
+                    return;
+                }
+                IPlugin plugin;
+                try
+                {
+                    plugin = (IPlugin)Activator.CreateInstance(type);
+                }
+                catch (Exception e)
+                {
+                    e.Data.Add(nameof(metadata.ID), metadata.ID);
+                    e.Data.Add(nameof(metadata.Name), metadata.Name);
+                    e.Data.Add(nameof(metadata.PluginDirectory), metadata.PluginDirectory);
+                    e.Data.Add(nameof(metadata.Website), metadata.Website);
+                    Logger.WoxError($"Can't create instance for <{metadata.Name}>", e);
+                    return;
+                }
 
+                pair = new PluginPair
+                {
+                    Plugin = plugin,
+                    Metadata = metadata
+                };
             });
-            return plugins;
+            metadata.InitTime += milliseconds;
+            return pair;
         }
 
         public static IEnumerable<PluginPair> PythonPlugins(List<PluginMetadata> source, string pythonDirecotry)
@@ -169,5 +162,10 @@ namespace Wox.Core.Plugin
             return plugins;
         }
 
+        private static bool IsCSharpPlugin(PluginMetadata metadata)
+            => string.Equals(metadata.Language, AllowedLanguage.CSharp, StringComparison.OrdinalIgnoreCase);
+
+        private static bool IsPythonPlugin(PluginMetadata metadata)
+            => string.Equals(metadata.Language, AllowedLanguage.Python, StringComparison.OrdinalIgnoreCase);
     }
 }

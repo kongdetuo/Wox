@@ -61,10 +61,6 @@ namespace Wox
         [STAThread]
         public static void Main()
         {
-            _systemLanguage = CultureInfo.CurrentUICulture.Name;
-            Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
-            Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
-
             using (ErrorReporting.InitializedSentry(_systemLanguage))
             {
                 if (SingleInstance<App>.InitializeAsFirstInstance(Unique))
@@ -82,6 +78,7 @@ namespace Wox
         {
             var time = Logger.StopWatchNormal("Startup cost", () =>
             {
+                _systemLanguage = CultureInfo.CurrentUICulture.Name;
                 RegisterAppDomainExceptions();
                 RegisterDispatcherUnhandledException();
 

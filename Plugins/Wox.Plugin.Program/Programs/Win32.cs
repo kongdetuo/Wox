@@ -105,7 +105,12 @@ namespace Wox.Plugin.Program.Programs
                     Title = api.GetTranslation("wox_plugin_program_open_containing_folder"),
                     Action = _ =>
                     {
-                        Main.StartProcess(Process.Start, new ProcessStartInfo(ParentDirectory));
+                        var info = new ProcessStartInfo
+                        {
+                            FileName = ParentDirectory,
+                            UseShellExecute = true
+                        };
+                        Main.StartProcess(Process.Start, info);
 
                         return true;
                     },
@@ -210,7 +215,7 @@ namespace Wox.Plugin.Program.Programs
                 }
             }
 
-            var filtered = programs.AsParallel().Where(p => suffixes.Any(s=>IsExtension(p.ExecutableName, s)));
+            var filtered = programs.AsParallel().Where(p => suffixes.Any(s => IsExtension(p.ExecutableName, s)));
             return filtered;
         }
 

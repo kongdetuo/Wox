@@ -1,9 +1,11 @@
 using Microsoft.WindowsAPICodePack.Shell.Interop;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -138,7 +140,6 @@ namespace Wox.ViewModel
             set
             {
                 InternationalizationManager.Instance.ChangeLanguage(value);
-
                 if (InternationalizationManager.Instance.PromptShouldUsePinyin(value))
                     ShouldUsePinyin = true;
             }

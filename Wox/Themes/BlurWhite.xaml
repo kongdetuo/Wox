@@ -14,13 +14,13 @@
 
     <Style x:Key="QueryTextSuggestionBoxStyle" BasedOn="{StaticResource BaseQueryTextSuggestionBoxStyle}" TargetType="{x:Type TextBox}">
         <Setter Property="Foreground" Value="DimGray" />
-        <Setter Property="Background" Value="#01FFFFFF" />
+        <!--<Setter Property="Background" Value="#01FFFFFF" />-->
     </Style>
 
     <Style x:Key="WindowBorderStyle" BasedOn="{StaticResource BaseWindowBorderStyle}" TargetType="{x:Type Border}">
         <Setter Property="Background">
             <Setter.Value>
-                <SolidColorBrush Color="White" Opacity="0.1" />
+                <SolidColorBrush Color="White" Opacity="0.71" />
             </Setter.Value>
         </Setter>
     </Style>
@@ -28,7 +28,7 @@
     <Style x:Key="WindowStyle" BasedOn="{StaticResource BaseWindowStyle}" TargetType="{x:Type Window}">
         <Setter Property="Background">
             <Setter.Value>
-                <SolidColorBrush Color="White" Opacity="0.1" />
+                <SolidColorBrush Color="White" Opacity="0.71" />
             </Setter.Value>
         </Setter>
     </Style>

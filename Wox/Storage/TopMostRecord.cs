@@ -11,18 +11,18 @@ namespace Wox.Storage
         [JsonProperty]
         private Dictionary<string, Record> records = new Dictionary<string, Record>();
 
-        internal bool IsTopMost(Result result)
+        public bool IsTopMost(Result result)
         {
-            if (records.Count == 0)
-            {
-                return false;
-            }
+            return records.Count > 0
+                && records.TryGetValue(result.OriginQuery.RawQuery, out Record record)
+                && record.Title == result.Title
+                && record.SubTitle == result.SubTitle
+                && record.PluginID == result.PluginID;
+        }
 
-            // since this dictionary should be very small (or empty) going over it should be pretty fast. 
-            return records.Any(o => o.Value.Title == result.Title
-                                     && o.Value.SubTitle == result.SubTitle
-                                     && o.Value.PluginID == result.PluginID
-                                     && o.Key == result.OriginQuery.RawQuery);
+        public bool HasTopMost(Query query)
+        {
+            return query != null && records.ContainsKey(query.RawQuery);
         }
 
         internal void Remove(Result result)

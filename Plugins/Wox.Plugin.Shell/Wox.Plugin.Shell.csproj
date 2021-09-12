@@ -28,6 +28,9 @@
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 	</ItemGroup>
+	<ItemGroup>
+	  <PackageReference Include="InputSimulatorCore" Version="1.0.5" />
+	</ItemGroup>
   <ItemGroup>
     <None Update="Images\user.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -52,10 +55,5 @@
     <None Update="Images\shell.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="InputSimulator">
-      <Version>1.0.4</Version>
-    </PackageReference>
   </ItemGroup>
 </Project>
