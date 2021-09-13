@@ -15,7 +15,6 @@
          Style="{DynamicResource BaseListboxStyle}" Focusable="False"
          KeyboardNavigation.DirectionalNavigation="Cycle" SelectionMode="Single"
          VirtualizingStackPanel.IsVirtualizing="True" VirtualizingStackPanel.VirtualizationMode="Standard"
-         SelectionChanged="OnSelectionChanged"
          IsSynchronizedWithCurrentItem="True"
          PreviewMouseDown="ListBox_PreviewMouseDown">
     <!--IsSynchronizedWithCurrentItem: http://stackoverflow.com/a/7833798/2833083-->
