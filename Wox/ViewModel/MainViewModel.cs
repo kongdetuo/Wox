@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Windows;
@@ -81,10 +82,8 @@ namespace Wox.ViewModel
             }
 
             _ = Observable.FromEventPattern<PropertyChangedEventArgs>(this, nameof(this.PropertyChanged))
-                .Select(p => p.EventArgs.PropertyName)
-                .Where(p => p == nameof(this.QueryText))
-                .Throttle(TimeSpan.FromMilliseconds(50))
-                .ObserveOn(SynchronizationContext)
+                .Where(p => p.EventArgs.PropertyName == nameof(this.QueryText))
+                .Throttle(TimeSpan.FromMilliseconds(10))
                 .Subscribe(p => Query());
         }
 
@@ -349,7 +348,7 @@ namespace Wox.ViewModel
             var showProgressTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
             Wox.Core.Services.QueryService.Query(query, token)
                 .Select(p => new ResultsForUpdate(p.Results, PluginManager.GetPluginForId(p.PluginID)?.Metadata, p.Query, token))
-                .Buffer(TimeSpan.FromMilliseconds(50))
+                .Buffer(TimeSpan.FromMilliseconds(15))
                 .Where(p => p.Count > 0)
                 .ObserveOn(SynchronizationContext)
                 .Subscribe(
