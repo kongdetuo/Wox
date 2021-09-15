@@ -81,10 +81,18 @@ namespace Wox.ViewModel
                 SetCustomPluginHotkey();
             }
 
-            _ = Observable.FromEventPattern<PropertyChangedEventArgs>(this, nameof(this.PropertyChanged))
+            var queryTextChangeds = Observable.FromEventPattern<PropertyChangedEventArgs>(this, nameof(this.PropertyChanged))
                 .Where(p => p.EventArgs.PropertyName == nameof(this.QueryText))
-                .Throttle(TimeSpan.FromMilliseconds(10))
-                .Subscribe(p => Query());
+                .Select(p => QueryText);
+
+            queryTextChangeds.Where(p => SelectedIsFromQueryResults())
+                .Subscribe(queryText => QueryResults());
+
+            queryTextChangeds.Where(p => ContextMenuSelected())
+                .Subscribe(queryText => QueryContextMenu());
+
+            queryTextChangeds.Where(p => HistorySelected())
+                .Subscribe(queryText => QueryHistory());
         }
 
         private void InitializeKeyCommands()
@@ -238,23 +246,6 @@ namespace Wox.ViewModel
 
         #endregion
 
-        public void Query()
-        {
-            if (SelectedIsFromQueryResults())
-            {
-                QueryResults();
-            }
-            else if (ContextMenuSelected())
-            {
-                QueryContextMenu();
-            }
-            else if (HistorySelected())
-            {
-                QueryHistory();
-            }
-            UpdateResultVisible();
-        }
-
         private void QueryContextMenu()
         {
             const string id = "Context Menu ID";
@@ -273,6 +264,7 @@ namespace Wox.ViewModel
                     results = results.Where(r => MatchResult(r, query)).ToList();
 
                 ContextMenu.AddResults(results, id);
+                UpdateResultVisible();
             }
         }
 
@@ -307,6 +299,7 @@ namespace Wox.ViewModel
                 results = results.Where(r => MatchResult(r, query)).ToList();
 
             History.AddResults(results, id);
+            UpdateResultVisible();
         }
 
         private static bool MatchResult(Result result, string query)
@@ -315,8 +308,17 @@ namespace Wox.ViewModel
                 || StringMatcher.FuzzySearch(query, result.SubTitle).IsSearchPrecisionScoreMet();
         }
 
+        private string previousQueryText;
         private void QueryResults()
         {
+            // quetyText will be changed when back from context menu or history
+            // but, we don't need query again
+            if (previousQueryText == QueryText)
+            {
+                UpdateResultVisible();
+                return;
+            }
+            previousQueryText = QueryText;
             if (_updateSource != null && !_updateSource.IsCancellationRequested)
             {
                 // first condition used for init run
@@ -350,6 +352,7 @@ namespace Wox.ViewModel
                 .Select(p => new ResultsForUpdate(p.Results, PluginManager.GetPluginForId(p.PluginID)?.Metadata, p.Query, token))
                 .Buffer(TimeSpan.FromMilliseconds(15))
                 .Where(p => p.Count > 0)
+                .Delay(TimeSpan.FromSeconds(10))
                 .ObserveOn(SynchronizationContext)
                 .Subscribe(
                     onNext: p => UpdateResultView(p.ToList()),
