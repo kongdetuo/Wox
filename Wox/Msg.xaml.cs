@@ -30,7 +30,7 @@ namespace Wox
 
             // Create the fade out storyboard
             fadeOutStoryboard.Completed += fadeOutStoryboard_Completed;
-            DoubleAnimation fadeOutAnimation = new DoubleAnimation(dipWorkingArea.Y - Height, dipWorkingArea.Y, new Duration(TimeSpan.FromSeconds(5)))
+            DoubleAnimation fadeOutAnimation = new DoubleAnimation(dipWorkingArea.Y - Height, dipWorkingArea.Y, new Duration(TimeSpan.FromMilliseconds(300)))
             {
                 AccelerationRatio = 0.2
             };
@@ -76,6 +76,7 @@ namespace Wox
 
             Dispatcher.InvokeAsync(async () =>
                                    {
+                                       await System.Threading.Tasks.Task.Delay(TimeSpan.FromSeconds(2));
                                        if (!closing)
                                        {
                                            closing = true;
