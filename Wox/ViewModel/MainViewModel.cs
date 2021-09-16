@@ -352,7 +352,6 @@ namespace Wox.ViewModel
                 .Select(p => new ResultsForUpdate(p.Results, PluginManager.GetPluginForId(p.PluginID)?.Metadata, p.Query, token))
                 .Buffer(TimeSpan.FromMilliseconds(15))
                 .Where(p => p.Count > 0)
-                .Delay(TimeSpan.FromSeconds(10))
                 .ObserveOn(SynchronizationContext)
                 .Subscribe(
                     onNext: p => UpdateResultView(p.ToList()),
