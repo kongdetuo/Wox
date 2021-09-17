@@ -27,10 +27,13 @@ namespace Wox.Plugin.BrowserBookmark
             _settings = _storage.Load();
 
             //TODO: Let the user select which browser's bookmarks are displayed
-            var chromeBookmarks = new ChromeBookmarks().GetBookmarks().Distinct().ToList();
+            var chromiumBookmarks = new ChromeBookmarks().GetBookmarks()
+                .Concat(new EdgeBookmarks().GetBookmarks())
+                .Distinct()
+                .ToList();
             lock (_updateLock)
             {
-                cachedBookmarks = chromeBookmarks;
+                cachedBookmarks = chromiumBookmarks;
             }
             Task.Run(() =>
             {
@@ -65,7 +68,7 @@ namespace Wox.Plugin.BrowserBookmark
 
                 if (!topResults)
                 {
-                    // Since we mixed chrome and firefox bookmarks, we should order them again                
+                    // Since we mixed chrome and firefox bookmarks, we should order them again
                     returnList = cachedBookmarks.Where(o => Bookmarks.MatchProgram(o, param)).ToList();
                     returnList = returnList.OrderByDescending(o => o.Score).ToList();
                 }
@@ -100,10 +103,12 @@ namespace Wox.Plugin.BrowserBookmark
         {
             //TODO: Let the user select which browser's bookmarks are displayed
             var chromeBookmarks = new ChromeBookmarks();
+            var edgeBookmarks = new EdgeBookmarks();
             var mozBookmarks = new FirefoxBookmarks();
             var b1 = mozBookmarks.GetBookmarks();
             var b2 = chromeBookmarks.GetBookmarks();
             b1.AddRange(b2);
+            b1.AddRange(edgeBookmarks.GetBookmarks());
             var cached = b1.Distinct().ToList();
             lock (_updateLock)
             {
