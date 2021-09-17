@@ -13,7 +13,7 @@ namespace Wox.Plugin.BrowserBookmark
             if (!Directory.Exists(path))
                 return Enumerable.Empty<Bookmark>();
 
-            var paths = Directory.GetFiles(path, "Bookmarks");
+            var paths = Directory.GetFiles(path, "Bookmarks", new EnumerationOptions() { RecurseSubdirectories = true });
             return paths.SelectMany(path => ParseChromeBookmarks(path, name));
         }
 

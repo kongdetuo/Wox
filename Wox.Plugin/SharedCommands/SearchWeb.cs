@@ -13,23 +13,29 @@ namespace Wox.Infrastructure
         /// </summary>
 		public static void NewBrowserWindow(this string url, string browserPath)
         {
-            var browserExecutableName = browserPath?
-                                        .Split(new[] { Path.DirectorySeparatorChar }, StringSplitOptions.None)
-                                        .Last();
+            //var browserExecutableName = browserPath?
+            //                            .Split(new[] { Path.DirectorySeparatorChar }, StringSplitOptions.None)
+            //                            .Last();
 
-            var browser = string.IsNullOrEmpty(browserExecutableName) ? "chrome" : browserPath;
+            //var browser = string.IsNullOrEmpty(browserExecutableName) ? "chrome" : browserPath;
 
-            // Internet Explorer will open url in new browser window, and does not take the --new-window parameter
-            var browserArguements = browserExecutableName == "iexplore.exe" ? url : "--new-window " + url;
+            //// Internet Explorer will open url in new browser window, and does not take the --new-window parameter
+            //var browserArguements = browserExecutableName == "iexplore.exe" ? url : "--new-window " + url;
 
-            try
+            //try
+            //{
+            //    Process.Start(browser, browserArguements);
+            //}
+            //catch (System.ComponentModel.Win32Exception)
+            //{
+            //    Process.Start(url);
+            //}
+
+            Process.Start(new ProcessStartInfo()
             {
-                Process.Start(browser, browserArguements);
-            }
-            catch (System.ComponentModel.Win32Exception)
-            {
-                Process.Start(url);
-            }
+                FileName = url,
+                UseShellExecute = true
+            });
         }
 
         /// <summary> 
