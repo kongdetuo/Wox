@@ -85,13 +85,14 @@ namespace Wox.ViewModel
                 .Where(p => p.EventArgs.PropertyName == nameof(this.QueryText))
                 .Select(p => QueryText);
 
-            queryTextChangeds.Where(p => SelectedIsFromQueryResults())
+            _ = queryTextChangeds.Where(_ => SelectedIsFromQueryResults())
+                .DistinctUntilChanged()
                 .Subscribe(queryText => QueryResults());
 
-            queryTextChangeds.Where(p => ContextMenuSelected())
+            _ = queryTextChangeds.Where(p => ContextMenuSelected())
                 .Subscribe(queryText => QueryContextMenu());
 
-            queryTextChangeds.Where(p => HistorySelected())
+            _ = queryTextChangeds.Where(p => HistorySelected())
                 .Subscribe(queryText => QueryHistory());
         }
 
@@ -215,10 +216,9 @@ namespace Wox.ViewModel
                 _selectedResults = value;
                 if (SelectedIsFromQueryResults())
                 {
-                    if (_queryTextBeforeLeaveResults == QueryText)
-                        UpdateResultVisible();
-                    else
-                        ChangeQueryText(_queryTextBeforeLeaveResults);
+                    // use DistinctUntilChanged operator to avoid duplicate query
+                    ChangeQueryText(_queryTextBeforeLeaveResults);
+                    UpdateResultVisible();
                 }
                 else
                 {
@@ -308,17 +308,8 @@ namespace Wox.ViewModel
                 || StringMatcher.FuzzySearch(query, result.SubTitle).IsSearchPrecisionScoreMet();
         }
 
-        private string previousQueryText;
         private void QueryResults()
         {
-            // quetyText will be changed when back from context menu or history
-            // but, we don't need query again
-            if (previousQueryText == QueryText)
-            {
-                UpdateResultVisible();
-                return;
-            }
-            previousQueryText = QueryText;
             if (_updateSource != null && !_updateSource.IsCancellationRequested)
             {
                 // first condition used for init run
