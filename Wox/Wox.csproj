@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net6.0-windows10.0.19041.0</TargetFramework>
-        <OutputType>Exe</OutputType>
+        <OutputType>WinExe</OutputType>
         <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
         <IsWebBootstrapper>false</IsWebBootstrapper>
         <PublishUrl>发布\</PublishUrl>
