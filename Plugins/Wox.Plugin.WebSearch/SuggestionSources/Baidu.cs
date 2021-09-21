@@ -14,16 +14,19 @@ namespace Wox.Plugin.WebSearch.SuggestionSources
 {
     public class Baidu : SuggestionSource
     {
+        public Baidu()
+        {
+            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
+        }
         private readonly Regex _reg = new Regex("window.baidu.sug\\((.*)\\)");
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         public override async Task<List<string>> Suggestions(string query)
         {
             string result;
-
             try
             {
                 const string api = "http://suggestion.baidu.com/su?json=1&wd=";
-                result = await Http.Get(api + Uri.EscapeUriString(query), "GB2312");
+                result = await Http.Get(api + Uri.EscapeDataString(query), "GB2312");
             }
             catch (WebException e)
             {

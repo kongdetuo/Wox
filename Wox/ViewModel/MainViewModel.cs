@@ -323,20 +323,6 @@ namespace Wox.ViewModel
             var token = source.Token;
 
             var query = QueryBuilder.Build(QueryText.Trim(), PluginManager.NonGlobalPlugins);
-            var st1 = System.Diagnostics.Stopwatch.StartNew();
-            foreach (var pair in PluginManager.GetPluginsForInterface<IResultUpdated>())
-            {
-                Observable.FromEventPattern<ResultUpdatedEventArgs>(pair.Plugin, nameof(IResultUpdated.ResultsUpdated))
-                    .Select(p => p.EventArgs)
-                    .Where(p => p.Query == query)
-                    .Select(e =>
-                    {
-                        PluginManager.UpdatePluginMetadata(e.Results, pair.Metadata, e.Query);
-                        return new ResultsForUpdate(e.Results, pair.Metadata, e.Query, token);
-                    })
-                    .ObserveOn(this.SynchronizationContext)
-                    .Subscribe(p => UpdateResultView(new List<ResultsForUpdate>() { p }), token);
-            }
 
             var showProgressTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
             Wox.Core.Services.QueryService.Query(query, token)

@@ -23,28 +23,50 @@ namespace Wox.Core.Services
             var plugins = PluginManager.AllPlugins;//.Where(p => p.Metadata.Name.Contains("程序"));
             return plugins.ToObservable()
                 .ObserveOn(ThreadPoolScheduler.Instance)
-                .SelectMany(plugin => Observable.FromAsync(() => QueryForPluginAsync(plugin, query, token)));
+                .SelectMany(plugin => QueryPluginAsync(plugin, query, token));
         }
 
-        public static async Task<PluginQueryResult> QueryForPluginAsync(PluginPair pair, Query query, System.Threading.CancellationToken t)
+        //public static async Task<PluginQueryResult> QueryForPluginAsync(PluginPair pair, Query query, System.Threading.CancellationToken t)
+        //{
+        //    if (query == null || t.IsCancellationRequested || pair.Metadata.Disabled)
+        //    {
+        //        return new PluginQueryResult()
+        //        {
+        //            PluginID = pair.Metadata.ID,
+        //            Query = query,
+        //            Results = new List<Result>()
+        //        };
+        //    }
+        //    await Task.Yield();
+        //    var results = PluginManager.QueryForPlugin(pair, query);
+        //    return new PluginQueryResult()
+        //    {
+        //        PluginID = pair.Metadata.ID,
+        //        Query = query,
+        //        Results = results,
+        //    };
+        //}
+
+        private static IObservable<PluginQueryResult> QueryPluginAsync(PluginPair pair, Query query, System.Threading.CancellationToken token)
         {
-            if (query == null || t.IsCancellationRequested || pair.Metadata.Disabled)
+            var firstResult = new PluginQueryResult(pair, query, new List<Result>());
+
+            if (query == null || token.IsCancellationRequested || pair.Metadata.Disabled)
             {
-                return new PluginQueryResult()
-                {
-                    PluginID = pair.Metadata.ID,
-                    Query = query,
-                    Results = new List<Result>()
-                };
+                return Observable.Return(firstResult);
             }
-            await Task.Yield();
-            var results = PluginManager.QueryForPlugin(pair, query);
-            return new PluginQueryResult()
+
+            firstResult.Results = PluginManager.QueryForPlugin(pair, query);
+
+            if (pair.Plugin is IResultUpdated updatedPlugin)
             {
-                PluginID = pair.Metadata.ID,
-                Query = query,
-                Results = results,
-            };
+                return updatedPlugin.QueryUpdates(query, token).ToObservable()
+                    .Select(list => new PluginQueryResult(pair, query, list))
+                    .Do(p => PluginManager.UpdatePluginMetadata(p.Results, pair.Metadata, query))
+                    .StartWith(firstResult);
+            }
+            return Observable.Return(firstResult);
+
         }
 
         private static bool TryMatch(PluginPair pair, Query query)
@@ -57,6 +79,12 @@ namespace Wox.Core.Services
 
     public class PluginQueryResult
     {
+        public PluginQueryResult(PluginPair plugin, Query query, List<Result> results)
+        {
+            this.PluginID = plugin.Metadata.ID;
+            this.Query = query;
+            this.Results = results;
+        }
         public string PluginID { get; set; }
 
         public Query Query { get; set; }

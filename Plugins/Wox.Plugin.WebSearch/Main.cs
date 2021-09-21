@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
@@ -17,145 +18,74 @@ namespace Wox.Plugin.WebSearch
 
         private readonly Settings _settings;
         private readonly SettingsViewModel _viewModel;
-        private CancellationTokenSource _updateSource;
-        private CancellationToken _updateToken;
 
         public const string Images = "Images";
         public static string ImagesDirectory;
 
         private readonly string SearchSourceGlobalPluginWildCardSign = "*";
 
+        public Main()
+        {
+            _viewModel = new SettingsViewModel();
+            _settings = _viewModel.Settings;
+        }
         public void Save()
         {
             _viewModel.Save();
         }
 
-        public List<Result> Query(Query query)
-        {
-            var searchSourceList = new List<SearchSource>();
-            var results = new List<Result>();
+        public List<Result> Query(Query query) => new();
 
-            _updateSource?.Cancel();
-            _updateSource = new CancellationTokenSource();
-            _updateToken = _updateSource.Token;
-            
-            _settings.SearchSources.Where(o => (o.ActionKeyword == query.ActionKeyword || o.ActionKeyword == SearchSourceGlobalPluginWildCardSign) 
-                                               && o.Enabled)
-                                    .ToList()
-                                    .ForEach(x => searchSourceList.Add(x));
+        public async IAsyncEnumerable<List<Result>> QueryUpdates(Query query, [EnumeratorCancellation] CancellationToken token)
+        {
+            var enabledSource = _settings.SearchSources.Where(p => p.Enabled);
+            var searchSourceList = enabledSource
+                .Where(o => o.ActionKeyword == query.ActionKeyword)
+                .Concat(enabledSource.Where(p => p.ActionKeyword == SearchSourceGlobalPluginWildCardSign))
+                .ToList();
 
             if (searchSourceList.Any())
             {
-                foreach (SearchSource searchSource in searchSourceList)
-                {
-                    string keyword = string.Empty;
-                    keyword = searchSource.ActionKeyword == SearchSourceGlobalPluginWildCardSign ? query.ToString() : query.Search;
-                    var title = keyword;
-                    string subtitle = _context.API.GetTranslation("wox_plugin_websearch_search") + " " + searchSource.Title;
+                var defaultResults = searchSourceList
+                    .Select(source => GetResult(source, GetKeyword(query, source), GetSubtitle(source)))
+                    .ToList();
 
-                    if (string.IsNullOrEmpty(keyword))
+                yield return defaultResults;
+                if (_settings.EnableSuggestion && _settings.SelectedSuggestion != null)
+                {
+                    foreach (var source in searchSourceList)
                     {
-                        var result = new Result
-                        { 
-                            Score=100,
-                            Title = subtitle,
-                            SubTitle = string.Empty,
-                            IcoPath = searchSource.IconPath
-                        };
-                        results.Add(result);
-                    }
-                    else
-                    {
-                        var result = new Result
+                        await Task.Delay(5000, token);
+                        var suggest = await Suggestions(source, query);
+                        if (!token.IsCancellationRequested)
                         {
-                            Title = title,
-                            SubTitle = subtitle,
-                            Score = 100,
-                            IcoPath = searchSource.IconPath,
-                            ActionKeywordAssigned = searchSource.ActionKeyword == SearchSourceGlobalPluginWildCardSign ? string.Empty : searchSource.ActionKeyword,
-                            Action = c =>
-                            {
-                                if (_settings.OpenInNewBrowser)
-                                {
-                                    searchSource.Url.Replace("{q}", Uri.EscapeDataString(keyword)).NewBrowserWindow(_settings.BrowserPath);
-                                }
-                                else
-                                {
-                                    searchSource.Url.Replace("{q}", Uri.EscapeDataString(keyword)).NewTabInBrowser(_settings.BrowserPath);
-                                }
-
-                                return true;
-                            }
-                        };
-
-                        results.Add(result);
-                        UpdateResultsFromSuggestion(results, keyword, subtitle, searchSource, query);                        
+                            // List<T> is not thread safe
+                            defaultResults = defaultResults.Concat(suggest).ToList();
+                            yield return defaultResults;
+                        }
                     }
                 }
             }
-
-            return results;
-        }
-
-        private void UpdateResultsFromSuggestion(List<Result> results, string keyword, string subtitle,
-            SearchSource searchSource, Query query)
-        {
-            if (_settings.EnableSuggestion)
+            else
             {
-                const int waittime = 300;
-                var task = Task.Run(async () =>
-                {
-                    var suggestions = await Suggestions(keyword, subtitle, searchSource);
-                    results.AddRange(suggestions);
-                }, _updateToken);
-
-                if (!task.Wait(waittime))
-                {
-                    task.ContinueWith(_ => ResultsUpdated?.Invoke(this, new ResultUpdatedEventArgs
-                    {
-                        Results = results,
-                        Query = query
-                    }), _updateToken);
-                }
+                yield return new List<Result>();
             }
         }
 
-        private async Task<IEnumerable<Result>> Suggestions(string keyword, string subtitle, SearchSource searchSource)
+        private async Task<IEnumerable<Result>> Suggestions(SearchSource searchSource, Query query)
         {
             var source = _settings.SelectedSuggestion;
             if (source != null)
             {
+                var keyword = GetKeyword(query, searchSource);
+                var subtitle = GetSubtitle(searchSource);
+                if (string.IsNullOrWhiteSpace(keyword))
+                    return Enumerable.Empty<Result>();
                 var suggestions = await source.Suggestions(keyword);
-                var resultsFromSuggestion = suggestions.Select(o => new Result
-                {
-                    Title = o,
-                    SubTitle = subtitle,
-                    Score = 5,
-                    IcoPath = searchSource.IconPath,
-                    ActionKeywordAssigned = searchSource.ActionKeyword == SearchSourceGlobalPluginWildCardSign ? string.Empty : searchSource.ActionKeyword,
-                    Action = c =>
-                    {
-                        if (_settings.OpenInNewBrowser)
-                        {
-                            searchSource.Url.Replace("{q}", Uri.EscapeDataString(o)).NewBrowserWindow(_settings.BrowserPath);
-                        }
-                        else
-                        {
-                            searchSource.Url.Replace("{q}", Uri.EscapeDataString(o)).NewTabInBrowser(_settings.BrowserPath);
-                        }
-
-                        return true;
-                    }
-                });
-                return resultsFromSuggestion;
+                return suggestions
+                    .Select(s => GetResult(searchSource, s, subtitle));
             }
-            return new List<Result>();
-        }
-
-        public Main()
-        {
-            _viewModel = new SettingsViewModel();
-            _settings = _viewModel.Settings;
+            return Enumerable.Empty<Result>();
         }
 
         public void Init(PluginInitContext context)
@@ -186,6 +116,58 @@ namespace Wox.Plugin.WebSearch
             return _context.API.GetTranslation("wox_plugin_websearch_plugin_description");
         }
 
-        public event ResultUpdatedEventHandler ResultsUpdated;
+
+
+        private string GetKeyword(Query query, SearchSource searchSource)
+        {
+            string keyword = searchSource.ActionKeyword == SearchSourceGlobalPluginWildCardSign
+                ? query.ToString()
+                : query.Search;
+            return keyword;
+        }
+
+        private string GetSubtitle(SearchSource searchSource)
+        {
+            string subtitle = _context.API.GetTranslation("wox_plugin_websearch_search") + " " + searchSource.Title;
+            return subtitle;
+        }
+
+        private Result GetResult(SearchSource searchSource, string keyword, string subtitle)
+        {
+            if (string.IsNullOrEmpty(keyword))
+            {
+                return new Result
+                {
+                    Score = 100,
+                    Title = subtitle,
+                    SubTitle = string.Empty,
+                    IcoPath = searchSource.IconPath
+                };
+            }
+            else
+            {
+                return new Result
+                {
+                    Title = keyword,
+                    SubTitle = subtitle,
+                    Score = 100,
+                    IcoPath = searchSource.IconPath,
+                    ActionKeywordAssigned = searchSource.ActionKeyword == SearchSourceGlobalPluginWildCardSign ? string.Empty : searchSource.ActionKeyword,
+                    Action = c =>
+                    {
+                        if (_settings.OpenInNewBrowser)
+                        {
+                            searchSource.Url.Replace("{q}", Uri.EscapeDataString(keyword)).NewBrowserWindow(_settings.BrowserPath);
+                        }
+                        else
+                        {
+                            searchSource.Url.Replace("{q}", Uri.EscapeDataString(keyword)).NewTabInBrowser(_settings.BrowserPath);
+                        }
+                        return true;
+                    }
+                };
+            }
+        }
+
     }
 }

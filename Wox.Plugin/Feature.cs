@@ -1,6 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Runtime.CompilerServices;
+using System.Threading;
 
 namespace Wox.Plugin
 {
@@ -23,14 +24,6 @@ namespace Wox.Plugin
 
     public interface IResultUpdated : IFeatures
     {
-        event ResultUpdatedEventHandler ResultsUpdated;
-    }
-
-    public delegate void ResultUpdatedEventHandler(IResultUpdated sender, ResultUpdatedEventArgs e);
-
-    public class ResultUpdatedEventArgs : EventArgs
-    {
-        public List<Result> Results;
-        public Query Query;
+        IAsyncEnumerable<List<Result>> QueryUpdates(Query query, CancellationToken token);
     }
 }

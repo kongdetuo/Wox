@@ -199,6 +199,7 @@
         </PackageReference>
         <PackageReference Include="NHotkey.Wpf" Version="2.1.0" />
         <PackageReference Include="Ookii.Dialogs.Wpf" Version="2.0.0" />
+        <PackageReference Include="System.Linq.Async" Version="5.0.0" />
         <PackageReference Include="System.Reactive.Linq" Version="5.0.0" />
     </ItemGroup>
     <ItemGroup>
@@ -215,6 +216,9 @@
 			<SubType>Designer</SubType>
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
+    </ItemGroup>
+    <ItemGroup>
+      <None Include="..\.editorconfig" Link=".editorconfig" />
     </ItemGroup>
     <ItemGroup>
         <Page Include="App.xaml">
