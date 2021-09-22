@@ -127,6 +127,12 @@ namespace Wox.ViewModel
         /// </summary>
         public void AddResults(List<ResultsForUpdate> updates)
         {
+            // because IResultUpdated, updates maybe contains same plugin result
+            // we just need the last one
+            updates = updates.AsEnumerable().Reverse()
+                .DistinctBy(p => p.ID).Reverse()
+                .ToList();
+
             var updatesNotCanceled = updates.Where(u => !u.Token.IsCancellationRequested);
 
             CancellationToken token;

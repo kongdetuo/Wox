@@ -104,6 +104,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="6.0.0-rc.1.21451.13" />
   </ItemGroup>
 	<ItemGroup>
 		<Content Include="Languages\*.xaml">
