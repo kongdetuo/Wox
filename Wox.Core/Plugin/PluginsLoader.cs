@@ -26,8 +26,10 @@ namespace Wox.Core.Plugin
             var csharpPlugins = CSharpPlugins(metadatas).ToList();
             var pythonPlugins = PythonPlugins(metadatas, settings.PythonDirectory);
             var executablePlugins = ExecutablePlugins(metadatas);
-            var plugins = csharpPlugins.Concat(pythonPlugins).Concat(executablePlugins).ToList();
-            return plugins;
+            var plugins = csharpPlugins.Concat(pythonPlugins).Concat(executablePlugins);
+            return plugins
+                .OrderBy(p => p.Metadata.Name, StringComparer.InvariantCulture)
+                .ToList();
         }
 
         public static IEnumerable<PluginPair> CSharpPlugins(List<PluginMetadata> source)
