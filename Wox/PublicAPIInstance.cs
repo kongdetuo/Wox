@@ -1,18 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using Squirrel;
-using Wox.Core;
 using Wox.Core.Plugin;
 using Wox.Core.Resource;
 using Wox.Helper;
-using Wox.Infrastructure;
 using Wox.Infrastructure.Hotkey;
-using Wox.Image;
 using Wox.Plugin;
 using Wox.ViewModel;
 
@@ -39,6 +33,12 @@ namespace Wox
 
         public void ChangeQuery(string query, bool requery = false)
         {
+            if (requery)
+            {
+                _mainVM.SelectedResults = _mainVM.Results;
+                if (_mainVM.QueryText == query)
+                    _mainVM.ChangeQueryText(string.Empty); // ensure queryText will be change or equal to string.Empty
+            }
             _mainVM.ChangeQueryText(query);
         }
 
@@ -82,7 +82,7 @@ namespace Wox
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                var msg = useMainWindowAsOwner ? new Msg {Owner = Application.Current.MainWindow} : new Msg();
+                var msg = useMainWindowAsOwner ? new Msg { Owner = Application.Current.MainWindow } : new Msg();
                 msg.Show(title, subTitle, iconPath);
             });
         }

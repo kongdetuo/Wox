@@ -253,22 +253,14 @@ namespace Wox.Plugin.Everything
             contextMenus.Add(new Result
             {
                 Title = _context.API.GetTranslation("wox_plugin_everything_copy_path"),
-                Action = (context) =>
-                {
-                    Clipboard.SetText(record.FullPath);
-                    return true;
-                },
+                Action = Actions.CopyTextToClipboard(record.FullPath),
                 IcoPath = icoPath
             });
 
             contextMenus.Add(new Result
             {
                 Title = _context.API.GetTranslation("wox_plugin_everything_copy"),
-                Action = (context) =>
-                {
-                    Clipboard.SetFileDropList(new System.Collections.Specialized.StringCollection { record.FullPath });
-                    return true;
-                },
+                Action = Actions.CopyFilesToClipboard(record.FullPath),
                 IcoPath = icoPath
             });
 

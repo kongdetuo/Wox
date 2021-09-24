@@ -32,9 +32,9 @@ namespace Wox.Plugin.Caculator
 
         static Main()
         {
-            MagesEngine = new Engine();            
+            MagesEngine = new Engine();
         }
-        
+
         public void Init(PluginInitContext context)
         {
             Context = context;
@@ -74,20 +74,8 @@ namespace Wox.Plugin.Caculator
                             IcoPath = "Images/calculator.png",
                             Score = 300,
                             SubTitle = Context.API.GetTranslation("wox_plugin_calculator_copy_number_to_clipboard"),
-                            Action = c =>
-                            {
-                                try
-                                {
-                                    Clipboard.SetText(newResult);
-                                    return true;
-                                }
-                                catch (ExternalException)
-                                {
-                                    MessageBox.Show("Copy failed, please try later");
-                                    return false;
-                                }
-                            }
-                        } 
+                            Action = Actions.CopyTextToClipboard(newResult)
+                        }
                     };
                 }
             }
@@ -111,7 +99,7 @@ namespace Wox.Plugin.Caculator
             {
                 return false;
             }
-                
+
             if (!IsBracketComplete(query.Search))
             {
                 return false;
@@ -164,7 +152,7 @@ namespace Wox.Plugin.Caculator
 
             return leftBracketCount == 0;
         }
-        
+
         public string GetTranslatedPluginTitle()
         {
             return Context.API.GetTranslation("wox_plugin_caculator_plugin_name");

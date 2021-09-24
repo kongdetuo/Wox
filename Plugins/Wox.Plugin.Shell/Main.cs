@@ -322,7 +322,8 @@ namespace Wox.Plugin.Shell
 
         private void OnWinRPressed()
         {
-            _context.API.ChangeQuery($"{_context.CurrentPluginMetadata.ActionKeywords[0]}{Plugin.Query.TermSeperater}");
+            string query = $"{_context.CurrentPluginMetadata.ActionKeywords[0]}{Plugin.Query.TermSeperater}";
+            _context.API.ChangeQuery(query, true);
             Application.Current.MainWindow.Visibility = Visibility.Visible;
         }
 

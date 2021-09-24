@@ -43,7 +43,7 @@ namespace Wox.Plugin
         {
             return context =>
             {
-                API.ChangeQuery(queryText);
+                API.ChangeQuery(queryText, true);
                 return false;
             };
         }
@@ -111,6 +111,11 @@ namespace Wox.Plugin
                 SearchWeb.NewTabInBrowser(url, browserPath);
                 return true;
             };
+        }
+
+        public static Func<ActionContext, bool> Empty(bool hideWindow = false)
+        {
+            return _ => hideWindow;
         }
     }
 }

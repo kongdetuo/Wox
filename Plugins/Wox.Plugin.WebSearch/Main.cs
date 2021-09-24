@@ -55,7 +55,6 @@ namespace Wox.Plugin.WebSearch
                 {
                     foreach (var source in searchSourceList)
                     {
-                        await Task.Delay(5000, token);
                         var suggest = await Suggestions(source, query);
                         if (!token.IsCancellationRequested)
                         {

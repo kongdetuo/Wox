@@ -37,21 +37,7 @@ namespace Wox.Plugin.Folder
                 {
                     Title = "Copy path",
                     SubTitle = $"Copy the current {fileOrFolder} path to clipboard",
-                    Action = (context) =>
-                    {
-                        try
-                        {
-                            Clipboard.SetText(record.FullPath);
-                            return true;
-                        }
-                        catch (Exception e)
-                        {
-                            var message = "Fail to set text in clipboard";
-                            LogException(message, e);
-                            _context.API.ShowMsg(message);
-                            return false;
-                        }
-                    },
+                    Action = Actions.CopyTextToClipboard(record.FullPath),
                     IcoPath = Main.CopyImagePath
                 });
 
@@ -59,22 +45,7 @@ namespace Wox.Plugin.Folder
                 {
                     Title = $"Copy {fileOrFolder}",
                     SubTitle = $"Copy the {fileOrFolder} to clipboard",
-                    Action = (context) =>
-                    {
-                        try
-                        {
-                            Clipboard.SetFileDropList(new System.Collections.Specialized.StringCollection { record.FullPath });
-                            return true;
-                        }
-                        catch (Exception e)
-                        {
-                            var message = $"Fail to set {fileOrFolder} in clipboard";
-                            LogException(message, e);
-                            _context.API.ShowMsg(message);
-                            return false;
-                        }
-                        
-                    },
+                    Action = Actions.CopyFilesToClipboard(record.FullPath),
                     IcoPath = icoPath
                 });
 

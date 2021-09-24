@@ -5,6 +5,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Windows.Media;
 
 namespace Wox.Plugin.Color
 {
@@ -44,11 +45,7 @@ namespace Wox.Plugin.Color
                         {
                             Title = raw,
                             IcoPath = path,
-                            Action = _ =>
-                            {
-                                Clipboard.SetText(raw);
-                                return true;
-                            }
+                            Action = Actions.CopyTextToClipboard(raw)
                         }
                     };
                 }
@@ -56,11 +53,7 @@ namespace Wox.Plugin.Color
                 {
                     Title = raw,
                     IcoPath = x.FullName,
-                    Action = _ =>
-                    {
-                        Clipboard.SetText(raw);
-                        return true;
-                    }
+                    Action = Actions.CopyTextToClipboard(raw)
                 }).ToList();
             }
             catch (Exception)
