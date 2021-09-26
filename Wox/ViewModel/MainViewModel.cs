@@ -83,11 +83,11 @@ namespace Wox.ViewModel
 
             var queryTextChangeds = Observable.FromEventPattern<PropertyChangedEventArgs>(this, nameof(this.PropertyChanged))
                 .Where(p => p.EventArgs.PropertyName == nameof(this.QueryText))
-                .Select(p => QueryText);
+                .Select(p => QueryText.Trim());
 
             _ = queryTextChangeds.Where(_ => SelectedIsFromQueryResults())
                 .DistinctUntilChanged()
-                .Subscribe(queryText => QueryResults());
+                .Subscribe(queryText => QueryResults(queryText));
 
             _ = queryTextChangeds.Where(p => ContextMenuSelected())
                 .Subscribe(queryText => QueryContextMenu());
@@ -308,7 +308,7 @@ namespace Wox.ViewModel
                 || StringMatcher.FuzzySearch(query, result.SubTitle).IsSearchPrecisionScoreMet();
         }
 
-        private void QueryResults()
+        private void QueryResults(string queryText)
         {
             if (_updateSource != null && !_updateSource.IsCancellationRequested)
             {
@@ -322,7 +322,7 @@ namespace Wox.ViewModel
             _updateSource = source;
             var token = source.Token;
 
-            var query = QueryBuilder.Build(QueryText.Trim(), PluginManager.NonGlobalPlugins);
+            var query = QueryBuilder.Build(queryText, PluginManager.NonGlobalPlugins);
 
             var showProgressTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
             Wox.Core.Services.QueryService.Query(query, token)

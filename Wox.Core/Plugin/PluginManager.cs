@@ -31,7 +31,7 @@ namespace Wox.Core.Plugin
 
         public static IPublicAPI API { private set; get; }
 
-        // todo this should not be public, the indicator function should be embeded 
+        // todo this should not be public, the indicator function should be embeded
         public static PluginsSettings Settings;
         private static List<PluginMetadata> _metadatas;
         private static readonly string[] Directories = { Constant.PreinstalledDirectory, DataLocation.PluginsDirectory };
@@ -162,26 +162,15 @@ namespace Wox.Core.Plugin
             try
             {
                 var metadata = pair.Metadata;
-
-                bool validGlobalQuery = string.IsNullOrEmpty(query.ActionKeyword) && pair.Metadata.ActionKeywords[0] == Query.GlobalPluginWildcardSign;
-                bool validNonGlobalQuery = pair.Metadata.ActionKeywords.Contains(query.ActionKeyword);
-                if (validGlobalQuery || validNonGlobalQuery)
+                List<Result> results = new List<Result>();
+                var milliseconds = Logger.StopWatchDebug($"Query <{query.RawQuery}> Cost for {metadata.Name}", () =>
                 {
-                    List<Result> results = new List<Result>();
-                    var milliseconds = Logger.StopWatchDebug($"Query <{query.RawQuery}> Cost for {metadata.Name}", () =>
-                    {
-                        results = pair.Plugin.Query(query) ?? new List<Result>();
-                    });
-                    UpdatePluginMetadata(results, metadata, query);
-                    metadata.QueryCount += 1;
-                    metadata.AvgQueryTime = metadata.QueryCount == 1 ? milliseconds : (metadata.AvgQueryTime + milliseconds) / 2;
-                    return results;
-                }
-                else
-                {
-                    return new List<Result>();
-                }
-
+                    results = pair.Plugin.Query(query) ?? new List<Result>();
+                });
+                UpdatePluginMetadata(results, metadata, query);
+                metadata.QueryCount += 1;
+                metadata.AvgQueryTime = metadata.QueryCount == 1 ? milliseconds : (metadata.AvgQueryTime + milliseconds) / 2;
+                return results;
             }
             catch (Exception e)
             {
@@ -209,8 +198,8 @@ namespace Wox.Core.Plugin
                     r.IcoPath = Path.Combine(r.PluginDirectory, r.IcoPath);
                 }
 
-                // ActionKeywordAssigned is used for constructing MainViewModel's query text auto-complete suggestions 
-                // Plugins may have multi-actionkeywords eg. WebSearches. In this scenario it needs to be overriden on the plugin level 
+                // ActionKeywordAssigned is used for constructing MainViewModel's query text auto-complete suggestions
+                // Plugins may have multi-actionkeywords eg. WebSearches. In this scenario it needs to be overriden on the plugin level
                 if (metadata.ActionKeywords.Count == 1)
                     r.ActionKeywordAssigned = query.ActionKeyword;
             }
