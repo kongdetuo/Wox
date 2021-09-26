@@ -20,53 +20,37 @@ namespace Wox.Core.Services
 
         public static IObservable<PluginQueryResult> Query(Query query, System.Threading.CancellationToken token)
         {
-            var plugins = PluginManager.AllPlugins;//.Where(p => p.Metadata.Name.Contains("程序"));
+            var plugins = PluginManager.AllPlugins;
+            if (query == null)
+                return plugins.Select(p => new PluginQueryResult(p, query, new List<Result>())).ToObservable();
+
             return plugins.ToObservable()
                 .ObserveOn(ThreadPoolScheduler.Instance)
-                .SelectMany(plugin => QueryPluginAsync(plugin, query, token));
+                .SelectMany(plugin => QueryPluginAsync(plugin, query, token).ToObservable());
         }
 
-        //public static async Task<PluginQueryResult> QueryForPluginAsync(PluginPair pair, Query query, System.Threading.CancellationToken t)
-        //{
-        //    if (query == null || t.IsCancellationRequested || pair.Metadata.Disabled)
-        //    {
-        //        return new PluginQueryResult()
-        //        {
-        //            PluginID = pair.Metadata.ID,
-        //            Query = query,
-        //            Results = new List<Result>()
-        //        };
-        //    }
-        //    await Task.Yield();
-        //    var results = PluginManager.QueryForPlugin(pair, query);
-        //    return new PluginQueryResult()
-        //    {
-        //        PluginID = pair.Metadata.ID,
-        //        Query = query,
-        //        Results = results,
-        //    };
-        //}
-
-        private static IObservable<PluginQueryResult> QueryPluginAsync(PluginPair pair, Query query, System.Threading.CancellationToken token)
+        private static async IAsyncEnumerable<PluginQueryResult> QueryPluginAsync(PluginPair pair, Query query, [System.Runtime.CompilerServices.EnumeratorCancellation] System.Threading.CancellationToken token)
         {
-            var firstResult = new PluginQueryResult(pair, query, new List<Result>());
-
-            if (query == null || token.IsCancellationRequested || pair.Metadata.Disabled)
+            if (pair.Metadata.Disabled || token.IsCancellationRequested || !TryMatch(pair, query))
             {
-                return Observable.Return(firstResult);
+                yield return new PluginQueryResult(pair, query, new List<Result>());
+                yield break;
             }
 
+            await Task.Yield();
+            var firstResult = new PluginQueryResult(pair, query, null);
             firstResult.Results = PluginManager.QueryForPlugin(pair, query);
+
+            yield return firstResult;
 
             if (pair.Plugin is IResultUpdated updatedPlugin)
             {
-                return updatedPlugin.QueryUpdates(query, token).ToObservable()
-                    .Select(list => new PluginQueryResult(pair, query, list))
-                    .Do(p => PluginManager.UpdatePluginMetadata(p.Results, pair.Metadata, query))
-                    .StartWith(firstResult);
+                await foreach (var results in updatedPlugin.QueryUpdates(query, token))
+                {
+                    PluginManager.UpdatePluginMetadata(results, pair.Metadata, query);
+                    yield return new PluginQueryResult(pair, query, results);
+                }
             }
-            return Observable.Return(firstResult);
-
         }
 
         private static bool TryMatch(PluginPair pair, Query query)
