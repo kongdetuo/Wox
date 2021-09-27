@@ -208,7 +208,7 @@ namespace Wox.ViewModel
 
         private ResultsViewModel _selectedResults;
 
-        private ResultsViewModel SelectedResults
+        internal ResultsViewModel SelectedResults
         {
             get { return _selectedResults; }
             set
@@ -325,7 +325,7 @@ namespace Wox.ViewModel
             var query = QueryBuilder.Build(queryText, PluginManager.NonGlobalPlugins);
 
             var showProgressTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
-            Wox.Core.Services.QueryService.Query(query, token)
+            Wox.Core.Services.QueryService.Query(query)
                 .Select(p => new ResultsForUpdate(p.Results, PluginManager.GetPluginForId(p.PluginID)?.Metadata, p.Query, token))
                 .Buffer(TimeSpan.FromMilliseconds(15))
                 .Where(p => p.Count > 0)
@@ -339,9 +339,11 @@ namespace Wox.ViewModel
                     },
                     token);
 
+            var showProgressToken = showProgressTokenSource.Token;
+            showProgressToken.Register(() => showProgressTokenSource.Dispose());
             Observable.Timer(TimeSpan.FromMilliseconds(200))
                 .ObserveOn(SynchronizationContext)
-                .Subscribe(p => ProgressBarVisibility = Visibility.Visible, showProgressTokenSource.Token);
+                .Subscribe(p => ProgressBarVisibility = Visibility.Visible, showProgressToken);
         }
 
         private void Refresh()

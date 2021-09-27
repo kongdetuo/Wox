@@ -18,7 +18,7 @@ namespace Wox.Core.Services
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        public static IObservable<PluginQueryResult> Query(Query query, System.Threading.CancellationToken token)
+        public static IObservable<PluginQueryResult> Query(Query query)
         {
             var plugins = PluginManager.AllPlugins;
             if (query == null)
@@ -26,12 +26,12 @@ namespace Wox.Core.Services
 
             return plugins.ToObservable()
                 .ObserveOn(ThreadPoolScheduler.Instance)
-                .SelectMany(plugin => QueryPluginAsync(plugin, query, token).ToObservable());
+                .SelectMany(plugin => QueryPluginAsync(plugin, query).ToObservable());
         }
 
-        private static async IAsyncEnumerable<PluginQueryResult> QueryPluginAsync(PluginPair pair, Query query, [System.Runtime.CompilerServices.EnumeratorCancellation] System.Threading.CancellationToken token)
+        private static async IAsyncEnumerable<PluginQueryResult> QueryPluginAsync(PluginPair pair, Query query)
         {
-            if (pair.Metadata.Disabled || token.IsCancellationRequested || !TryMatch(pair, query))
+            if (pair.Metadata.Disabled  || !TryMatch(pair, query))
             {
                 yield return new PluginQueryResult(pair, query, new List<Result>());
                 yield break;
@@ -45,7 +45,7 @@ namespace Wox.Core.Services
 
             if (pair.Plugin is IResultUpdated updatedPlugin)
             {
-                await foreach (var results in updatedPlugin.QueryUpdates(query, token))
+                await foreach (var results in updatedPlugin.QueryUpdates(query))
                 {
                     PluginManager.UpdatePluginMetadata(results, pair.Metadata, query);
                     yield return new PluginQueryResult(pair, query, results);

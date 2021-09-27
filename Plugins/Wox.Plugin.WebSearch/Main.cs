@@ -36,7 +36,7 @@ namespace Wox.Plugin.WebSearch
 
         public List<Result> Query(Query query) => new();
 
-        public async IAsyncEnumerable<List<Result>> QueryUpdates(Query query, [EnumeratorCancellation] CancellationToken token)
+        public async IAsyncEnumerable<List<Result>> QueryUpdates(Query query)
         {
             var enabledSource = _settings.SearchSources.Where(p => p.Enabled);
             var searchSourceList = enabledSource
@@ -56,12 +56,10 @@ namespace Wox.Plugin.WebSearch
                     foreach (var source in searchSourceList)
                     {
                         var suggest = await Suggestions(source, query);
-                        if (!token.IsCancellationRequested)
-                        {
-                            // List<T> is not thread safe
-                            defaultResults = defaultResults.Concat(suggest).ToList();
-                            yield return defaultResults;
-                        }
+
+                        // List<T> is not thread safe
+                        defaultResults = defaultResults.Concat(suggest).ToList();
+                        yield return defaultResults;
                     }
                 }
             }
