@@ -74,7 +74,7 @@ namespace Wox.Image
 
 
 
-        private static ImageSource LoadInternal(string path)
+        private static ImageSource LoadInternal(string path, string pluginDirectory)
         {
             Logger.WoxDebug($"load from disk {path}");
 
@@ -114,35 +114,17 @@ namespace Wox.Image
             }
 
             bool normalImage = ImageExtensions.Any(e => path.EndsWith(e));
-            if (!Path.IsPathRooted(path) && normalImage)
-            {
-                path = Path.Combine(Constant.ProgramDirectory, "Images", Path.GetFileName(path));
-            }
 
-
-            var parent1 = new DirectoryInfo(Constant.ProgramDirectory);
-            var parent2 = new DirectoryInfo(DataLocation.DataDirectory());
-            var subPath = new DirectoryInfo(path);
-            Logger.WoxTrace($"{path} {subPath} {parent1} {parent2}");
-            bool imageInsideWoxDirectory = IsSubdirectory(parent1, subPath) || IsSubdirectory(parent2, subPath);
-            if (normalImage && imageInsideWoxDirectory)
+            if (normalImage)
             {
-                try
-                {
-                    image = new BitmapImage(new Uri(path))
-                    {
-                        DecodePixelHeight = 32,
-                        DecodePixelWidth = 32
-                    };
-                }
-                catch (Exception e)
-                {
-                    e.Data.Add(nameof(path), path);
-                    Logger.WoxError($"cannot load {path}", e);
-                    return GetErrorImage();
-                }
-                image.Freeze();
-                return image;
+                if (TryLoadFromPath(path, out image))
+                    return image;
+
+                if (!string.IsNullOrEmpty(pluginDirectory) && TryLoadFromPluginDirectory(path, pluginDirectory, out image))
+                    return image;
+
+                if (TryLoadFromWoxDirectory(path, out image))
+                    return image;
             }
 
             if (Directory.Exists(path))
@@ -208,27 +190,69 @@ namespace Wox.Image
 
         }
 
+        private static bool TryLoadFromPath(string path, out ImageSource source)
+        {
+            try
+            {
+                if (Path.IsPathRooted(path) && File.Exists(path))
+                {
+                    source = new BitmapImage(new Uri(path))
+                    {
+                        DecodePixelHeight = 32,
+                        DecodePixelWidth = 32
+                    };
+                    source.Freeze();
+                    return true;
+                }
+            }
+            catch (Exception)
+            {
+            }
+            source = null;
+            return false;
+        }
+
+        private static bool TryLoadFromPluginDirectory(string path, string pluginDirectory, out ImageSource image)
+        {
+            if (TryLoadFromPath(Path.Combine(pluginDirectory, path), out image))
+                return true;
+            if (TryLoadFromPath(Path.Combine(pluginDirectory, "Images", Path.GetFileName(path)), out image))
+                return true;
+            image = null;
+            return false;
+        }
+
+        private static bool TryLoadFromWoxDirectory(string path, out ImageSource image)
+        {
+            if (TryLoadFromPath(Path.Combine(Constant.ProgramDirectory, path), out image))
+                return true;
+            if (TryLoadFromPath(Path.Combine(Constant.ProgramDirectory, "Images", Path.GetFileName(path)), out image))
+                return true;
+            image = null;
+            return false;
+        }
+
         public static ImageSource GetErrorImage()
         {
             return _errorImage;
         }
 
-        public static ImageSource Load(string path)
+        public static ImageSource Load(string path, string pluginDirectory)
         {
             Logger.WoxDebug($"load begin {path}");
-            var img = _cache.GetOrAdd(path, (string p) =>
-            {
-                try
-                {
-                    return LoadInternal(p);
-                }
-                catch (Exception e)
-                {
-                    e.Data.Add(nameof(p), p);
-                    Logger.WoxError($"cannot load image sync <{p}>", e);
-                    return GetErrorImage();
-                }
-            });
+            var img = _cache.GetOrAdd(pluginDirectory + path, (string p) =>
+             {
+                 try
+                 {
+                     return LoadInternal(path, pluginDirectory);
+                 }
+                 catch (Exception e)
+                 {
+                     e.Data.Add(nameof(path), path);
+                     Logger.WoxError($"cannot load image sync <{p}>", e);
+                     return GetErrorImage();
+                 }
+             });
             Logger.WoxTrace($"load end {path}");
             return img;
         }
@@ -243,22 +267,22 @@ namespace Wox.Image
         internal static ImageSource Load(string path, Action<ImageSource> updateImageCallback, string title, string pluginID, string pluginDirectory)
         {
             Logger.WoxDebug($"load begin {path}");
-            var img = _cache.GetOrAdd(path, _defaultFileImage, (string p) =>
-            {
-                try
-                {
-                    return LoadInternal(p);
-                }
-                catch (Exception e)
-                {
-                    e.Data.Add(nameof(title), title);
-                    e.Data.Add(nameof(pluginID), pluginID);
-                    e.Data.Add(nameof(pluginDirectory), pluginDirectory);
-                    e.Data.Add(nameof(p), p);
-                    Logger.WoxError($"cannot load image async <{p}>", e);
-                    return GetErrorImage();
-                }
-            }, updateImageCallback
+            var img = _cache.GetOrAdd(pluginDirectory + path, _defaultFileImage, (string p) =>
+             {
+                 try
+                 {
+                     return LoadInternal(path, pluginDirectory);
+                 }
+                 catch (Exception e)
+                 {
+                     e.Data.Add(nameof(title), title);
+                     e.Data.Add(nameof(pluginID), pluginID);
+                     e.Data.Add(nameof(pluginDirectory), pluginDirectory);
+                     e.Data.Add(nameof(p), p);
+                     Logger.WoxError($"cannot load image async <{p}>", e);
+                     return GetErrorImage();
+                 }
+             }, updateImageCallback
             );
             Logger.WoxTrace($"load end {path}");
             return img;

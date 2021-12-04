@@ -13,6 +13,15 @@ namespace Wox
             InitializeComponent();
         }
 
+        protected override void OnSelectionChanged(SelectionChangedEventArgs e)
+        {
+            base.OnSelectionChanged(e);
+            if(e.AddedItems.Count > 0 && e.AddedItems[0] is not null)
+            {
+                this.ScrollIntoView(e.AddedItems[0]);
+            }
+        }
+
         private void OnMouseEnter(object sender, MouseEventArgs e)
         {
             curItem = (ListBoxItem)sender;
