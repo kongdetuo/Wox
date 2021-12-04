@@ -80,19 +80,9 @@ namespace Wox.Plugin.BrowserBookmark
                     PluginDirectory = context.CurrentPluginMetadata.PluginDirectory,
                     IcoPath = @"Images\bookmark.png",
                     Score = 5,
-                    Action = (e) =>
-                    {
-                        if (_settings.OpenInNewBrowserWindow)
-                        {
-                            c.Url.NewBrowserWindow(_settings.BrowserPath);
-                        }
-                        else
-                        {
-                            c.Url.NewTabInBrowser(_settings.BrowserPath);
-                        }
-
-                        return true;
-                    }
+                    Action = _settings.OpenInNewBrowserWindow
+                        ? Actions.OpenInNewBrowserWindow(c.Url, _settings.BrowserPath)
+                        : Actions.OpenInNewBrowserTab(c.Url, _settings.BrowserPath)
                 }).ToList();
                 return results;
             }

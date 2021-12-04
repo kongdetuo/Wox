@@ -138,7 +138,8 @@ namespace Wox.ViewModel
                 {
                     bool hideWindow = result.Action != null && result.Action(new ActionContext
                     {
-                        SpecialKeyState = GlobalHotkey.Instance.CheckModifiers()
+                        SpecialKeyState = GlobalHotkey.Instance.CheckModifiers(),
+                        API = App.API
                     });
 
                     if (hideWindow)

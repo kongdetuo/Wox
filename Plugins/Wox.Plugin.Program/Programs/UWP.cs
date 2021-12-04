@@ -360,14 +360,7 @@ namespace Wox.Plugin.Program.Programs
                     new Result
                     {
                         Title = api.GetTranslation("wox_plugin_program_open_containing_folder"),
-
-                        Action = _ =>
-                        {
-                            Main.StartProcess(Process.Start, new ProcessStartInfo(Package.Location));
-
-                            return true;
-                        },
-
+                        Action = Actions.OpenDirectory(Package.Location),
                         IcoPath = "Images/folder.png"
                     }
                 };

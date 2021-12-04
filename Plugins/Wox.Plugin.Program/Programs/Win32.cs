@@ -33,33 +33,17 @@ namespace Wox.Plugin.Program.Programs
 
         public Result Result(string query, IPublicAPI api)
         {
+            var match = StringMatcher.FuzzySearch(query, Name);
             var result = new Result
             {
+                Title = Name,
                 SubTitle = "Win32 Ó¦ÓÃ³ÌÐò",
+                TitleHighlightData = match.MatchData,
+                Score = match.Score,
                 IcoPath = IcoPath,
                 ContextData = this,
-                Action = e =>
-                {
-                    var info = new ProcessStartInfo
-                    {
-                        FileName = FullPath,
-                        WorkingDirectory = ParentDirectory,
-                        UseShellExecute = true
-                    };
-
-                    if (e.SpecialKeyState.CtrlPressed)
-                        Main.StartProcess(Process.Start, ShellCommand.SetProcessStartInfo(info.FileName, info.WorkingDirectory, "", "runas"));
-                    else
-                        Main.StartProcess(Process.Start, info);
-
-                    return true;
-                }
+                Action = Actions.RunExe(FullPath, ParentDirectory)
             };
-
-            var match = StringMatcher.FuzzySearch(query, Name);
-            result.Title = Name;
-            result.Score = match.Score;
-            result.TitleHighlightData = match.MatchData;
 
             return result;
         }
@@ -72,48 +56,19 @@ namespace Wox.Plugin.Program.Programs
                 new Result
                 {
                     Title = api.GetTranslation("wox_plugin_program_run_as_different_user"),
-                    Action = _ =>
-                    {
-                        var info = FullPath.SetProcessStartInfo(ParentDirectory);
-
-                        Task.Run(() => Main.StartProcess(ShellCommand.RunAsDifferentUser, info));
-
-                        return true;
-                    },
+                    Action = Actions.RunAsDifferentUser(FullPath, ParentDirectory),
                     IcoPath = "Images/app.png"
                 },
                 new Result
                 {
                     Title = api.GetTranslation("wox_plugin_program_run_as_administrator"),
-                    Action = _ =>
-                    {
-                        var info = new ProcessStartInfo
-                        {
-                            FileName = FullPath,
-                            WorkingDirectory = ParentDirectory,
-                            Verb = "runas"
-                        };
-
-                        Task.Run(() => Main.StartProcess(Process.Start, info));
-
-                        return true;
-                    },
+                    Action = Actions.RunExeAsAdministrator(FullPath, ParentDirectory),
                     IcoPath = "Images/cmd.png"
                 },
                 new Result
                 {
                     Title = api.GetTranslation("wox_plugin_program_open_containing_folder"),
-                    Action = _ =>
-                    {
-                        var info = new ProcessStartInfo
-                        {
-                            FileName = ParentDirectory,
-                            UseShellExecute = true
-                        };
-                        Main.StartProcess(Process.Start, info);
-
-                        return true;
-                    },
+                    Action = Actions.OpenDirectory(ParentDirectory),
                     IcoPath = "Images/folder.png"
                 }
             };

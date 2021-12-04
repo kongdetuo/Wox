@@ -48,6 +48,12 @@ namespace Wox.ViewModel
                     return ImageLoader.GetErrorImage();
                 }
             }
+
+            if(!string.IsNullOrEmpty(imagePath))
+            {
+
+            }
+
             try
             {
                 // will get here either when icoPath has value\icon delegate is null\when had exception in delegate

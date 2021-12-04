@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows;
 using Wox.Infrastructure;
 
@@ -9,8 +10,6 @@ namespace Wox.Plugin
 {
     public class Actions
     {
-        public static IPublicAPI API { get; set; }
-
         public static Func<ActionContext, bool> CopyTextToClipboard(string value)
         {
             return context =>
@@ -22,7 +21,7 @@ namespace Wox.Plugin
                 }
                 catch (ExternalException)
                 {
-                    API.ShowMsg("Copy failed, please try later");
+                    context.API.ShowMsg("Copy failed, please try later");
                     return false;
                 }
             };
@@ -43,23 +42,96 @@ namespace Wox.Plugin
         {
             return context =>
             {
-                API.ChangeQuery(queryText, true);
+                context.API.ChangeQuery(queryText, true);
                 return false;
             };
         }
 
-        public static Func<ActionContext, bool> OpenFile(string filePath)
+        public static Func<ActionContext, bool> RunExe(string filePath, string workingDirectory = "", bool runasWhenCtrlKeyDown = true)
         {
             return context =>
             {
-                Process.Start(ShellCommand.SetProcessStartInfo(filePath));
+                try
+                {
+                    if (runasWhenCtrlKeyDown && context.SpecialKeyState.CtrlPressed)
+                        Process.Start(ShellCommand.SetProcessStartInfo(filePath, workingDirectory, "", "runas"));
+                    else
+                        Process.Start(ShellCommand.SetProcessStartInfo(filePath, workingDirectory));
+                    return true;
+                }
+                catch (Exception)
+                {
+                    var message = "Error";
+                    context.API.ShowMsg(message, $"Can't Start {filePath}");
+
+                    return false;
+                }
+            };
+        }
+
+        public static Func<ActionContext, bool> RunExeAsAdministrator(string filePath, string workingDirectory = "")
+        {
+            return context =>
+            {
+                try
+                {
+                    Process.Start(ShellCommand.SetProcessStartInfo(filePath, workingDirectory, "", "runas"));
+                    return true;
+                }
+                catch (Exception)
+                {
+                    var message = "Error";
+                    context.API.ShowMsg(message, $"Can't Start {filePath}");
+
+                    return false;
+                }
+            };
+        }
+
+        public static Func<ActionContext, bool> RunAsDifferentUser(string filePath, string workingDirectiory)
+        {
+            return context =>
+            {
+                var info = ShellCommand.SetProcessStartInfo(filePath, workingDirectiory);
+
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        ShellCommand.RunAsDifferentUser(info);
+                    }
+                    catch (Exception)
+                    {
+                        context.API.ShowMsg("Error");
+                    }
+                });
+
                 return true;
+            };
+        }
+
+
+        public static Func<ActionContext, bool> OpenFile(string filePath, string workingDir = "")
+        {
+            return context =>
+            {
+                try
+                {
+                    Process.Start(ShellCommand.SetProcessStartInfo(filePath, workingDir));
+                    return true;
+                }
+                catch (Exception)
+                {
+                    var message = "Can't open this file";
+                    context.API.ShowMsg(message);
+                    return false;
+                }
             };
         }
 
         public static Func<ActionContext, bool> Run(string filePath, bool runAs)
         {
-            return _ =>
+            return context =>
             {
                 var info = new ProcessStartInfo
                 {
@@ -76,7 +148,7 @@ namespace Wox.Plugin
                 {
                     var name = "Plugin: Program";
                     var message = $"Unable to start: {info.FileName}";
-                    API.ShowMsg(name, message, string.Empty);
+                    context.API.ShowMsg(name, message, string.Empty);
                 }
                 return true;
             };
@@ -86,11 +158,20 @@ namespace Wox.Plugin
         {
             return context =>
             {
-                Process.Start(new ProcessStartInfo()
+                try
                 {
-                    FileName = filePath,
-                    UseShellExecute = true
-                });
+                    Process.Start(new ProcessStartInfo()
+                    {
+                        FileName = filePath,
+                        //UseShellExecute = true
+                    });
+                }
+                catch (Exception ex)
+                {
+                    var message = $"Can't open {filePath}";
+                    context.API.ShowMsg(message, ex.Message);
+                }
+
                 return true;
             };
         }

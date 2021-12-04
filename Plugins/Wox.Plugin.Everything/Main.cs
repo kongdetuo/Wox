@@ -111,31 +111,8 @@ namespace Wox.Plugin.Everything
                 SubTitle = searchResult.FullPath,
                 SubTitleHighlightData = searchResult.FullPathHightData,
                 IcoPath = searchResult.FullPath,
-                Action = c =>
-                {
-                    bool hide;
-                    try
-                    {
-                        Process.Start(new ProcessStartInfo
-                        {
-                            FileName = path,
-                            UseShellExecute = true,
-                            WorkingDirectory = workingDir
-                        });
-                        hide = true;
-                    }
-                    catch (Win32Exception)
-                    {
-                        var name = $"Plugin: {_context.CurrentPluginMetadata.Name}";
-                        var message = "Can't open this file";
-                        _context.API.ShowMsg(name, message, string.Empty);
-                        hide = false;
-                    }
-
-                    return hide;
-                },
+                Action = Actions.OpenFile(path, workingDir),
                 ContextData = searchResult,
-                
             };
             return r;
         }

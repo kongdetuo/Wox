@@ -103,7 +103,6 @@ namespace Wox
                 _mainVM = new MainViewModel();
                 var window = new MainWindow(_mainVM);
                 API = new PublicAPIInstance(_settingsVM, _mainVM);
-                Wox.Plugin.Actions.API = API;
                 PluginManager.InitializePlugins(API);
 
                 Current.MainWindow = window;

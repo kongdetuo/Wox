@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 namespace Wox.Plugin
 {
@@ -50,6 +51,7 @@ namespace Wox.Plugin
         /// <summary>
         /// Plugin directory
         /// </summary>
+        [Obsolete("useless")]
         public string PluginDirectory { get; set; }
 
         public override bool Equals(object obj)
@@ -84,5 +86,23 @@ namespace Wox.Plugin
         /// Plugin ID that generated this result
         /// </summary>
         public string PluginID { get; set; }
+    }
+
+    public static class ResultHelper
+    {
+        public static Result.IconDelegate LoadImageFrom(string filePath)
+        {
+            return () =>
+            {
+                return ImageFromPath(filePath);
+            };
+        }
+
+
+        private static BitmapImage ImageFromPath(string path)
+        {
+            var image = new BitmapImage(new Uri(path));
+            return image;
+        }
     }
 }

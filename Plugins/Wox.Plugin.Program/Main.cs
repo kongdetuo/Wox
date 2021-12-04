@@ -219,21 +219,6 @@ namespace Wox.Plugin.Program
             return menuOptions;
         }
 
-
-        public static void StartProcess(Func<ProcessStartInfo, Process> runProcess, ProcessStartInfo info)
-        {
-            try
-            {
-                runProcess(info);
-            }
-            catch (Exception)
-            {
-                var name = "Plugin: Program";
-                var message = $"Unable to start: {info.FileName}";
-                _context.API.ShowMsg(name, message, string.Empty);
-            }
-        }
-
         public void ReloadData()
         {
             IndexPrograms();

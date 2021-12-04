@@ -95,6 +95,7 @@ namespace Wox.Plugin.Folder
                 Title = title,
                 IcoPath = path,
                 SubTitle = subtitle,
+                Score = 100,
                 TitleHighlightData = StringMatcher.FuzzySearch(query.Search, title).MatchData,
                 Action = c =>
                 {
