@@ -8,6 +8,7 @@ namespace Wox
     {
         private Point _lastpos;
         private ListBoxItem curItem = null;
+
         public ResultListBox()
         {
             InitializeComponent();
@@ -16,7 +17,7 @@ namespace Wox
         protected override void OnSelectionChanged(SelectionChangedEventArgs e)
         {
             base.OnSelectionChanged(e);
-            if(e.AddedItems.Count > 0 && e.AddedItems[0] is not null)
+            if (e.AddedItems.Count > 0 && e.AddedItems[0] is not null)
             {
                 this.ScrollIntoView(e.AddedItems[0]);
             }
@@ -34,7 +35,7 @@ namespace Wox
             var p = e.GetPosition((IInputElement)sender);
             if (_lastpos != p)
             {
-                ((ListBoxItem) sender).IsSelected = true;
+                ((ListBoxItem)sender).IsSelected = true;
             }
         }
 
@@ -44,6 +45,10 @@ namespace Wox
             {
                 curItem.IsSelected = true;
             }
+        }
+
+        private void Button_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        {
         }
     }
 }

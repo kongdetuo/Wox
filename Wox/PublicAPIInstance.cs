@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Windows;
@@ -27,7 +28,7 @@ namespace Wox
             WebRequest.RegisterPrefix("data", new DataWebRequestFactory());
         }
 
-        #endregion
+        #endregion Constructor
 
         #region Public API
 
@@ -41,7 +42,6 @@ namespace Wox
             }
             _mainVM.ChangeQueryText(query);
         }
-
 
         public void RestarApp()
         {
@@ -71,7 +71,6 @@ namespace Wox
         {
             PluginManager.ReloadData();
         }
-
 
         public void ShowMsg(string title, string subTitle = "", string iconPath = "")
         {
@@ -112,7 +111,7 @@ namespace Wox
 
         public event WoxGlobalKeyboardEventHandler GlobalKeyboardEvent;
 
-        #endregion
+        #endregion Public API
 
         #region Private Methods
 
@@ -124,6 +123,12 @@ namespace Wox
             }
             return true;
         }
-        #endregion
+
+        internal void HideWindow()
+        {
+            _mainVM.MainWindowVisibility = Visibility.Collapsed;
+        }
+
+        #endregion Private Methods
     }
 }

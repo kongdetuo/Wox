@@ -48,7 +48,7 @@ namespace Wox.ViewModel
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private readonly SynchronizationContext SynchronizationContext;
 
-        #endregion
+        #endregion Private Fields
 
         #region Constructor
 
@@ -67,9 +67,9 @@ namespace Wox.ViewModel
             _userSelectedRecord = _userSelectedRecordStorage.Load();
             _topMostRecord = _topMostRecordStorage.Load();
 
-            ContextMenu = new ResultsViewModel(_settings);
-            Results = new ResultsViewModel(_settings);
-            History = new ResultsViewModel(_settings);
+            ContextMenu = new ContextViewModel(_settings);
+            Results = new QueryResultViewModel(_settings, _userSelectedRecord, _history);
+            History = new HistoryViewModel(_settings);
             _selectedResults = Results;
 
             this.SynchronizationContext = SynchronizationContext.Current;
@@ -87,7 +87,12 @@ namespace Wox.ViewModel
 
             _ = queryTextChangeds.Where(_ => SelectedIsFromQueryResults())
                 .DistinctUntilChanged()
-                .Subscribe(queryText => QueryResults(queryText));
+                .Subscribe(
+                    onNext: queryText => QueryResults(queryText),
+                    onError: e =>
+                    {
+                        MessageBox.Show(e.Message);
+                    });
 
             _ = queryTextChangeds.Where(p => ContextMenuSelected())
                 .Subscribe(queryText => QueryContextMenu());
@@ -109,16 +114,6 @@ namespace Wox.ViewModel
                     MainWindowVisibility = Visibility.Collapsed;
                 }
             });
-
-            SelectNextItemCommand = new RelayCommand(_ => SelectedResults.SelectNextResult());
-
-            SelectPrevItemCommand = new RelayCommand(_ => SelectedResults.SelectPrevResult());
-
-            SelectNextPageCommand = new RelayCommand(_ => SelectedResults.SelectNextPage());
-
-            SelectPrevPageCommand = new RelayCommand(_ => SelectedResults.SelectPrevPage());
-
-            SelectFirstResultCommand = new RelayCommand(_ => SelectedResults.SelectFirstResult());
 
             StartHelpCommand = new RelayCommand(_ => Process.Start(new ProcessStartInfo() { FileName = "http://doc.wox.one/", UseShellExecute = true }));
 
@@ -185,7 +180,7 @@ namespace Wox.ViewModel
             });
         }
 
-        #endregion
+        #endregion Constructor
 
         #region ViewModel Properties
 
@@ -204,12 +199,13 @@ namespace Wox.ViewModel
             QueryTextCursorMovedToEnd = true;
             QueryText = queryText;
         }
+
         public bool LastQuerySelected { get; set; }
         public bool QueryTextCursorMovedToEnd { get; set; }
 
         private ResultsViewModel _selectedResults;
 
-        internal ResultsViewModel SelectedResults
+        public ResultsViewModel SelectedResults
         {
             get { return _selectedResults; }
             set
@@ -228,24 +224,21 @@ namespace Wox.ViewModel
                         OnPropertyChanged(nameof(QueryText));
                     QueryText = string.Empty;
                 }
+                OnPropertyChanged();
             }
         }
 
         public Visibility ProgressBarVisibility { get; set; }
         public Visibility MainWindowVisibility { get; set; }
         public ICommand EscCommand { get; set; }
-        public ICommand SelectNextItemCommand { get; set; }
-        public ICommand SelectPrevItemCommand { get; set; }
-        public ICommand SelectNextPageCommand { get; set; }
-        public ICommand SelectPrevPageCommand { get; set; }
-        public ICommand SelectFirstResultCommand { get; set; }
+
         public ICommand StartHelpCommand { get; set; }
         public ICommand RefreshCommand { get; set; }
         public ICommand LoadContextMenuCommand { get; set; }
         public ICommand LoadHistoryCommand { get; set; }
         public ICommand OpenResultCommand { get; set; }
 
-        #endregion
+        #endregion ViewModel Properties
 
         private void QueryContextMenu()
         {
@@ -311,40 +304,47 @@ namespace Wox.ViewModel
 
         private void QueryResults(string queryText)
         {
-            if (_updateSource != null && !_updateSource.IsCancellationRequested)
+            try
             {
-                // first condition used for init run
-                // second condition used when task has already been canceled in last turn
-                _updateSource.Cancel();
-                Logger.WoxDebug($"cancel init {_updateSource.Token.GetHashCode()} {Thread.CurrentThread.ManagedThreadId} {QueryText}");
-                _updateSource.Dispose();
+                if (_updateSource != null && !_updateSource.IsCancellationRequested)
+                {
+                    // first condition used for init run
+                    // second condition used when task has already been canceled in last turn
+                    _updateSource.Cancel();
+                    Logger.WoxDebug($"cancel init {_updateSource.Token.GetHashCode()} {Thread.CurrentThread.ManagedThreadId} {QueryText}");
+                    _updateSource.Dispose();
+                }
+                var source = new CancellationTokenSource();
+                _updateSource = source;
+                var token = source.Token;
+
+                var query = QueryBuilder.Build(queryText, PluginManager.NonGlobalPlugins);
+
+                var showProgressTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
+                Wox.Core.Services.QueryService.Query(query)
+                    .Select(p => new ResultsForUpdate(p.Results, PluginManager.GetPluginForId(p.PluginID)?.Metadata, p.Query, token))
+                    .Buffer(TimeSpan.FromMilliseconds(15))
+                    .Where(p => p.Count > 0)
+                    .ObserveOn(SynchronizationContext)
+                    .Subscribe(
+                        onNext: p => UpdateResultView(p.ToList()),
+                        onCompleted: () =>
+                        {
+                            showProgressTokenSource.Cancel();
+                            ProgressBarVisibility = Visibility.Hidden;
+                        },
+                        token);
+
+                var showProgressToken = showProgressTokenSource.Token;
+                showProgressToken.Register(() => showProgressTokenSource.Dispose());
+                Observable.Timer(TimeSpan.FromMilliseconds(200))
+                    .ObserveOn(SynchronizationContext)
+                    .Subscribe(p => ProgressBarVisibility = Visibility.Visible, showProgressToken);
             }
-            var source = new CancellationTokenSource();
-            _updateSource = source;
-            var token = source.Token;
-
-            var query = QueryBuilder.Build(queryText, PluginManager.NonGlobalPlugins);
-
-            var showProgressTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
-            Wox.Core.Services.QueryService.Query(query)
-                .Select(p => new ResultsForUpdate(p.Results, PluginManager.GetPluginForId(p.PluginID)?.Metadata, p.Query, token))
-                .Buffer(TimeSpan.FromMilliseconds(15))
-                .Where(p => p.Count > 0)
-                .ObserveOn(SynchronizationContext)
-                .Subscribe(
-                    onNext: p => UpdateResultView(p.ToList()),
-                    onCompleted: () =>
-                    {
-                        showProgressTokenSource.Cancel();
-                        ProgressBarVisibility = Visibility.Hidden;
-                    },
-                    token);
-
-            var showProgressToken = showProgressTokenSource.Token;
-            showProgressToken.Register(() => showProgressTokenSource.Dispose());
-            Observable.Timer(TimeSpan.FromMilliseconds(200))
-                .ObserveOn(SynchronizationContext)
-                .Subscribe(p => ProgressBarVisibility = Visibility.Visible, showProgressToken);
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
         }
 
         private void Refresh()
@@ -424,12 +424,12 @@ namespace Wox.ViewModel
             return selected;
         }
 
-
         private bool HistorySelected()
         {
             var selected = SelectedResults == History;
             return selected;
         }
+
         #region Hotkey
 
         private void SetHotkey(string hotkeyStr, EventHandler<HotkeyEventArgs> action)
@@ -523,7 +523,7 @@ namespace Wox.ViewModel
             }
         }
 
-        #endregion
+        #endregion Hotkey
 
         #region Public Methods
 
@@ -583,6 +583,7 @@ namespace Wox.ViewModel
 
             SelectedResults.Visbility = SelectedResults.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         }
-        #endregion
+
+        #endregion Public Methods
     }
 }

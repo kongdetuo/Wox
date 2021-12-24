@@ -110,7 +110,6 @@ namespace Wox.Plugin
             };
         }
 
-
         public static Func<ActionContext, bool> OpenFile(string filePath, string workingDir = "")
         {
             return context =>
@@ -163,7 +162,7 @@ namespace Wox.Plugin
                     Process.Start(new ProcessStartInfo()
                     {
                         FileName = filePath,
-                        //UseShellExecute = true
+                        UseShellExecute = true
                     });
                 }
                 catch (Exception ex)

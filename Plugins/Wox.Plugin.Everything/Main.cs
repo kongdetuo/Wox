@@ -18,11 +18,8 @@ namespace Wox.Plugin.Everything
 {
     public class Main : IPlugin, ISettingProvider, IPluginI18n, IContextMenu, ISavable
     {
-
         public const string DLL = "Everything.dll";
         private readonly EverythingApi _api = new EverythingApi();
-
-
 
         private PluginInitContext _context;
 
@@ -111,13 +108,11 @@ namespace Wox.Plugin.Everything
                 SubTitle = searchResult.FullPath,
                 SubTitleHighlightData = searchResult.FullPathHightData,
                 IcoPath = searchResult.FullPath,
-                Action = Actions.OpenFile(path, workingDir),
+                Action = File.Exists(path) ? Actions.OpenFile(path, workingDir) : Actions.OpenDirectory(path),
                 ContextData = searchResult,
             };
             return r;
         }
-
-
 
         private List<ContextMenu> GetDefaultContextMenu()
         {
@@ -176,7 +171,6 @@ namespace Wox.Plugin.Everything
             {
                 return "x64";
             }
-            
         }
 
         public string GetTranslatedPluginTitle()

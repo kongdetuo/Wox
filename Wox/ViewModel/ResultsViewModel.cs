@@ -9,10 +9,13 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Input;
 using NLog;
+using Wox.Infrastructure.Hotkey;
 using Wox.Infrastructure.Logger;
 using Wox.Infrastructure.UserSettings;
 using Wox.Plugin;
+using Wox.Storage;
 
 namespace Wox.ViewModel
 {
@@ -25,11 +28,19 @@ namespace Wox.ViewModel
         private readonly Settings _settings;
         private int MaxResults => _settings?.MaxResultsToShow ?? 6;
         private readonly object _collectionLock = new object();
+
         public ResultsViewModel()
         {
             Results = new ResultCollection();
             BindingOperations.EnableCollectionSynchronization(Results, _collectionLock);
+
+            SelectNextItemCommand = new RelayCommand(_ => this.SelectNextResult());
+            SelectPrevItemCommand = new RelayCommand(_ => SelectPrevResult());
+            SelectNextPageCommand = new RelayCommand(_ => SelectNextPage());
+            SelectPrevPageCommand = new RelayCommand(_ => SelectPrevPage());
+            SelectFirstResultCommand = new RelayCommand(_ => SelectFirstResult());
         }
+
         public ResultsViewModel(Settings settings) : this()
         {
             _settings = settings;
@@ -44,7 +55,17 @@ namespace Wox.ViewModel
 
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        #endregion
+        #endregion Private Fields
+
+        public ICommand SelectNextItemCommand { get; set; }
+        public ICommand SelectPrevItemCommand { get; set; }
+        public ICommand SelectNextPageCommand { get; set; }
+        public ICommand SelectPrevPageCommand { get; set; }
+        public ICommand SelectFirstResultCommand { get; set; }
+
+        public ICommand OpenResultCommand { get; set; } = new RelayCommand(obj => { });
+
+        public ICommand LoadContextMenuCommand { get; set; } = new RelayCommand(obj => { });
 
         #region Properties
 
@@ -56,7 +77,7 @@ namespace Wox.ViewModel
         public Thickness Margin { get; set; }
         public Visibility Visbility { get; set; } = Visibility.Collapsed;
 
-        #endregion
+        #endregion Properties
 
         #region Private Methods
 
@@ -75,8 +96,7 @@ namespace Wox.ViewModel
             }
         }
 
-
-        #endregion
+        #endregion Private Methods
 
         #region Public Methods
 
@@ -185,9 +205,10 @@ namespace Wox.ViewModel
             }
         }
 
-        #endregion
+        #endregion Public Methods
 
         #region FormattedText Dependency Property
+
         public static readonly DependencyProperty FormattedTextProperty = DependencyProperty.RegisterAttached(
             "FormattedText",
             typeof(Inline),
@@ -216,7 +237,8 @@ namespace Wox.ViewModel
 
             textBlock.Inlines.Add(inline);
         }
-        #endregion
+
+        #endregion FormattedText Dependency Property
 
         public class ResultCollection : Collection<ResultViewModel>, INotifyCollectionChanged
         {
@@ -247,6 +269,102 @@ namespace Wox.ViewModel
                     CollectionChanged.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
                 }
             }
+        }
+    }
+
+    public class HistoryViewModel : ResultsViewModel
+    {
+        public HistoryViewModel(Settings settings) : base(settings)
+        {
+            var api = App.API;
+
+            this.OpenResultCommand = new RelayCommand(index =>
+            {
+                if (index != null)
+                {
+                    SelectedIndex = int.Parse(index.ToString());
+                }
+
+                var result = SelectedItem?.Result;
+                if (result != null)
+                {
+                    bool hideWindow = result.Action != null && result.Action(new ActionContext
+                    {
+                        SpecialKeyState = GlobalHotkey.Instance.CheckModifiers(),
+                        API = App.API
+                    });
+
+                    if (hideWindow)
+                    {
+                        api.HideWindow();
+                    }
+                }
+            });
+        }
+    }
+
+    public class QueryResultViewModel : ResultsViewModel
+    {
+        public QueryResultViewModel(Settings settings, UserSelectedRecord record, History history) : base(settings)
+        {
+            var api = App.API;
+
+            this.OpenResultCommand = new RelayCommand(index =>
+            {
+                if (index != null)
+                {
+                    SelectedIndex = int.Parse(index.ToString());
+                }
+
+                var result = SelectedItem?.Result;
+                if (result != null)
+                {
+                    bool hideWindow = result.Action != null && result.Action(new ActionContext
+                    {
+                        SpecialKeyState = GlobalHotkey.Instance.CheckModifiers(),
+                        API = App.API
+                    });
+
+                    if (hideWindow)
+                    {
+                        api.HideWindow();
+                    }
+
+                    record.Add(result);
+                    history.Add(result.OriginQuery.RawQuery);
+                }
+            });
+        }
+    }
+
+    public class ContextViewModel : ResultsViewModel
+    {
+        public ContextViewModel(Settings settings) : base(settings)
+        {
+            var api = App.API;
+
+            this.OpenResultCommand = new RelayCommand(index =>
+            {
+                if (index != null)
+                {
+                    SelectedIndex = int.Parse(index.ToString());
+                }
+
+                var result = SelectedItem?.Result;
+                if (result != null)
+                {
+                    bool hideWindow = result.Action != null && result.Action(new ActionContext
+                    {
+                        SpecialKeyState = GlobalHotkey.Instance.CheckModifiers(),
+                        API = App.API
+                    });
+
+                    if (hideWindow)
+                    {
+                        api.HideWindow();
+                    }
+                }
+            });
         }
     }
 }

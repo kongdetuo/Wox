@@ -27,7 +27,6 @@ namespace Wox
 {
     public partial class MainWindow
     {
-
         private readonly Storyboard _progressBarStoryboard = new Storyboard();
         private Settings _settings;
         private NotifyIcon _notifyIcon;
@@ -41,6 +40,7 @@ namespace Wox
             _settings = Settings.Instance;
             InitializeComponent();
         }
+
         public MainWindow()
         {
             InitializeComponent();
@@ -108,6 +108,7 @@ namespace Wox
             };
             InitializePosition();
         }
+
         private void InitializePosition()
         {
             Top = WindowTop();
@@ -187,18 +188,18 @@ namespace Wox
                 var result = (ResultViewModel)item?.DataContext;
                 if (result != null)
                 {
-                    if (e.ChangedButton == MouseButton.Left)
-                    {
-                        _viewModel.OpenResultCommand.Execute(null);
-                    }
-                    else if (e.ChangedButton == MouseButton.Right)
+                    //if (e.ChangedButton == MouseButton.Left)
+                    //{
+                    //    _viewModel.OpenResultCommand.Execute(null);
+                    //}
+                    //else
+                    if (e.ChangedButton == MouseButton.Right)
                     {
                         _viewModel.LoadContextMenuCommand.Execute(null);
                     }
                 }
             }
         }
-
 
         private void OnDrop(object sender, DragEventArgs e)
         {
@@ -227,10 +228,12 @@ namespace Wox
         {
             App.API.OpenSettingDialog();
         }
+
         private void Window_Activated(object sender, EventArgs e)
         {
             ThemeManager.Instance.SetBlurForWindow();
         }
+
         private void OnDeactivated(object sender, EventArgs e)
         {
             if (_settings.HideWhenDeactive)

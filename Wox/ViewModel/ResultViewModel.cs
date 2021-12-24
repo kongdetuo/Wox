@@ -9,7 +9,6 @@ using Wox.Infrastructure;
 using Wox.Infrastructure.Logger;
 using Wox.Plugin;
 
-
 namespace Wox.ViewModel
 {
     public class ResultViewModel : BaseModel
@@ -49,9 +48,8 @@ namespace Wox.ViewModel
                 }
             }
 
-            if(!string.IsNullOrEmpty(imagePath))
+            if (!string.IsNullOrEmpty(imagePath))
             {
-
             }
 
             try
@@ -105,6 +103,5 @@ namespace Wox.ViewModel
         {
             return Result.ToString();
         }
-
     }
 }
