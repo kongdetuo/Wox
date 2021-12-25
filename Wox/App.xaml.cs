@@ -10,7 +10,7 @@ using CommandLine;
 using NLog;
 
 using Wox.Core;
-using Wox.Core.Configuration;
+
 using Wox.Core.Plugin;
 using Wox.Core.Resource;
 using Wox.Helper;
@@ -33,7 +33,6 @@ namespace Wox
         private static bool _disposed;
         private MainViewModel _mainVM;
         private SettingWindowViewModel _settingsVM;
-        private readonly Portable _portable = new Portable();
         private StringMatcher _stringMatcher;
         private static string _systemLanguage;
 
@@ -89,11 +88,10 @@ namespace Wox
 
                 Logger.WoxInfo(ExceptionFormatter.RuntimeInfo());
 
-                _portable.PreStartCleanUpAfterPortabilityUpdate();
 
                 ImageLoader.Initialize();
 
-                _settingsVM = new SettingWindowViewModel(_portable);
+                _settingsVM = new SettingWindowViewModel();
 
                 _stringMatcher = new StringMatcher();
                 StringMatcher.Instance = _stringMatcher;

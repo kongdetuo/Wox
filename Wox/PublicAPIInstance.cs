@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Windows;
-using Squirrel;
 using Wox.Core.Plugin;
 using Wox.Core.Resource;
 using Wox.Helper;
@@ -52,12 +51,12 @@ namespace Wox
             // which will cause ungraceful exit
             SaveAppAllSettings();
 
-            UpdateManager.RestartApp();
+       
         }
 
         public void CheckForNewUpdate()
         {
-            _settingsVM.UpdateApp();
+           
         }
 
         public void SaveAppAllSettings()

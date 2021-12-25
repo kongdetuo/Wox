@@ -266,7 +266,7 @@ namespace Wox
 
         private void OnCheckUpdates(object sender, RoutedEventArgs e)
         {
-            _viewModel.UpdateApp(); // TODO: change to command
+            //_viewModel.UpdateApp(); // TODO: change to command
         }
 
         private void OnRequestNavigate(object sender, RequestNavigateEventArgs e)
