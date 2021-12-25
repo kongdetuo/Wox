@@ -66,6 +66,7 @@ namespace Wox.Infrastructure
             {
                 FileName = fileName,
                 WorkingDirectory = workingDirectory,
+                UseShellExecute = true,
                 Arguments = arguments,
                 Verb = verb
             };
