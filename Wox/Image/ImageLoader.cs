@@ -1,18 +1,12 @@
 ﻿using System;
-using System.CodeDom.Compiler;
-using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using ICSharpCode.SharpZipLib.Core;
 using Microsoft.WindowsAPICodePack.Shell;
 using NLog;
 using Wox.Infrastructure;
 using Wox.Infrastructure.Logger;
-using Wox.Infrastructure.UserSettings;
 
 namespace Wox.Image
 {
@@ -28,13 +22,12 @@ namespace Wox.Image
             ".tiff",
             ".ico"
         };
+
         private static ImageCache _cache;
 
         private static readonly NLog.Logger Logger = LogManager.GetCurrentClassLogger();
         private static ImageSource _defaultFileImage;
         private static ImageSource _errorImage;
-
-
 
         public static void Initialize()
         {
@@ -54,54 +47,57 @@ namespace Wox.Image
             _cache = new ImageCache();
         }
 
-        private static bool IsSubdirectory(DirectoryInfo di1, DirectoryInfo di2)
-        {
-            bool isParent = false;
-            while (di2.Parent != null)
-            {
-                if (di2.Parent.FullName == di1.FullName)
-                {
-                    isParent = true;
-                    break;
-                }
-                else
-                {
-                    di2 = di2.Parent;
-                }
-            }
-            return isParent;
-        }
-
-
-
         private static ImageSource LoadInternal(string path, string pluginDirectory)
         {
             Logger.WoxDebug($"load from disk {path}");
 
-            ImageSource image;
+            var image = LoadEmbededImage(path)
+                ?? LoadDataImage(path)
+                ?? LoadNormalImage(path, pluginDirectory)
+                ?? LoadDirectoryThumbnail(path)
+                ?? LoadDirectoryThumbnail(path)
+                ?? LoadFileThumbnail(path)
+                ?? LoadFileThumbnail(path) // sometimes first try will throw exception, but second try will be ok.
+                ?? GetErrorImage();
 
-            if (string.IsNullOrEmpty(path))
-            {
-                image = GetErrorImage();
-                return image;
-            }
+            return image;
+        }
 
-
-            string key = "EmbededIcon:";
-            if (path.StartsWith(key))
-            {
-                return EmbededIcon.GetImage(key, path, 32);
-            }
-
-            if (path.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+        private static ImageSource LoadFileThumbnail(string path)
+        {
+            if (File.Exists(path))
             {
                 try
                 {
-                    image = new BitmapImage(new Uri(path))
-                    {
-                        DecodePixelHeight = 32,
-                        DecodePixelWidth = 32
-                    };
+                    // https://stackoverflow.com/a/1751610/2833083
+                    // https://stackoverflow.com/questions/21751747/extract-thumbnail-for-any-file-in-windows
+                    // https://docs.microsoft.com/en-us/windows/win32/api/shobjidl_core/nf-shobjidl_core-ishellitemimagefactory-getimage
+                    using ShellFile shell = ShellFile.FromFilePath(path);
+                    // https://github.com/aybe/Windows-API-Code-Pack-1.1/blob/master/source/WindowsAPICodePack/Shell/Common/ShellThumbnail.cs#L333
+                    // https://github.com/aybe/Windows-API-Code-Pack-1.1/blob/master/source/WindowsAPICodePack/Shell/Common/DefaultShellImageSizes.cs#L46
+                    // small is (32, 32)
+                    var image = shell.Thumbnail.SmallBitmapSource;
+                    image.Freeze();
+                    return image;
+                }
+                catch (ShellException e)
+                {
+                }
+            }
+            return null;
+        }
+
+        private static ImageSource LoadDirectoryThumbnail(string path)
+        {
+            if (Directory.Exists(path))
+            {
+                try
+                {
+                    // can be extended to support guid things
+                    using ShellObject shell = ShellFile.FromParsingName(path);
+                    var image = shell.Thumbnail.SmallBitmapSource;
+                    image.Freeze();
+                    return image;
                 }
                 catch (Exception e)
                 {
@@ -109,15 +105,17 @@ namespace Wox.Image
                     Logger.WoxError($"cannot load {path}", e);
                     return GetErrorImage();
                 }
-                image.Freeze();
-                return image;
             }
+            return null;
+        }
 
+        private static ImageSource LoadNormalImage(string path, string pluginDirectory)
+        {
             bool normalImage = ImageExtensions.Any(e => path.EndsWith(e));
 
             if (normalImage)
             {
-                if (TryLoadFromPath(path, out image))
+                if (TryLoadFromPath(path, out var image))
                     return image;
 
                 if (!string.IsNullOrEmpty(pluginDirectory) && TryLoadFromPluginDirectory(path, pluginDirectory, out image))
@@ -126,68 +124,43 @@ namespace Wox.Image
                 if (TryLoadFromWoxDirectory(path, out image))
                     return image;
             }
+            return null;
+        }
 
-            if (Directory.Exists(path))
+        private static ImageSource LoadEmbededImage(string path)
+        {
+            try
+            {
+                string key = "EmbededIcon:";
+                if (path.StartsWith(key))
+                {
+                    return EmbededIcon.GetImage(key, path, 32);
+                }
+            }
+            catch (Exception)
+            {
+            }
+
+            return null;
+        }
+
+        private static ImageSource LoadDataImage(string path)
+        {
+            if (path.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
             {
                 try
                 {
-                    // can be extended to support guid things
-                    ShellObject shell = ShellFile.FromParsingName(path);
-                    image = shell.Thumbnail.SmallBitmapSource;
+                    return new BitmapImage(new Uri(path))
+                    {
+                        DecodePixelHeight = 32,
+                        DecodePixelWidth = 32
+                    };
                 }
                 catch (Exception e)
                 {
-                    e.Data.Add(nameof(path), path);
-                    Logger.WoxError($"cannot load {path}", e);
-                    return GetErrorImage();
-                }
-                image.Freeze();
-                return image;
-            }
-
-            if (File.Exists(path))
-            {
-                try
-                {
-                    // https://stackoverflow.com/a/1751610/2833083
-                    // https://stackoverflow.com/questions/21751747/extract-thumbnail-for-any-file-in-windows
-                    // https://docs.microsoft.com/en-us/windows/win32/api/shobjidl_core/nf-shobjidl_core-ishellitemimagefactory-getimage
-                    ShellFile shell = ShellFile.FromFilePath(path);
-                    // https://github.com/aybe/Windows-API-Code-Pack-1.1/blob/master/source/WindowsAPICodePack/Shell/Common/ShellThumbnail.cs#L333
-                    // https://github.com/aybe/Windows-API-Code-Pack-1.1/blob/master/source/WindowsAPICodePack/Shell/Common/DefaultShellImageSizes.cs#L46
-                    // small is (32, 32)
-                    image = shell.Thumbnail.SmallBitmapSource;
-                    image.Freeze();
-                    return image;
-                }
-                catch (ShellException e1)
-                {
-                    try
-                    {
-                        // sometimes first try will throw exception, but second try will be ok.
-                        // so we try twice
-                        // Error while extracting thumbnail for C:\\ProgramData\\Microsoft\\Windows\\Start Menu\\Programs\\Steam\\Steam.lnk
-                        ShellFile shellFile = ShellFile.FromFilePath(path);
-                        image = shellFile.Thumbnail.SmallBitmapSource;
-                        image.Freeze();
-                        return image;
-                    }
-                    catch (System.Exception e2)
-                    {
-                        Logger.WoxError($"Failed to get thumbnail, first, {path}", e1);
-                        Logger.WoxError($"Failed to get thumbnail, second, {path}", e2);
-                        image = GetErrorImage();
-                        return image;
-                    }
                 }
             }
-            else
-            {
-                image = GetErrorImage();
-                return image;
-            }
-
-
+            return null;
         }
 
         private static bool TryLoadFromPath(string path, out ImageSource source)
@@ -240,19 +213,7 @@ namespace Wox.Image
         public static ImageSource Load(string path, string pluginDirectory)
         {
             Logger.WoxDebug($"load begin {path}");
-            var img = _cache.GetOrAdd(pluginDirectory + path, (string p) =>
-             {
-                 try
-                 {
-                     return LoadInternal(path, pluginDirectory);
-                 }
-                 catch (Exception e)
-                 {
-                     e.Data.Add(nameof(path), path);
-                     Logger.WoxError($"cannot load image sync <{p}>", e);
-                     return GetErrorImage();
-                 }
-             });
+            var img = _cache.GetOrAdd(pluginDirectory + path, p => LoadInternal(path, pluginDirectory));
             Logger.WoxTrace($"load end {path}");
             return img;
         }
@@ -287,14 +248,5 @@ namespace Wox.Image
             Logger.WoxTrace($"load end {path}");
             return img;
         }
-
-        public static ImageSource Load(string path, Func<string, ImageSource> imageFactory, Action<ImageSource> updateImageCallback)
-        {
-            Logger.WoxDebug($"load begin {path}");
-            var img = _cache.GetOrAdd(path, _defaultFileImage, imageFactory, updateImageCallback);
-            Logger.WoxTrace($"load end {path}");
-            return img;
-        }
-
     }
 }

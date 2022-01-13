@@ -2,16 +2,12 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Linq;
 using System.Runtime.Caching;
-using Wox.Infrastructure.Logger;
-using static Wox.Infrastructure.StringMatcher;
 
 namespace Wox.Infrastructure
 {
     public class StringMatcher
     {
-
         public SearchPrecisionScore UserSettingSearchPrecision { get; set; }
 
         private readonly Alphabet _alphabet;
@@ -31,7 +27,7 @@ namespace Wox.Infrastructure
             _cache = new MemoryCache("StringMatcherCache", config);
         }
 
-        public static StringMatcher Instance { get;  set; }
+        public static StringMatcher Instance { get; set; }
 
         public static MatchResult FuzzySearch(string query, string stringToCompare)
         {
@@ -134,7 +130,8 @@ namespace Wox.Infrastructure
                         {
                             consecutiveMatch += 1;
                             outScore += 10 * consecutiveMatch;
-                        } else
+                        }
+                        else
                         {
                             consecutiveMatch = 0;
                         }
@@ -205,13 +202,13 @@ namespace Wox.Infrastructure
 
     public class MatchResult
     {
-        public MatchResult(bool success, SearchPrecisionScore searchPrecision)
+        public MatchResult(bool success, StringMatcher.SearchPrecisionScore searchPrecision)
         {
             Success = success;
             SearchPrecision = searchPrecision;
         }
 
-        public MatchResult(bool success, SearchPrecisionScore searchPrecision, List<int> matchData, int rawScore)
+        public MatchResult(bool success, StringMatcher.SearchPrecisionScore searchPrecision, List<int> matchData, int rawScore)
         {
             Success = success;
             SearchPrecision = searchPrecision;
@@ -246,7 +243,7 @@ namespace Wox.Infrastructure
         /// </summary>
         public List<int> MatchData { get; set; }
 
-        public SearchPrecisionScore SearchPrecision { get; set; }
+        public StringMatcher.SearchPrecisionScore SearchPrecision { get; set; }
 
         public bool IsSearchPrecisionScoreMet()
         {
@@ -263,5 +260,4 @@ namespace Wox.Infrastructure
             return IsSearchPrecisionScoreMet(rawScore) ? rawScore : 0;
         }
     }
-
 }

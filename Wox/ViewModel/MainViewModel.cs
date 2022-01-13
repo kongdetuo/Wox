@@ -5,7 +5,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Reactive.Threading.Tasks;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 
@@ -302,7 +304,7 @@ namespace Wox.ViewModel
                 || StringMatcher.FuzzySearch(query, result.SubTitle).IsSearchPrecisionScoreMet();
         }
 
-        private void QueryResults(string queryText)
+        private async void QueryResults(string queryText)
         {
             try
             {
@@ -321,25 +323,24 @@ namespace Wox.ViewModel
                 var query = QueryBuilder.Build(queryText, PluginManager.NonGlobalPlugins);
 
                 var showProgressTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
-                Wox.Core.Services.QueryService.Query(query)
+                var r = Wox.Core.Services.QueryService.Query(query)
                     .Select(p => new ResultsForUpdate(p.Results, PluginManager.GetPluginForId(p.PluginID)?.Metadata, p.Query, token))
-                    .Buffer(TimeSpan.FromMilliseconds(15))
+                    .Publish();
+                r.Buffer(TimeSpan.FromMilliseconds(15))
                     .Where(p => p.Count > 0)
                     .ObserveOn(SynchronizationContext)
-                    .Subscribe(
-                        onNext: p => UpdateResultView(p.ToList()),
-                        onCompleted: () =>
-                        {
-                            showProgressTokenSource.Cancel();
-                            ProgressBarVisibility = Visibility.Hidden;
-                        },
-                        token);
+                    .Subscribe(p => UpdateResultView(p.ToList()), token);
 
-                var showProgressToken = showProgressTokenSource.Token;
-                showProgressToken.Register(() => showProgressTokenSource.Dispose());
-                Observable.Timer(TimeSpan.FromMilliseconds(200))
-                    .ObserveOn(SynchronizationContext)
-                    .Subscribe(p => ProgressBarVisibility = Visibility.Visible, showProgressToken);
+                Task task1 = Task.Delay(200);
+                Task task2 = r.ToTask();
+
+                r.Connect();
+                if (await Task.WhenAny(task1, task2) == task1)
+                {
+                    ProgressBarVisibility = Visibility.Visible;
+                    await task2;
+                    ProgressBarVisibility = Visibility.Hidden;
+                }
             }
             catch (Exception e)
             {

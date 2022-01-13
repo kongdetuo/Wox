@@ -21,8 +21,8 @@ namespace Wox.Core.Services
         public static IObservable<PluginQueryResult> Query(Query query)
         {
             var plugins = PluginManager.AllPlugins;
-            if (query == null)
-                return plugins.Select(p => new PluginQueryResult(p, query, new List<Result>())).ToObservable();
+            //if (query == null)
+            //    return plugins.Select(p => new PluginQueryResult(p, query, new List<Result>())).ToObservable();
 
             return plugins.ToObservable()
                 .ObserveOn(ThreadPoolScheduler.Instance)
@@ -31,7 +31,7 @@ namespace Wox.Core.Services
 
         private static async IAsyncEnumerable<PluginQueryResult> QueryPluginAsync(PluginPair pair, Query query)
         {
-            if (pair.Metadata.Disabled  || !TryMatch(pair, query))
+            if (query == null || pair.Metadata.Disabled || !TryMatch(pair, query))
             {
                 yield return new PluginQueryResult(pair, query, new List<Result>());
                 yield break;
@@ -69,6 +69,7 @@ namespace Wox.Core.Services
             this.Query = query;
             this.Results = results;
         }
+
         public string PluginID { get; set; }
 
         public Query Query { get; set; }

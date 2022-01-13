@@ -16,10 +16,17 @@ namespace Wox
 
         protected override void OnSelectionChanged(SelectionChangedEventArgs e)
         {
-            base.OnSelectionChanged(e);
-            if (e.AddedItems.Count > 0 && e.AddedItems[0] is not null)
+            try
             {
-                this.ScrollIntoView(e.AddedItems[0]);
+                base.OnSelectionChanged(e);
+                if (e.AddedItems.Count > 0 && e.AddedItems[0] is not null)
+                {
+                    this.ScrollIntoView(e.AddedItems[0]);
+                }
+            }
+            catch (System.Exception e1)
+            {
+                System.Windows.Forms.MessageBox.Show(e1.ToString());
             }
         }
 

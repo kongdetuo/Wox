@@ -22,14 +22,6 @@ namespace Wox.Infrastructure
             }
         }
 
-        public static void RequireNonNull<T>(this T obj)
-        {
-            if (obj == null)
-            {
-                throw new NullReferenceException();
-            }
-        }
-
         public static void ValidateDataDirectory(string bundledDataDirectory, string dataDirectory)
         {
             if (!Directory.Exists(dataDirectory))

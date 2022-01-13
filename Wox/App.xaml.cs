@@ -88,7 +88,6 @@ namespace Wox
 
                 Logger.WoxInfo(ExceptionFormatter.RuntimeInfo());
 
-
                 ImageLoader.Initialize();
 
                 _settingsVM = new SettingWindowViewModel();
@@ -165,7 +164,6 @@ namespace Wox
         {
             DispatcherUnhandledException += ErrorReporting.DispatcherUnhandledException;
         }
-
 
         /// <summary>
         /// let exception throw as normal is better for Debug

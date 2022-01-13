@@ -1,5 +1,4 @@
-﻿using JetBrains.Annotations;
-using NLog;
+﻿using NLog;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -13,7 +12,7 @@ using Wox.Infrastructure.Logger;
 
 namespace Wox.Image
 {
-    class CacheEntry
+    internal class CacheEntry
     {
         internal string Key;
         internal ImageSource Image;
@@ -27,7 +26,7 @@ namespace Wox.Image
         }
     }
 
-    class UpdateCallbackEntry
+    internal class UpdateCallbackEntry
     {
         internal string Key;
         internal Func<string, ImageSource> ImageFactory;
@@ -41,16 +40,16 @@ namespace Wox.Image
         }
     }
 
-    class ImageCache
+    internal class ImageCache
     {
         private readonly TimeSpan _expiredTime = new TimeSpan(24, 0, 0);
         private readonly TimeSpan _checkInterval = new TimeSpan(1, 0, 0);
         private const int _cacheLimit = 500;
 
         private readonly ConcurrentDictionary<string, CacheEntry> _cache;
-        BlockingCollection<CacheEntry> _cacheQueue;
+        private BlockingCollection<CacheEntry> _cacheQueue;
         private readonly SortedSet<CacheEntry> _cacheSorted;
-        BlockingCollection<UpdateCallbackEntry> _updateQueue;
+        private BlockingCollection<UpdateCallbackEntry> _updateQueue;
 
         private readonly System.Threading.Timer timer;
         private static readonly NLog.Logger Logger = LogManager.GetCurrentClassLogger();
@@ -115,15 +114,13 @@ namespace Wox.Image
             }
         }
 
-
         /// <summary>
         /// Not thread safe, should be only called from ui thread
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public ImageSource GetOrAdd([NotNull] string key, Func<string, ImageSource> imageFactory)
+        public ImageSource GetOrAdd(string key, Func<string, ImageSource> imageFactory)
         {
-            key.RequireNonNull();
             CacheEntry entry;
             bool getResult = _cache.TryGetValue(key, out entry);
             if (!getResult)
@@ -138,9 +135,8 @@ namespace Wox.Image
             }
         }
 
-        public ImageSource GetOrAdd([NotNull] string key, ImageSource defaultImage, Func<string, ImageSource> imageFactory, Action<ImageSource> updateImageCallback)
+        public ImageSource GetOrAdd(string key, ImageSource defaultImage, Func<string, ImageSource> imageFactory, Action<ImageSource> updateImageCallback)
         {
-            key.RequireNonNull();
             CacheEntry getEntry;
             bool getResult = _cache.TryGetValue(key, out getEntry);
             if (!getResult)
