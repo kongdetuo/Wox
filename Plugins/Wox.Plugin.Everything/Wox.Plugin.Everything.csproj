@@ -104,5 +104,7 @@
 		  <ExcludeAssets>runtime</ExcludeAssets>
 	  </ProjectReference>
   </ItemGroup>
-  <PropertyGroup />
+  <PropertyGroup>
+    <ProduceReferenceAssembly>False</ProduceReferenceAssembly>
+  </PropertyGroup>
 </Project>

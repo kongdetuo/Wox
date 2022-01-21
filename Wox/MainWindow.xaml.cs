@@ -22,6 +22,7 @@ using MessageBox = System.Windows.MessageBox;
 using NotifyIcon = System.Windows.Forms.NotifyIcon;
 using System.Reactive.Linq;
 using System.Reactive;
+using Wox.Themes;
 
 namespace Wox
 {

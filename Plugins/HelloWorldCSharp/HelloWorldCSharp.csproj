@@ -14,6 +14,7 @@
 	</PropertyGroup>
 	<PropertyGroup>
 		<StartupObject />
+		<ProduceReferenceAssembly>False</ProduceReferenceAssembly>
 	</PropertyGroup>
 	<ItemGroup>
 		<Compile Remove="Properties\**" />

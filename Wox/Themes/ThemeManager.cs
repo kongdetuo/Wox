@@ -1,4 +1,4 @@
-﻿namespace Wox.Core.Resource
+﻿namespace Wox.Themes
 {
     public class ThemeManager
     {

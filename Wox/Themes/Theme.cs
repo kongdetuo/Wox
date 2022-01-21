@@ -9,11 +9,12 @@ using System.Windows.Interop;
 using System.Windows.Markup;
 using System.Windows.Media;
 using NLog;
+using Wox.Core.Resource;
 using Wox.Infrastructure;
 using Wox.Infrastructure.Logger;
 using Wox.Infrastructure.UserSettings;
 
-namespace Wox.Core.Resource
+namespace Wox.Themes
 {
     public class Theme
     {

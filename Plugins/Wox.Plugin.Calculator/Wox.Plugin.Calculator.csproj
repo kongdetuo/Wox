@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>net6.0-windows10.0.19041.0</TargetFramework>
+		<TargetFramework>net6.0-windows7.0</TargetFramework>
 		<OutputType>Library</OutputType>
 		<RootNamespace>Wox.Plugin.Caculator</RootNamespace>
 		<AssemblyName>Wox.Plugin.Caculator</AssemblyName>
@@ -68,7 +68,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\Wox.Core\Wox.Core.csproj">
 			<Private>false</Private>
-			<ExcludeAssets>runtime</ExcludeAssets>
+		  <ExcludeAssets>runtime</ExcludeAssets>
 		</ProjectReference>
 		<ProjectReference Include="..\..\Wox.Infrastructure\Wox.Infrastructure.csproj">
 			<Private>false</Private>
@@ -90,5 +90,6 @@
 	<PropertyGroup>
 		<ApplicationIcon />
 		<StartupObject />
+		<ProduceReferenceAssembly>False</ProduceReferenceAssembly>
 	</PropertyGroup>
 </Project>

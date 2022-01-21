@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Documents;
 using Wox.Core.Resource;
+using Wox.Themes;
 
 namespace Wox.Converters
 {

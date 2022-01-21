@@ -39,7 +39,7 @@
     <PackageReference Include="Sentry">
       <Version>2.1.1</Version>
     </PackageReference>
-    <PackageReference Include="ToolGood.Words.Pinyin" Version="3.0.2.6" />
+    <PackageReference Include="ToolGood.Words.Pinyin" Version="3.0.3.1" />
   </ItemGroup>
   <PropertyGroup />
 </Project>
