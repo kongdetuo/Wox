@@ -7,7 +7,7 @@
     </ResourceDictionary.MergedDictionaries>
     <Style x:Key="QueryBoxStyle" BasedOn="{StaticResource BaseQueryBoxStyle}" TargetType="{x:Type TextBox}">
         <Setter Property="Foreground" Value="#FFFFFF" />
-        <Setter Property="CaretBrush" Value="#FFFFFF"/>
+        <Setter Property="CaretBrush" Value="#FFFFFF" />
         <Setter Property="FontSize" Value="38" />
         <Setter Property="Height" Value="48" />
     </Style>
@@ -15,16 +15,18 @@
         <Setter Property="FontSize" Value="38" />
         <Setter Property="Background" Value="#20252B" />
         <Setter Property="Foreground">
-			<Setter.Value>
-				<SolidColorBrush Color="#AAB2C0" Opacity="0.3" />
-			</Setter.Value>
+            <Setter.Value>
+                <SolidColorBrush Color="#AAB2C0" Opacity="0.3" />
+            </Setter.Value>
         </Setter>
         <Setter Property="Height" Value="48" />
     </Style>
     <Style x:Key="WindowBorderStyle" BasedOn="{StaticResource BaseWindowBorderStyle}" TargetType="{x:Type Border}">
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Background" Value="#20252B"></Setter>
-		<Setter Property="Padding" Value="16 12 16 8" />
+        <Setter Property="Padding" Value="16 12 16 8" />
+    </Style>
+    <Style x:Key="SearchIconStyle" BasedOn="{StaticResource BaseSearchIconStyle}" TargetType="{x:Type ContentControl}">
     </Style>
     <Style x:Key="WindowStyle" TargetType="{x:Type Window}" BasedOn="{StaticResource BaseWindowStyle}">
     </Style>
@@ -46,9 +48,9 @@
            TargetType="{x:Type TextBlock}">
         <Setter Property="Foreground" Value="#CCCCCC" />
     </Style>
-    <SolidColorBrush x:Key="ItemHighlightColor" Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="ItemSelectedHighlightColor" Color="#FFFFFF"/>
-    <SolidColorBrush x:Key="ItemSelectedBackgroundColor" Color="#3D4452"/>
+    <SolidColorBrush x:Key="ItemHighlightColor" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="ItemSelectedHighlightColor" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="ItemSelectedBackgroundColor" Color="#3D4452" />
     <Style x:Key="ThumbStyle" BasedOn="{StaticResource BaseThumbStyle}" TargetType="{x:Type Thumb}">
         <Setter Property="Template">
             <Setter.Value>

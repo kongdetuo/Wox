@@ -6,7 +6,6 @@ using System.Windows.Media.Imaging;
 
 namespace Wox.Plugin
 {
-
     public class Result : BaseModel
     {
         public string Title { get; set; }
@@ -14,7 +13,7 @@ namespace Wox.Plugin
         public string SubTitle { get; set; }
 
         /// <summary>
-        /// This holds the action keyword that triggered the result. 
+        /// This holds the action keyword that triggered the result.
         /// If result is triggered by global keyword: *, this should be empty.
         /// </summary>
         public string ActionKeywordAssigned { get; set; }
@@ -24,7 +23,6 @@ namespace Wox.Plugin
         public delegate ImageSource IconDelegate();
 
         public IconDelegate Icon;
-
 
         /// <summary>
         /// return true to hide wox after select result
@@ -75,7 +73,8 @@ namespace Wox.Plugin
             return Title + SubTitle;
         }
 
-        public Result() { }
+        public Result()
+        { }
 
         /// <summary>
         /// Additional data associate with this result
@@ -86,23 +85,5 @@ namespace Wox.Plugin
         /// Plugin ID that generated this result
         /// </summary>
         public string PluginID { get; set; }
-    }
-
-    public static class ResultHelper
-    {
-        public static Result.IconDelegate LoadImageFrom(string filePath)
-        {
-            return () =>
-            {
-                return ImageFromPath(filePath);
-            };
-        }
-
-
-        private static BitmapImage ImageFromPath(string path)
-        {
-            var image = new BitmapImage(new Uri(path));
-            return image;
-        }
     }
 }

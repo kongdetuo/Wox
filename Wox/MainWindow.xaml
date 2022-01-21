@@ -62,12 +62,13 @@
         <KeyBinding Key="D9" Modifiers="Alt" Command="{Binding OpenResultCommand}" CommandParameter="8" />
     </Window.InputBindings>
     <StackPanel Orientation="Vertical">
-        <Border Style="{DynamicResource WindowBorderStyle}" MouseLeftButtonDown="OnMouseDown" CornerRadius="4">
+        <Border Style="{DynamicResource WindowBorderStyle}" MouseLeftButtonDown="OnMouseDown">
             <StackPanel>
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="auto" />
+                        <ColumnDefinition Width="20" />
                     </Grid.ColumnDefinitions>
                     <TextBox x:Name="QueryTextSuggestionBox"
                          Style="{DynamicResource QueryTextSuggestionBoxStyle}"
@@ -103,8 +104,7 @@
                         </TextBox.InputBindings>
                     </TextBox>
 
-                    <TextBlock Grid.Column="1" VerticalAlignment="Center" Margin="10,0"
-                               FontFamily="Segoe MDL2 Assets" FontSize="36" Text="&#xe71e;" FontWeight="Bold" />
+                    <ContentControl Grid.Column="1" VerticalAlignment="Center" Style="{DynamicResource SearchIconStyle}" />
                 </Grid>
                 <Line x:Name="ProgressBar" HorizontalAlignment="Right"
                   Style="{DynamicResource PendingLineStyle}" Visibility="{Binding ProgressBarVisibility, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"

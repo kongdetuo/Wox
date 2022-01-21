@@ -7,13 +7,15 @@
     </ResourceDictionary.MergedDictionaries>
     <Style x:Key="QueryBoxStyle" BasedOn="{StaticResource BaseQueryBoxStyle}" TargetType="{x:Type TextBox}">
         <Setter Property="Foreground" Value="#222222" />
-        <Setter Property="CaretBrush" Value="#222222"/>
+        <Setter Property="CaretBrush" Value="#222222" />
         <Setter Property="FontSize" Value="38" />
     </Style>
     <Style x:Key="QueryTextSuggestionBoxStyle" BasedOn="{StaticResource BaseQueryTextSuggestionBoxStyle}" TargetType="{x:Type TextBox}">
         <Setter Property="FontSize" Value="38" />
         <Setter Property="Background" Value="#EDEDED" />
     </Style>
+    <Style x:Key="SearchIconStyle" BasedOn="{StaticResource BaseSearchIconStyle}" TargetType="{x:Type ContentControl}" />
+
     <Style x:Key="WindowBorderStyle" BasedOn="{StaticResource BaseWindowBorderStyle}" TargetType="{x:Type Border}">
         <Setter Property="BorderBrush" Value="#B0B0B0" />
         <Setter Property="BorderThickness" Value="1" />
@@ -38,8 +40,8 @@
            TargetType="{x:Type TextBlock}">
         <Setter Property="Foreground" Value="#ffffff" />
     </Style>
-    <SolidColorBrush x:Key="ItemHighlightColor" Color="DimGray"/>
-    <SolidColorBrush x:Key="ItemSelectedBackgroundColor" Color="#00AAF6"/>
+    <SolidColorBrush x:Key="ItemHighlightColor" Color="DimGray" />
+    <SolidColorBrush x:Key="ItemSelectedBackgroundColor" Color="#00AAF6" />
     <Style x:Key="ThumbStyle" BasedOn="{StaticResource BaseThumbStyle}" TargetType="{x:Type Thumb}">
         <Setter Property="Template">
             <Setter.Value>
