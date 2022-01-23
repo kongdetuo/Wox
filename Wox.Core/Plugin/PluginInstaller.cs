@@ -47,7 +47,7 @@ namespace Wox.Core.Plugin
                     .Replace("|", "_")
                     + "-" + Guid.NewGuid();
                 string newPluginPath = Path.Combine(pluginFolerPath, newPluginName);
-                PluginPair existingPlugin = PluginManager.GetPluginForId(plugin.ID);
+                PluginProxy existingPlugin = PluginManager.GetPluginForId(plugin.ID);
                 string content = $"Do you want to install following plugin and restart Wox?{Environment.NewLine}{Environment.NewLine}" +
                                  $"Name: {plugin.Name}{Environment.NewLine}";
                 if (existingPlugin != null)

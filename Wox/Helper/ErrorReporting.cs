@@ -78,7 +78,7 @@ namespace Wox.Helper
         public static string SendException(Exception exception)
         {
 #if !DEBUG
-            string pluginDiretoryKey = nameof(Plugin.PluginPair.Metadata.PluginDirectory);
+            string pluginDiretoryKey = nameof(Plugin.PluginProxy.Metadata.PluginDirectory);
             if (exception.Data.Contains(pluginDiretoryKey))
             {
                 string pluginDirectory = exception.Data[pluginDiretoryKey] as string;

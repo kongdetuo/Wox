@@ -81,7 +81,7 @@ namespace Wox.Plugin
         /// Get all loaded plugins 
         /// </summary>
         /// <returns></returns>
-        List<PluginPair> GetAllPlugins();
+        List<PluginProxy> GetAllPlugins();
 
         /// <summary>
         /// Fired after global keyboard events

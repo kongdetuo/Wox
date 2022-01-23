@@ -9,7 +9,7 @@ namespace Wox
 {
     public partial class ActionKeywords : Window
     {
-        private PluginPair _plugin;
+        private PluginProxy _plugin;
         private Settings _settings;
         private readonly Internationalization _translater = InternationalizationManager.Instance;
 

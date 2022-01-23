@@ -11,6 +11,7 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using NLog;
+using Wox.Core.Services;
 using Wox.Infrastructure.Hotkey;
 using Wox.Infrastructure.Logger;
 using Wox.Infrastructure.UserSettings;
@@ -135,9 +136,9 @@ namespace Wox.ViewModel
         public void AddResults(List<Result> newRawResults, string resultId)
         {
             CancellationToken token = new CancellationTokenSource().Token;
-            List<ResultsForUpdate> updates = new List<ResultsForUpdate>()
+            List<PluginQueryResult> updates = new List<PluginQueryResult>()
             {
-                new ResultsForUpdate(newRawResults, resultId, token)
+                new PluginQueryResult(newRawResults, resultId, token)
             };
             AddResults(updates);
         }
@@ -145,12 +146,12 @@ namespace Wox.ViewModel
         /// <summary>
         /// To avoid deadlock, this method should not called from main thread
         /// </summary>
-        public void AddResults(List<ResultsForUpdate> updates)
+        public void AddResults(List<PluginQueryResult> updates)
         {
             // because IResultUpdated, updates maybe contains same plugin result
             // we just need the last one
             updates = updates.AsEnumerable().Reverse()
-                .DistinctBy(p => p.ID).Reverse()
+                .DistinctBy(p => p.PluginID).Reverse()
                 .ToList();
 
             var updatesNotCanceled = updates.Where(u => !u.Token.IsCancellationRequested);
@@ -178,7 +179,7 @@ namespace Wox.ViewModel
                 SelectedIndex = 0;
         }
 
-        private List<ResultViewModel> NewResults(List<ResultsForUpdate> updates, CancellationToken token)
+        private List<ResultViewModel> NewResults(List<PluginQueryResult> updates, CancellationToken token)
         {
             if (token.IsCancellationRequested) { return Results.ToList(); }
             var newResults = Results.ToList();
@@ -188,7 +189,7 @@ namespace Wox.ViewModel
                 List<Result> resultsFromUpdates = updates.SelectMany(u => u.Results).ToList();
 
                 if (token.IsCancellationRequested) { return Results.ToList(); }
-                newResults.RemoveAll(r => updates.Any(u => u.ID == r.Result.PluginID));
+                newResults.RemoveAll(r => updates.Any(u => u.PluginID == r.Result.PluginID));
 
                 if (token.IsCancellationRequested) { return Results.ToList(); }
                 IEnumerable<ResultViewModel> vm = resultsFromUpdates.Select(r => new ResultViewModel(r));

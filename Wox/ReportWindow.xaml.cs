@@ -29,21 +29,21 @@ namespace Wox
             var log = directory.GetFiles().OrderByDescending(f => f.LastWriteTime).First();
 
             Paragraph paragraph;
-            string websiteKey = nameof(Plugin.PluginPair.Metadata.Website);
+            string websiteKey = nameof(Plugin.PluginProxy.Metadata.Website);
             if (exception.Data.Contains(websiteKey))
             {
                 paragraph = Hyperlink("You can help plugin author to fix this issue by opening issue in: ", exception.Data[websiteKey].ToString());
-                string nameKey = nameof(Plugin.PluginPair.Metadata.Name);
+                string nameKey = nameof(Plugin.PluginProxy.Metadata.Name);
                 if (exception.Data.Contains(nameKey))
                 {
                     paragraph.Inlines.Add($"Plugin Name {exception.Data[nameKey]}");
                 }
-                string pluginDiretoryKey = nameof(Plugin.PluginPair.Metadata.PluginDirectory);
+                string pluginDiretoryKey = nameof(Plugin.PluginProxy.Metadata.PluginDirectory);
                 if (exception.Data.Contains(pluginDiretoryKey))
                 {
                     paragraph.Inlines.Add($"Plugin Directory {exception.Data[pluginDiretoryKey]}");
                 }
-                string idKey = nameof(Plugin.PluginPair.Metadata.ID);
+                string idKey = nameof(Plugin.PluginProxy.Metadata.ID);
                 if (exception.Data.Contains(idKey))
                 {
                     paragraph.Inlines.Add($"Plugin ID {exception.Data[idKey]}");

@@ -17,6 +17,7 @@ using NLog;
 
 using Wox.Core.Plugin;
 using Wox.Core.Resource;
+using Wox.Core.Services;
 using Wox.Helper;
 using Wox.Infrastructure;
 using Wox.Infrastructure.Hotkey;
@@ -323,9 +324,7 @@ namespace Wox.ViewModel
                 var query = QueryBuilder.Build(queryText);
 
                 var showProgressTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
-                var r = Wox.Core.Services.QueryService.Query(query)
-                    .Select(p => new ResultsForUpdate(p.Results, PluginManager.GetPluginForId(p.PluginID)?.Metadata, p.Query, token))
-                    .Publish();
+                var r = Wox.Core.Services.QueryService.Query(query).Publish();
                 r.Buffer(TimeSpan.FromMilliseconds(15))
                     .Where(p => p.Count > 0)
                     .ObserveOn(SynchronizationContext)
@@ -543,16 +542,16 @@ namespace Wox.ViewModel
         /// <summary>
         /// To avoid deadlock, this method should not called from main thread
         /// </summary>
-        public void UpdateResultView(List<ResultsForUpdate> updates)
+        public void UpdateResultView(List<PluginQueryResult> updates)
         {
             UpdateScore(updates);
             Results.AddResults(updates);
             UpdateResultVisible();
         }
 
-        private void UpdateScore(List<ResultsForUpdate> updates)
+        private void UpdateScore(List<PluginQueryResult> updates)
         {
-            foreach (ResultsForUpdate update in updates)
+            foreach (PluginQueryResult update in updates)
             {
                 var queryHasTopMoustRecord = _topMostRecord.HasTopMost(update.Query);
                 foreach (var result in update.Results)
@@ -561,7 +560,7 @@ namespace Wox.ViewModel
                     {
                         result.Score = int.MaxValue;
                     }
-                    else if (!update.Metadata.KeepResultRawScore)
+                    else if (!update.Plugin.Metadata.KeepResultRawScore)
                     {
                         result.Score += _userSelectedRecord.GetSelectedCount(result) * 10;
                     }

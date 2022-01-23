@@ -103,7 +103,7 @@ namespace Wox
             return InternationalizationManager.Instance.GetTranslation(key);
         }
 
-        public List<PluginPair> GetAllPlugins()
+        public List<PluginProxy> GetAllPlugins()
         {
             return PluginManager.AllPlugins.ToList();
         }

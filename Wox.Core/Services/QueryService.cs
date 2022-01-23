@@ -11,6 +11,7 @@ using Wox.Plugin;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Concurrency;
+using System.Threading;
 
 namespace Wox.Core.Services
 {
@@ -29,7 +30,7 @@ namespace Wox.Core.Services
                 .SelectMany(plugin => QueryPluginAsync(plugin, query).ToObservable());
         }
 
-        private static async IAsyncEnumerable<PluginQueryResult> QueryPluginAsync(PluginPair pair, Query query)
+        private static async IAsyncEnumerable<PluginQueryResult> QueryPluginAsync(PluginProxy pair, Query query)
         {
             if (query == null || pair.Metadata.Disabled || !TryMatch(pair, query))
             {
@@ -38,9 +39,7 @@ namespace Wox.Core.Services
             }
 
             await Task.Yield();
-            var firstResult = new PluginQueryResult(pair, query, null);
-            firstResult.Results = PluginManager.QueryForPlugin(pair, query);
-
+            var firstResult = new PluginQueryResult(pair, query, PluginManager.QueryForPlugin(pair, query));
             yield return firstResult;
 
             if (pair.Plugin is IResultUpdated updatedPlugin)
@@ -53,7 +52,7 @@ namespace Wox.Core.Services
             }
         }
 
-        private static bool TryMatch(PluginPair pair, Query query)
+        private static bool TryMatch(PluginProxy pair, Query query)
         {
             bool validGlobalQuery = query.ActionKeyword is null && pair.Metadata.ActionKeywords[0].IsGlobal;
             bool validNonGlobalQuery = query.ActionKeyword is not null && pair.Metadata.ActionKeywords.Contains(query.ActionKeyword.Value);
@@ -63,17 +62,29 @@ namespace Wox.Core.Services
 
     public class PluginQueryResult
     {
-        public PluginQueryResult(PluginPair plugin, Query query, List<Result> results)
+        public PluginQueryResult(PluginProxy plugin, Query query, List<Result> results)
         {
+            this.Plugin = plugin;
             this.PluginID = plugin.Metadata.ID;
             this.Query = query;
             this.Results = results;
         }
 
+        public PluginQueryResult(List<Result> newRawResults, string resultId, CancellationToken token)
+        {
+            Token = token;
+            this.Results = newRawResults;
+            this.PluginID = resultId;
+        }
+
+        public PluginProxy Plugin { get; private set; }
+
         public string PluginID { get; set; }
 
-        public Query Query { get; set; }
+        public Query Query { get; private set; }
 
         public List<Result> Results { get; set; }
+
+        public System.Threading.CancellationToken Token { get; set; }
     }
 }

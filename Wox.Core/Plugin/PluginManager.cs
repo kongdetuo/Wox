@@ -19,15 +19,12 @@ namespace Wox.Core.Plugin
     /// </summary>
     public static class PluginManager
     {
-        private static IEnumerable<PluginPair> _contextMenuPlugins;
+        private static IEnumerable<PluginProxy> _contextMenuPlugins;
 
-        /// <summary>
-        /// Directories that will hold Wox plugin directory
-        /// </summary>
-
-        public static List<PluginPair> AllPlugins { get; private set; }
-        public static readonly List<PluginPair> GlobalPlugins = new List<PluginPair>();
-        public static readonly Dictionary<Keyword, PluginPair> NonGlobalPlugins = new();
+        public static Dictionary<string, PluginProxy> PluginDic;
+        public static List<PluginProxy> AllPlugins { get; private set; }
+        public static readonly List<PluginProxy> GlobalPlugins = new List<PluginProxy>();
+        public static readonly Dictionary<Keyword, PluginProxy> NonGlobalPlugins = new();
 
         public static IPublicAPI API { private set; get; }
 
@@ -96,6 +93,7 @@ namespace Wox.Core.Plugin
             Settings = settings;
             Settings.UpdatePluginSettings(_metadatas);
             AllPlugins = PluginsLoader.Plugins(_metadatas, Settings);
+            PluginDic = AllPlugins.ToDictionary(p => p.Metadata.ID);
         }
 
         /// <summary>
@@ -105,7 +103,7 @@ namespace Wox.Core.Plugin
         public static void InitializePlugins(IPublicAPI api)
         {
             API = api;
-            var failedPlugins = new ConcurrentQueue<PluginPair>();
+            var failedPlugins = new ConcurrentQueue<PluginProxy>();
             Parallel.ForEach(AllPlugins, pair =>
             {
                 try
@@ -159,7 +157,7 @@ namespace Wox.Core.Plugin
             PluginInstaller.Install(path);
         }
 
-        public static List<Result> QueryForPlugin(PluginPair pair, Query query)
+        public static List<Result> QueryForPlugin(PluginProxy pair, Query query)
         {
             try
             {
@@ -203,12 +201,16 @@ namespace Wox.Core.Plugin
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public static PluginPair GetPluginForId(string id)
+        public static PluginProxy GetPluginForId(string id)
         {
-            return AllPlugins.FirstOrDefault(o => o.Metadata.ID == id);
+            if(PluginDic.TryGetValue(id, out var plugin))
+            {
+                return plugin;
+            }
+            return null;
         }
 
-        public static IEnumerable<PluginPair> GetPluginsForInterface<T>() where T : IFeatures
+        public static IEnumerable<PluginProxy> GetPluginsForInterface<T>() where T : IFeatures
         {
             return AllPlugins.Where(p => p.Plugin is T);
         }

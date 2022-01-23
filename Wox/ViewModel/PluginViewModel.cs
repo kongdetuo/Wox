@@ -8,7 +8,7 @@ namespace Wox.ViewModel
 {
     public class PluginViewModel : BaseModel
     {
-        public PluginPair PluginPair { get; set; }
+        public PluginProxy PluginPair { get; set; }
 
         private readonly Internationalization _translator = InternationalizationManager.Instance;
 

@@ -21,7 +21,7 @@ namespace Wox.Core.Plugin
         public const string PythonExecutable = "pythonw.exe";
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        public static List<PluginPair> Plugins(List<PluginMetadata> metadatas, PluginsSettings settings)
+        public static List<PluginProxy> Plugins(List<PluginMetadata> metadatas, PluginsSettings settings)
         {
             var csharpPlugins = CSharpPlugins(metadatas).ToList();
             var pythonPlugins = PythonPlugins(metadatas, settings.PythonDirectory);
@@ -32,7 +32,7 @@ namespace Wox.Core.Plugin
                 .ToList();
         }
 
-        public static IEnumerable<PluginPair> CSharpPlugins(List<PluginMetadata> source)
+        public static IEnumerable<PluginProxy> CSharpPlugins(List<PluginMetadata> source)
         {
             var metadatas = source
                 .Where(IsCSharpPlugin);
@@ -43,9 +43,9 @@ namespace Wox.Core.Plugin
                 .ToList();
         }
 
-        private static PluginPair LoadCSharpPlugin(PluginMetadata metadata)
+        private static PluginProxy LoadCSharpPlugin(PluginMetadata metadata)
         {
-            PluginPair pair = null;
+            PluginProxy pair = null;
             var milliseconds = Logger.StopWatchDebug($"Constructor init cost for {metadata.Name}", () =>
             {
                 Assembly assembly;
@@ -93,7 +93,7 @@ namespace Wox.Core.Plugin
                     return;
                 }
 
-                pair = new PluginPair
+                pair = new PluginProxy
                 {
                     Plugin = plugin,
                     Metadata = metadata
@@ -103,7 +103,7 @@ namespace Wox.Core.Plugin
             return pair;
         }
 
-        public static IEnumerable<PluginPair> PythonPlugins(List<PluginMetadata> source, string pythonDirecotry)
+        public static IEnumerable<PluginProxy> PythonPlugins(List<PluginMetadata> source, string pythonDirecotry)
         {
             var metadatas = source.Where(o => o.Language.ToUpper() == AllowedLanguage.Python);
             string filename;
@@ -121,13 +121,13 @@ namespace Wox.Core.Plugin
                     else
                     {
                         Logger.WoxError("Python can't be found in PATH.");
-                        return new List<PluginPair>();
+                        return new List<PluginProxy>();
                     }
                 }
                 else
                 {
                     Logger.WoxError("PATH environment variable is not set.");
-                    return new List<PluginPair>();
+                    return new List<PluginProxy>();
                 }
             }
             else
@@ -140,11 +140,11 @@ namespace Wox.Core.Plugin
                 else
                 {
                     Logger.WoxError("Can't find python executable in <b ");
-                    return new List<PluginPair>();
+                    return new List<PluginProxy>();
                 }
             }
             Constant.PythonPath = filename;
-            var plugins = metadatas.Select(metadata => new PluginPair
+            var plugins = metadatas.Select(metadata => new PluginProxy
             {
                 Plugin = new PythonPlugin(filename),
                 Metadata = metadata
@@ -152,11 +152,11 @@ namespace Wox.Core.Plugin
             return plugins;
         }
 
-        public static IEnumerable<PluginPair> ExecutablePlugins(IEnumerable<PluginMetadata> source)
+        public static IEnumerable<PluginProxy> ExecutablePlugins(IEnumerable<PluginMetadata> source)
         {
             var metadatas = source.Where(o => o.Language.ToUpper() == AllowedLanguage.Executable);
 
-            var plugins = metadatas.Select(metadata => new PluginPair
+            var plugins = metadatas.Select(metadata => new PluginProxy
             {
                 Plugin = new ExecutablePlugin(metadata.ExecuteFilePath),
                 Metadata = metadata
