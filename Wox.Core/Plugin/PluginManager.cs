@@ -195,7 +195,7 @@ namespace Wox.Core.Plugin
 
         private static bool IsGlobalPlugin(PluginMetadata metadata)
         {
-            return metadata.ActionKeywords.Contains(Keyword.GlobalPluginWildcardSign);
+            return metadata.ActionKeywords.Contains(Keyword.Global);
         }
 
         /// <summary>
@@ -271,7 +271,7 @@ namespace Wox.Core.Plugin
         public static void AddActionKeyword(string id, Keyword newActionKeyword)
         {
             var plugin = GetPluginForId(id);
-            if (newActionKeyword == Keyword.GlobalPluginWildcardSign)
+            if (newActionKeyword == Keyword.Global)
             {
                 GlobalPlugins.Add(plugin);
             }

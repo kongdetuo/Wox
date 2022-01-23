@@ -41,7 +41,7 @@ namespace Wox
             var oldActionKeyword = _plugin.Metadata.ActionKeywords[0];
             var newActionKeyword = tbAction.Text.Trim().Length > 0
                 ? new Keyword(tbAction.Text.Trim())
-                : Keyword.GlobalPluginWildcardSign;
+                : Keyword.Global;
 
             if (!PluginManager.ActionKeywordRegistered(newActionKeyword))
             {

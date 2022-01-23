@@ -80,7 +80,7 @@ namespace Wox.Core.Plugin
                 // for plugins which doesn't has ActionKeywords key
                 metadata.ActionKeywords = metadata.ActionKeywords ?? new List<Keyword> { metadata.ActionKeyword };
                 // for plugin still use old ActionKeyword
-                metadata.ActionKeyword = metadata.ActionKeywords?[0] ?? Keyword.GlobalPluginWildcardSign;
+                metadata.ActionKeyword = metadata.ActionKeywords?[0] ?? Keyword.Global;
             }
             catch (Exception e)
             {

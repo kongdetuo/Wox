@@ -68,9 +68,9 @@ namespace Wox.Plugin
 
     public record struct Keyword(string Key)
     {
-        public static readonly Keyword GlobalPluginWildcardSign = new("*");
+        public static readonly Keyword Global = new("*");
 
-        public bool IsGlobal => Equals(GlobalPluginWildcardSign);
+        public bool IsGlobal => Equals(Global);
 
         public override string ToString()
         {
