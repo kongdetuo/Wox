@@ -32,9 +32,9 @@ namespace Wox.Plugin
             }
         }
 
-        public string ActionKeyword { get; set; }
+        public Keyword ActionKeyword { get; set; }
 
-        public List<string> ActionKeywords { get; set; }
+        public List<Keyword> ActionKeywords { get; set; }
 
         public string IcoPath { get; set;}
 

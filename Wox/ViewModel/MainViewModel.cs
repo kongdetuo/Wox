@@ -320,7 +320,7 @@ namespace Wox.ViewModel
                 _updateSource = source;
                 var token = source.Token;
 
-                var query = QueryBuilder.Build(queryText, PluginManager.NonGlobalPlugins);
+                var query = QueryBuilder.Build(queryText);
 
                 var showProgressTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
                 var r = Wox.Core.Services.QueryService.Query(query)

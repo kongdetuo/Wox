@@ -18,6 +18,8 @@ namespace Wox.Core.Plugin
         private static readonly List<PluginMetadata> PluginMetadatas = new List<PluginMetadata>();
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
+        
+
         /// <summary>
         /// Parse plugin metadata in giving directories
         /// </summary>
@@ -70,12 +72,15 @@ namespace Wox.Core.Plugin
             PluginMetadata metadata;
             try
             {
-                metadata = JsonConvert.DeserializeObject<PluginMetadata>(File.ReadAllText(configPath));
+                var settings = new JsonSerializerSettings();
+                settings.Converters.Add(new KeywordConvertor());
+                
+                metadata = JsonConvert.DeserializeObject<PluginMetadata>(File.ReadAllText(configPath), settings);
                 metadata.PluginDirectory = pluginDirectory;
                 // for plugins which doesn't has ActionKeywords key
-                metadata.ActionKeywords = metadata.ActionKeywords ?? new List<string> { metadata.ActionKeyword };
+                metadata.ActionKeywords = metadata.ActionKeywords ?? new List<Keyword> { metadata.ActionKeyword };
                 // for plugin still use old ActionKeyword
-                metadata.ActionKeyword = metadata.ActionKeywords?[0];
+                metadata.ActionKeyword = metadata.ActionKeywords?[0] ?? Keyword.GlobalPluginWildcardSign;
             }
             catch (Exception e)
             {
@@ -101,4 +106,17 @@ namespace Wox.Core.Plugin
             return metadata;
         }
     }
+    class KeywordConvertor : JsonConverter<Keyword>
+    {
+        public override Keyword ReadJson(JsonReader reader, Type objectType, Keyword existingValue, bool hasExistingValue, JsonSerializer serializer)
+        {
+            return new Keyword(reader.Value.ToString());
+        }
+
+        public override void WriteJson(JsonWriter writer, Keyword value, JsonSerializer serializer)
+        {
+            writer.WriteValue(value.ToString());
+        }
+    }
+
 }

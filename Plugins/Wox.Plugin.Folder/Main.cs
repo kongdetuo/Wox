@@ -114,9 +114,9 @@ namespace Wox.Plugin.Folder
                     }
 
                     string changeTo = path.EndsWith("\\") ? path : path + "\\";
-                    _context.API.ChangeQuery(string.IsNullOrEmpty(query.ActionKeyword) ?
-                        changeTo :
-                        query.ActionKeyword + " " + changeTo);
+                    _context.API.ChangeQuery(query.ActionKeyword is null
+                        ? changeTo 
+                        : query.ActionKeyword + " " + changeTo);
                     return false;
                 },
                 ContextData = new SearchResult { Type = ResultType.Folder, FullPath = path }

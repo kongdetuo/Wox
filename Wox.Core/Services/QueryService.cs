@@ -55,8 +55,8 @@ namespace Wox.Core.Services
 
         private static bool TryMatch(PluginPair pair, Query query)
         {
-            bool validGlobalQuery = string.IsNullOrEmpty(query.ActionKeyword) && pair.Metadata.ActionKeywords[0] == Wox.Plugin.Query.GlobalPluginWildcardSign;
-            bool validNonGlobalQuery = pair.Metadata.ActionKeywords.Contains(query.ActionKeyword);
+            bool validGlobalQuery = query.ActionKeyword is null && pair.Metadata.ActionKeywords[0].IsGlobal;
+            bool validNonGlobalQuery = query.ActionKeyword is not null && pair.Metadata.ActionKeywords.Contains(query.ActionKeyword.Value);
             return validGlobalQuery || validNonGlobalQuery;
         }
     }

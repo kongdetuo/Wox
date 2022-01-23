@@ -27,7 +27,7 @@ namespace Wox.Core.Plugin
 
         public static List<PluginPair> AllPlugins { get; private set; }
         public static readonly List<PluginPair> GlobalPlugins = new List<PluginPair>();
-        public static readonly Dictionary<string, PluginPair> NonGlobalPlugins = new Dictionary<string, PluginPair>();
+        public static readonly Dictionary<Keyword, PluginPair> NonGlobalPlugins = new();
 
         public static IPublicAPI API { private set; get; }
 
@@ -140,9 +140,11 @@ namespace Wox.Core.Plugin
                     GlobalPlugins.Add(plugin);
 
                 // Plugins may have multiple ActionKeywords, eg. WebSearch
-                plugin.Metadata.ActionKeywords.Where(x => x != Query.GlobalPluginWildcardSign)
-                                                .ToList()
-                                                .ForEach(x => NonGlobalPlugins[x] = plugin);
+                foreach (var key in plugin.Metadata.ActionKeywords.Where(key => !key.IsGlobal))
+                {
+                    NonGlobalPlugins[key] = plugin;
+                };
+
             }
 
             if (failedPlugins.Any())
@@ -187,27 +189,13 @@ namespace Wox.Core.Plugin
         {
             foreach (var r in results)
             {
-                r.PluginDirectory = metadata.PluginDirectory;
-                r.PluginID = metadata.ID;
-                r.OriginQuery = query;
-
-                string key = "EmbededIcon:";
-                // todo, use icon path type enum in the future
-                if (!string.IsNullOrEmpty(r.PluginDirectory) && !string.IsNullOrEmpty(r.IcoPath) && !Path.IsPathRooted(r.IcoPath) && !r.IcoPath.StartsWith(key))
-                {
-                    r.IcoPath = Path.Combine(r.PluginDirectory, r.IcoPath);
-                }
-
-                // ActionKeywordAssigned is used for constructing MainViewModel's query text auto-complete suggestions
-                // Plugins may have multi-actionkeywords eg. WebSearches. In this scenario it needs to be overriden on the plugin level
-                if (metadata.ActionKeywords.Count == 1)
-                    r.ActionKeywordAssigned = query.ActionKeyword;
+                SetPluginMetadata(r, metadata, query);
             }
         }
 
         private static bool IsGlobalPlugin(PluginMetadata metadata)
         {
-            return metadata.ActionKeywords.Contains(Query.GlobalPluginWildcardSign);
+            return metadata.ActionKeywords.Contains(Keyword.GlobalPluginWildcardSign);
         }
 
         /// <summary>
@@ -259,15 +247,12 @@ namespace Wox.Core.Plugin
 
         public static bool ActionKeywordRegistered(string actionKeyword)
         {
-            if (actionKeyword != Query.GlobalPluginWildcardSign &&
-                NonGlobalPlugins.ContainsKey(actionKeyword))
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            return ActionKeywordRegistered(new Keyword(actionKeyword));
+        }
+
+        public static bool ActionKeywordRegistered(Keyword actionKeyword)
+        {
+            return !actionKeyword.IsGlobal && NonGlobalPlugins.ContainsKey(actionKeyword);
         }
 
         /// <summary>
@@ -276,8 +261,17 @@ namespace Wox.Core.Plugin
         /// </summary>
         public static void AddActionKeyword(string id, string newActionKeyword)
         {
+            AddActionKeyword(id, new Keyword(newActionKeyword));
+        }
+
+        /// <summary>
+        /// used to add action keyword for multiple action keyword plugin
+        /// e.g. web search
+        /// </summary>
+        public static void AddActionKeyword(string id, Keyword newActionKeyword)
+        {
             var plugin = GetPluginForId(id);
-            if (newActionKeyword == Query.GlobalPluginWildcardSign)
+            if (newActionKeyword == Keyword.GlobalPluginWildcardSign)
             {
                 GlobalPlugins.Add(plugin);
             }
@@ -287,29 +281,31 @@ namespace Wox.Core.Plugin
             }
             plugin.Metadata.ActionKeywords.Add(newActionKeyword);
         }
-
         /// <summary>
         /// used to add action keyword for multiple action keyword plugin
         /// e.g. web search
         /// </summary>
         public static void RemoveActionKeyword(string id, string oldActionkeyword)
         {
+            RemoveActionKeyword(id, new Keyword(oldActionkeyword));
+        }
+
+        /// <summary>
+        /// used to add action keyword for multiple action keyword plugin
+        /// e.g. web search
+        /// </summary>
+        public static void RemoveActionKeyword(string id, Keyword oldActionkeyword)
+        {
             var plugin = GetPluginForId(id);
-            if (oldActionkeyword == Query.GlobalPluginWildcardSign
-                && // Plugins may have multiple ActionKeywords that are global, eg. WebSearch
-                plugin.Metadata.ActionKeywords
-                                    .Where(x => x == Query.GlobalPluginWildcardSign)
-                                    .ToList()
-                                    .Count == 1)
+
+            plugin.Metadata.ActionKeywords.Remove(oldActionkeyword);
+
+            NonGlobalPlugins.Remove(oldActionkeyword);
+
+            if (!plugin.Metadata.ActionKeywords.Any(x => x.IsGlobal)) // Plugins may have multiple ActionKeywords that are global, eg. WebSearch
             {
                 GlobalPlugins.Remove(plugin);
             }
-
-            if (oldActionkeyword != Query.GlobalPluginWildcardSign)
-                NonGlobalPlugins.Remove(oldActionkeyword);
-
-
-            plugin.Metadata.ActionKeywords.Remove(oldActionkeyword);
         }
 
         public static void ReplaceActionKeyword(string id, string oldActionKeyword, string newActionKeyword)
@@ -319,6 +315,34 @@ namespace Wox.Core.Plugin
                 AddActionKeyword(id, newActionKeyword);
                 RemoveActionKeyword(id, oldActionKeyword);
             }
+        }
+
+        public static void ReplaceActionKeyword(string id, Keyword oldActionKeyword, Keyword newActionKeyword)
+        {
+            if (oldActionKeyword != newActionKeyword)
+            {
+                RemoveActionKeyword(id, oldActionKeyword);
+                AddActionKeyword(id, newActionKeyword);
+            }
+        }
+        private static Result SetPluginMetadata(Result result, PluginMetadata plugin, Query query)
+        {
+            result.PluginDirectory = plugin.PluginDirectory;
+            result.PluginID = plugin.ID;
+            result.OriginQuery = query;
+
+            string key = "EmbededIcon:";
+            // todo, use icon path type enum in the future
+            if (!string.IsNullOrEmpty(plugin.PluginDirectory) && !string.IsNullOrEmpty(result.IcoPath) && !Path.IsPathRooted(result.IcoPath) && !result.IcoPath.StartsWith(key))
+            {
+                result.IcoPath = Path.Combine(plugin.PluginDirectory, result.IcoPath);
+            }
+
+            // ActionKeywordAssigned is used for constructing MainViewModel's query text auto-complete suggestions
+            // Plugins may have multi-actionkeywords eg. WebSearches. In this scenario it needs to be overriden on the plugin level
+            if (plugin.ActionKeywords.Count == 1)
+                result.ActionKeywordAssigned = query.ActionKeyword;
+            return result;
         }
     }
 }

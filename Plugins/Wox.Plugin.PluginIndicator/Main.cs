@@ -11,12 +11,12 @@ namespace Wox.Plugin.PluginIndicator
         public List<Result> Query(Query query)
         {
             var results = from keyword in PluginManager.NonGlobalPlugins.Keys
-                          where keyword.StartsWith(query.Terms[0])
+                          where keyword.Key.StartsWith(query.Terms[0])
                           let metadata = PluginManager.NonGlobalPlugins[keyword].Metadata
-                          where metadata.Disabled
+                          where !metadata.Disabled
                           select new Result
                           {
-                              Title = keyword,
+                              Title = keyword.Key,
                               SubTitle = $"Activate {metadata.Name} plugin",
                               Score = 100,
                               IcoPath = metadata.IcoPath,

@@ -39,7 +39,7 @@ namespace Wox.Infrastructure.UserSettings
     {
         public string ID { get; set; }
         public string Name { get; set; }
-        public List<string> ActionKeywords { get; set; } // a reference of the action keywords from plugin manager
+        public List<Keyword> ActionKeywords { get; set; } // a reference of the action keywords from plugin manager
 
         /// <summary>
         /// Used only to save the state of the plugin in settings

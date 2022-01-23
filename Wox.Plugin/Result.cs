@@ -16,7 +16,7 @@ namespace Wox.Plugin
         /// This holds the action keyword that triggered the result.
         /// If result is triggered by global keyword: *, this should be empty.
         /// </summary>
-        public string ActionKeywordAssigned { get; set; }
+        public Keyword? ActionKeywordAssigned { get; set; }
 
         public string IcoPath { get; set; }
 

@@ -40,7 +40,7 @@ namespace Wox.Plugin.WebSearch
         {
             var enabledSource = _settings.SearchSources.Where(p => p.Enabled);
             var searchSourceList = enabledSource
-                .Where(o => o.ActionKeyword == query.ActionKeyword)
+                .Where(o => o.ActionKeyword == query.ActionKeyword?.Key)
                 .Concat(enabledSource.Where(p => p.ActionKeyword == SearchSourceGlobalPluginWildCardSign))
                 .ToList();
 
@@ -149,7 +149,7 @@ namespace Wox.Plugin.WebSearch
                     SubTitle = subtitle,
                     Score = 100,
                     IcoPath = searchSource.IconPath,
-                    ActionKeywordAssigned = searchSource.ActionKeyword == SearchSourceGlobalPluginWildCardSign ? string.Empty : searchSource.ActionKeyword,
+                    ActionKeywordAssigned = searchSource.ActionKeyword == SearchSourceGlobalPluginWildCardSign ? null : new Keyword(searchSource.ActionKeyword),
                     Action = c =>
                     {
                         if (_settings.OpenInNewBrowser)

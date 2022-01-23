@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.Primitives;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Wox.Plugin;
@@ -7,7 +8,7 @@ namespace Wox.Core.Plugin
 {
     public static class QueryBuilder
     {
-        public static Query Build(string text, Dictionary<string, PluginPair> nonGlobalPlugins)
+        public static Query Build(string text)
         {
             // replace multiple white spaces with one white space
             var terms = text.Split(new[] { Query.TermSeperater }, StringSplitOptions.RemoveEmptyEntries);
@@ -18,13 +19,16 @@ namespace Wox.Core.Plugin
 
             var rawQuery = string.Join(Query.TermSeperater, terms);
             string actionKeyword, search;
-            string possibleActionKeyword = terms[0];
+            var possibleActionKeyword = new Keyword(terms[0]);
 
-            if (nonGlobalPlugins.TryGetValue(possibleActionKeyword, out var pluginPair) && !pluginPair.Metadata.Disabled)
+            if (PluginManager.NonGlobalPlugins.TryGetValue(possibleActionKeyword, out var pluginPair)
+                && !pluginPair.Metadata.Disabled)
             { // use non global plugin for query
-                actionKeyword = possibleActionKeyword;
-                var actionParameters = terms.Skip(1).ToList();
-                search = actionParameters.Count > 0 ? rawQuery.Substring(actionKeyword.Length + 1) : string.Empty;
+                actionKeyword = possibleActionKeyword.Key;
+
+                search = terms.Skip(1).Any() 
+                    ? rawQuery.Substring(actionKeyword.Length + 1) 
+                    : string.Empty;
             }
             else
             { // non action keyword
@@ -36,7 +40,7 @@ namespace Wox.Core.Plugin
             {
                 Terms = terms,
                 RawQuery = rawQuery,
-                ActionKeyword = actionKeyword,
+                ActionKeyword = string.IsNullOrEmpty(actionKeyword) ? null : new Keyword(actionKeyword),
                 Search = search,
             };
 

@@ -42,7 +42,7 @@ namespace Wox.Converters
                 var selectedItem = (ResultViewModel)val;
 
                 var selectedResult = selectedItem.Result;
-                var selectedResultActionKeyword = string.IsNullOrEmpty(selectedResult.ActionKeywordAssigned) ? "" : selectedResult.ActionKeywordAssigned + " ";
+                var selectedResultActionKeyword = selectedResult.ActionKeywordAssigned is null ? "" : selectedResult.ActionKeywordAssigned + " ";
                 var selectedResultPossibleSuggestion = selectedResultActionKeyword + selectedResult.Title;
 
                 if (!selectedResultPossibleSuggestion.StartsWith(queryText, StringComparison.CurrentCultureIgnoreCase))

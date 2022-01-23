@@ -9,17 +9,6 @@ namespace Wox.Plugin
         public Query() { }
 
         /// <summary>
-        /// to allow unit tests for plug ins
-        /// </summary>
-        public Query(string rawQuery, string search, string[] terms, string actionKeyword = "")
-        {
-            Search = search;
-            RawQuery = rawQuery;
-            Terms = terms;
-            ActionKeyword = actionKeyword;
-        }
-
-        /// <summary>
         /// Raw query, this includes action keyword if it has
         /// We didn't recommend use this property directly. You should always use Search property.
         /// </summary>
@@ -42,50 +31,30 @@ namespace Wox.Plugin
         /// Query can be splited into multiple terms by whitespace
         /// </summary>
         public const string TermSeperater = " ";
+
         /// <summary>
         /// User can set multiple action keywords seperated by ';'
         /// </summary>
         public const string ActionKeywordSeperater = ";";
 
-        /// <summary>
-        /// '*' is used for System Plugin
-        /// </summary>
-        public const string GlobalPluginWildcardSign = "*";
-
-        public string ActionKeyword { get; set; }
+        public Keyword? ActionKeyword { get; set; }
 
         /// <summary>
         /// Return first search split by space if it has
         /// </summary>
         public string FirstSearch => SplitSearch(0);
 
-        /// <summary>
-        /// strings from second search (including) to last search
-        /// </summary>
-        public string SecondToEndSearch
-        {
-            get
-            {
-                var index = string.IsNullOrEmpty(ActionKeyword) ? 1 : 2;
-                return string.Join(TermSeperater, Terms.Skip(index).ToArray());
-            }
-        }
 
         /// <summary>
         /// Return second search split by space if it has
         /// </summary>
         public string SecondSearch => SplitSearch(1);
 
-        /// <summary>
-        /// Return third search split by space if it has
-        /// </summary>
-        public string ThirdSearch => SplitSearch(2);
-
         private string SplitSearch(int index)
         {
             try
             {
-                return string.IsNullOrEmpty(ActionKeyword) ? Terms[index] : Terms[index + 1];
+                return ActionKeyword is null ? Terms[index] : Terms[index + 1];
             }
             catch (IndexOutOfRangeException)
             {
@@ -95,5 +64,17 @@ namespace Wox.Plugin
 
         public override string ToString() => RawQuery;
 
+    }
+
+    public record struct Keyword(string Key)
+    {
+        public static readonly Keyword GlobalPluginWildcardSign = new("*");
+
+        public bool IsGlobal => Equals(GlobalPluginWildcardSign);
+
+        public override string ToString()
+        {
+            return Key;
+        }
     }
 }
