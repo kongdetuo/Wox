@@ -141,69 +141,34 @@ namespace Wox.ViewModel
                 new PluginQueryResult(newRawResults, resultId, token)
             };
             AddResults(updates);
+
         }
 
         /// <summary>
         /// To avoid deadlock, this method should not called from main thread
         /// </summary>
-        public void AddResults(List<PluginQueryResult> updates)
+        public void AddResults(IEnumerable<PluginQueryResult> updates)
         {
-            // because IResultUpdated, updates maybe contains same plugin result
-            // we just need the last one
-            updates = updates.AsEnumerable().Reverse()
-                .DistinctBy(p => p.PluginID).Reverse()
-                .ToList();
-
-            var updatesNotCanceled = updates.Where(u => !u.Token.IsCancellationRequested);
-
-            CancellationToken token;
-            try
-            {
-                token = updates.Select(u => u.Token).Distinct().First();
-            }
-            catch (InvalidOperationException e)
-            {
-                Logger.WoxError("more than one not canceled query result in same batch processing", e);
-                return;
-            }
-
             // https://stackoverflow.com/questions/14336750
             lock (_collectionLock)
             {
-                List<ResultViewModel> newResults = NewResults(updates, token);
-                Logger.WoxTrace($"newResults {newResults.Count}");
-                Results.Update(newResults, token);
+                // because IResultUpdated, updates maybe contains same plugin result
+                // we just need the last one
+                updates = updates.Reverse().DistinctBy(p => p.PluginID).Reverse();
+
+                var hs = updates.Select(p => p.PluginID).ToHashSet();
+
+                var newResults = Results.ToList()
+                    .Where(p => !hs.Contains(p.Result.PluginID)) // remove previous result
+                    .Concat(updates.SelectMany(u => u.Results).Select(r => new ResultViewModel(r)))
+                    .OrderByDescending(r => r.Result.Score)
+                    .Take(MaxResults * 4);
+
+                Results.Update(newResults);
             }
 
             if (Results.Count > 0)
                 SelectedIndex = 0;
-        }
-
-        private List<ResultViewModel> NewResults(List<PluginQueryResult> updates, CancellationToken token)
-        {
-            if (token.IsCancellationRequested) { return Results.ToList(); }
-            var newResults = Results.ToList();
-            if (updates.Count > 0)
-            {
-                if (token.IsCancellationRequested) { return Results.ToList(); }
-                List<Result> resultsFromUpdates = updates.SelectMany(u => u.Results).ToList();
-
-                if (token.IsCancellationRequested) { return Results.ToList(); }
-                newResults.RemoveAll(r => updates.Any(u => u.PluginID == r.Result.PluginID));
-
-                if (token.IsCancellationRequested) { return Results.ToList(); }
-                IEnumerable<ResultViewModel> vm = resultsFromUpdates.Select(r => new ResultViewModel(r));
-                newResults.AddRange(vm);
-
-                if (token.IsCancellationRequested) { return Results.ToList(); }
-                List<ResultViewModel> sorted = newResults.OrderByDescending(r => r.Result.Score).Take(MaxResults * 4).ToList();
-
-                return sorted;
-            }
-            else
-            {
-                return Results.ToList();
-            }
         }
 
         #endregion Public Methods
@@ -254,16 +219,14 @@ namespace Wox.ViewModel
                 }
             }
 
-            public void Update(List<ResultViewModel> newItems, CancellationToken token)
+            public void Update(IEnumerable<ResultViewModel> newItems)
             {
-                if (token.IsCancellationRequested) { return; }
-
                 this.Clear();
                 foreach (var i in newItems)
                 {
-                    if (token.IsCancellationRequested) { break; }
                     this.Add(i);
                 }
+
                 if (CollectionChanged != null)
                 {
                     // wpf use directx / double buffered already, so just reset all won't cause ui flickering

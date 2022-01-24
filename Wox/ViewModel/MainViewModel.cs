@@ -328,7 +328,7 @@ namespace Wox.ViewModel
                 r.Buffer(TimeSpan.FromMilliseconds(15))
                     .Where(p => p.Count > 0)
                     .ObserveOn(SynchronizationContext)
-                    .Subscribe(p => UpdateResultView(p.ToList()), token);
+                    .Subscribe(p => UpdateResultView(p), token);
 
                 Task task1 = Task.Delay(200);
                 Task task2 = r.ToTask();
@@ -542,14 +542,14 @@ namespace Wox.ViewModel
         /// <summary>
         /// To avoid deadlock, this method should not called from main thread
         /// </summary>
-        public void UpdateResultView(List<PluginQueryResult> updates)
+        public void UpdateResultView(IEnumerable<PluginQueryResult> updates)
         {
             UpdateScore(updates);
             Results.AddResults(updates);
             UpdateResultVisible();
         }
 
-        private void UpdateScore(List<PluginQueryResult> updates)
+        private void UpdateScore(IEnumerable<PluginQueryResult> updates)
         {
             foreach (PluginQueryResult update in updates)
             {
