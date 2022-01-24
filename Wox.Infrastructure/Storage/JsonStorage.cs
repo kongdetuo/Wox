@@ -100,7 +100,7 @@ namespace Wox.Infrastructure.Storage
 
         public void Save()
         {
-            string serialized = JsonConvert.SerializeObject(_data, Formatting.Indented);
+            string serialized = JsonConvert.SerializeObject(_data, Formatting.Indented, new KeywordConvertor());
             File.WriteAllText(FilePath, serialized);
         }
     }
