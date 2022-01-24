@@ -8,6 +8,7 @@ using NLog;
 using Wox.Infrastructure.Exception;
 using Wox.Infrastructure.Logger;
 using Wox.Plugin;
+using Wox.Infrastructure.Storage;
 
 namespace Wox.Core.Plugin
 {
@@ -104,18 +105,6 @@ namespace Wox.Core.Plugin
             }
 
             return metadata;
-        }
-    }
-    class KeywordConvertor : JsonConverter<Keyword>
-    {
-        public override Keyword ReadJson(JsonReader reader, Type objectType, Keyword existingValue, bool hasExistingValue, JsonSerializer serializer)
-        {
-            return new Keyword(reader.Value.ToString());
-        }
-
-        public override void WriteJson(JsonWriter writer, Keyword value, JsonSerializer serializer)
-        {
-            writer.WriteValue(value.ToString());
         }
     }
 

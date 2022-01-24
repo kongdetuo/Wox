@@ -4,6 +4,7 @@ using System.IO;
 using Newtonsoft.Json;
 using NLog;
 using Wox.Infrastructure.Logger;
+using Wox.Plugin;
 
 namespace Wox.Infrastructure.Storage
 {
@@ -30,8 +31,10 @@ namespace Wox.Infrastructure.Storage
             _serializerSettings = new JsonSerializerSettings
             {
                 ObjectCreationHandling = ObjectCreationHandling.Replace,
-                NullValueHandling = NullValueHandling.Ignore
+                NullValueHandling = NullValueHandling.Ignore,
+                
             };
+            _serializerSettings.Converters.Add(new KeywordConvertor());
         }
 
         public T Load()
@@ -101,4 +104,18 @@ namespace Wox.Infrastructure.Storage
             File.WriteAllText(FilePath, serialized);
         }
     }
+
+    public class KeywordConvertor : JsonConverter<Keyword>
+    {
+        public override Keyword ReadJson(JsonReader reader, Type objectType, Keyword existingValue, bool hasExistingValue, JsonSerializer serializer)
+        {
+            return new Keyword(reader.Value.ToString());
+        }
+
+        public override void WriteJson(JsonWriter writer, Keyword value, JsonSerializer serializer)
+        {
+            writer.WriteValue(value.ToString());
+        }
+    }
+
 }
