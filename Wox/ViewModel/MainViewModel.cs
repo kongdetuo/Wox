@@ -90,12 +90,9 @@ namespace Wox.ViewModel
 
             _ = queryTextChangeds.Where(_ => SelectedIsFromQueryResults())
                 .DistinctUntilChanged()
-                .Subscribe(
-                    onNext: queryText => QueryResults(queryText),
-                    onError: e =>
-                    {
-                        MessageBox.Show(e.Message);
-                    });
+                .Select(queryText => QueryResults(queryText))
+                .Switch()
+                .Subscribe(p => { }, onError: e => MessageBox.Show(e.Message));
 
             _ = queryTextChangeds.Where(p => ContextMenuSelected())
                 .Subscribe(queryText => QueryContextMenu());
@@ -305,46 +302,24 @@ namespace Wox.ViewModel
                 || StringMatcher.FuzzySearch(query, result.SubTitle).IsSearchPrecisionScoreMet();
         }
 
-        private async void QueryResults(string queryText)
+        private IObservable<PluginQueryResult> QueryResults(string queryText)
         {
-            try
-            {
-                if (_updateSource != null && !_updateSource.IsCancellationRequested)
-                {
-                    // first condition used for init run
-                    // second condition used when task has already been canceled in last turn
-                    _updateSource.Cancel();
-                    Logger.WoxDebug($"cancel init {_updateSource.Token.GetHashCode()} {Thread.CurrentThread.ManagedThreadId} {QueryText}");
-                    _updateSource.Dispose();
-                }
-                var source = new CancellationTokenSource();
-                _updateSource = source;
-                var token = source.Token;
+            var query = QueryBuilder.Build(queryText);
 
-                var query = QueryBuilder.Build(queryText);
+            var r = Wox.Core.Services.QueryService.Query(query).Publish();
+            r.Buffer(TimeSpan.FromMilliseconds(15))
+                .Where(p => p.Count > 0)
+                .ObserveOn(SynchronizationContext)
+                .Subscribe(p => UpdateResultView(p));
 
-                var showProgressTokenSource = CancellationTokenSource.CreateLinkedTokenSource(token);
-                var r = Wox.Core.Services.QueryService.Query(query).Publish();
-                r.Buffer(TimeSpan.FromMilliseconds(15))
-                    .Where(p => p.Count > 0)
-                    .ObserveOn(SynchronizationContext)
-                    .Subscribe(p => UpdateResultView(p), token);
+            Observable.Timer(TimeSpan.FromMilliseconds(200)).TakeUntil(r)
+                .ObserveOn(SynchronizationContext)
+                .Subscribe(
+                    p => ProgressBarVisibility = Visibility.Visible,
+                    () => ProgressBarVisibility = Visibility.Hidden);
 
-                Task task1 = Task.Delay(200);
-                Task task2 = r.ToTask();
-
-                r.Connect();
-                if (await Task.WhenAny(task1, task2) == task1)
-                {
-                    ProgressBarVisibility = Visibility.Visible;
-                    await task2;
-                    ProgressBarVisibility = Visibility.Hidden;
-                }
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message);
-            }
+            r.Connect();
+            return r;
         }
 
         private void Refresh()
