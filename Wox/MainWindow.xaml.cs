@@ -92,11 +92,11 @@ namespace Wox
                 {
                     if (_viewModel.ProgressBarVisibility == Visibility.Visible)
                     {
-                        ProgressBar.BeginStoryboard(_progressBarStoryboard);
+                        this.Dispatcher.Invoke(()=> ProgressBar.BeginStoryboard(_progressBarStoryboard));
                     }
                     else
                     {
-                        _progressBarStoryboard.Stop(ProgressBar);
+                        this.Dispatcher.Invoke(() => _progressBarStoryboard.Stop(ProgressBar));
                     }
                 }
             };

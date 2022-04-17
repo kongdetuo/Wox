@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Threading.Tasks;
 using System.Threading;
@@ -43,7 +44,6 @@ namespace Wox.ViewModel
         private readonly UserSelectedRecord _userSelectedRecord;
         private readonly TopMostRecord _topMostRecord;
 
-        private CancellationTokenSource _updateSource;
         private bool _saved;
 
         private readonly Internationalization _translator;
@@ -90,9 +90,11 @@ namespace Wox.ViewModel
 
             _ = queryTextChangeds.Where(_ => SelectedIsFromQueryResults())
                 .DistinctUntilChanged()
-                .Select(queryText => QueryResults(queryText))
+                .Throttle(TimeSpan.FromMilliseconds(50))
+                .ObserveOn(NewThreadScheduler.Default)
+                .Select(p => Observable.FromAsync(token => QueryResults(p, token)))
                 .Switch()
-                .Subscribe(p => { }, onError: e => MessageBox.Show(e.Message));
+                .Subscribe(queryText => { }, onError: e => MessageBox.Show(e.Message));
 
             _ = queryTextChangeds.Where(p => ContextMenuSelected())
                 .Subscribe(queryText => QueryContextMenu());
@@ -178,6 +180,15 @@ namespace Wox.ViewModel
                     SelectedResults = Results;
                 }
             });
+
+            this.AutoComplationCommand = new RelayCommand(_ =>
+            {
+                var result = SelectedResults.Results.FirstOrDefault()?.Result;
+                if (result is not null && result.Title.StartsWith(QueryText, true, null))
+                {
+                    ChangeQueryText(result.Title);
+                }
+            });
         }
 
         #endregion Constructor
@@ -237,6 +248,8 @@ namespace Wox.ViewModel
         public ICommand LoadContextMenuCommand { get; set; }
         public ICommand LoadHistoryCommand { get; set; }
         public ICommand OpenResultCommand { get; set; }
+
+        public ICommand AutoComplationCommand { get; set; }
 
         #endregion ViewModel Properties
 
@@ -302,24 +315,26 @@ namespace Wox.ViewModel
                 || StringMatcher.FuzzySearch(query, result.SubTitle).IsSearchPrecisionScoreMet();
         }
 
-        private IObservable<PluginQueryResult> QueryResults(string queryText)
+        private async Task QueryResults(string queryText, CancellationToken token)
         {
             var query = QueryBuilder.Build(queryText);
 
-            var r = Wox.Core.Services.QueryService.Query(query).Publish();
-            r.Buffer(TimeSpan.FromMilliseconds(15))
-                .Where(p => p.Count > 0)
-                .ObserveOn(SynchronizationContext)
-                .Subscribe(p => UpdateResultView(p));
+            bool complate = false;
+            _ = Task.Delay(200, token)
+                .ContinueWith(t =>
+                {
+                    if (!complate)
+                        ProgressBarVisibility = Visibility.Visible;
+                }, token);
 
-            Observable.Timer(TimeSpan.FromMilliseconds(200)).TakeUntil(r)
-                .ObserveOn(SynchronizationContext)
-                .Subscribe(
-                    p => ProgressBarVisibility = Visibility.Visible,
-                    () => ProgressBarVisibility = Visibility.Hidden);
+            await foreach (var item in QueryService.QueryAsync(query, token))
+            {
+                UpdateScore(item);
+                UpdateResultView(item);
+            }
+            complate = true;
 
-            r.Connect();
-            return r;
+            ProgressBarVisibility = Visibility.Hidden;
         }
 
         private void Refresh()
@@ -519,30 +534,40 @@ namespace Wox.ViewModel
         /// </summary>
         public void UpdateResultView(IEnumerable<PluginQueryResult> updates)
         {
-            UpdateScore(updates);
+            //UpdateScore(updates);
             Results.AddResults(updates);
             UpdateResultVisible();
         }
-
+        public void UpdateResultView(PluginQueryResult updates)
+        {
+            //UpdateScore(updates);
+            Results.AddResults(new[] { updates });
+            UpdateResultVisible();
+        }
         private void UpdateScore(IEnumerable<PluginQueryResult> updates)
         {
             foreach (PluginQueryResult update in updates)
             {
-                var queryHasTopMoustRecord = _topMostRecord.HasTopMost(update.Query);
-                foreach (var result in update.Results)
+                UpdateScore(update);
+            }
+        }
+
+        private void UpdateScore(PluginQueryResult update)
+        {
+            var queryHasTopMoustRecord = _topMostRecord.HasTopMost(update.Query);
+            foreach (var result in update.Results)
+            {
+                if (queryHasTopMoustRecord && _topMostRecord.IsTopMost(result))
                 {
-                    if (queryHasTopMoustRecord && _topMostRecord.IsTopMost(result))
-                    {
-                        result.Score = int.MaxValue;
-                    }
-                    else if (!update.Plugin.Metadata.KeepResultRawScore)
-                    {
-                        result.Score += _userSelectedRecord.GetSelectedCount(result) * 10;
-                    }
-                    else
-                    {
-                        result.Score = result.Score;
-                    }
+                    result.Score = int.MaxValue;
+                }
+                else if (!update.Plugin.Metadata.KeepResultRawScore)
+                {
+                    result.Score += _userSelectedRecord.GetSelectedCount(result) * 10;
+                }
+                else
+                {
+                    result.Score = result.Score;
                 }
             }
         }

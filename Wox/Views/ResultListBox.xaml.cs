@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Collections.Specialized;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
@@ -12,6 +13,7 @@ namespace Wox
         public ResultListBox()
         {
             InitializeComponent();
+
         }
 
         protected override void OnSelectionChanged(SelectionChangedEventArgs e)
@@ -26,8 +28,15 @@ namespace Wox
             }
             catch (System.Exception e1)
             {
-                System.Windows.Forms.MessageBox.Show(e1.ToString());
+
             }
+        }
+
+        protected override void OnItemsChanged(NotifyCollectionChangedEventArgs e)
+        {
+            base.OnItemsChanged(e);
+            if (this.Items.Count > 0)
+                SelectedIndex = 0;
         }
 
         private void OnMouseEnter(object sender, MouseEventArgs e)

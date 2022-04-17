@@ -12,6 +12,7 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Reactive.Concurrency;
 using System.Threading;
+using System.Threading.Channels;
 
 namespace Wox.Core.Services
 {
@@ -19,44 +20,52 @@ namespace Wox.Core.Services
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        public static IObservable<PluginQueryResult> Query(Query query)
+        public static IAsyncEnumerable<PluginQueryResult> QueryAsync(Query query, CancellationToken token)
         {
-            var plugins = PluginManager.AllPlugins;
-            //if (query == null)
-            //    return plugins.Select(p => new PluginQueryResult(p, query, new List<Result>())).ToObservable();
-
-            return plugins.ToObservable()
-                .ObserveOn(ThreadPoolScheduler.Instance)
-                .SelectMany(plugin => QueryPluginAsync(plugin, query).ToObservable());
-        }
-
-        private static async IAsyncEnumerable<PluginQueryResult> QueryPluginAsync(PluginProxy pair, Query query)
-        {
-            if (query == null || pair.Metadata.Disabled || !TryMatch(pair, query))
+            var channel = Channel.CreateUnbounded<PluginQueryResult>();
+            _ = Task.Run(async () =>
             {
-                yield return new PluginQueryResult(pair, query, new List<Result>());
-                yield break;
-            }
-
-            await Task.Yield();
-            var firstResult = new PluginQueryResult(pair, query, PluginManager.QueryForPlugin(pair, query));
-            yield return firstResult;
-
-            if (pair.Plugin is IResultUpdated updatedPlugin)
-            {
-                await foreach (var results in updatedPlugin.QueryUpdates(query))
+                var plugins = PluginManager.AllPlugins;
+                var writer = channel.Writer;
+                var tasks = plugins.AsParallel().Select(async plugin =>
                 {
-                    PluginManager.UpdatePluginMetadata(results, pair.Metadata, query);
-                    yield return new PluginQueryResult(pair, query, results);
-                }
-            }
+                    if (query is null || !TryMatch(plugin, query))
+                    {
+                        await channel.Writer.WriteAsync(Empty(plugin, query), token);
+                    }
+                    else
+                    {
+                        await writer.WriteAsync(new PluginQueryResult(plugin, query, PluginManager.QueryForPlugin(plugin, query)), token);
+                        if (plugin.Plugin is IResultUpdated updatedPlugin)
+                        {
+                            await foreach (var item in updatedPlugin.QueryUpdates(query).WithCancellation(token))
+                            {
+                                PluginManager.UpdatePluginMetadata(item, plugin.Metadata, query);
+                                await writer.WriteAsync(new PluginQueryResult(plugin, query, item), token);
+                            }
+                        }
+                    }
+                });
+
+                await Task.WhenAll(tasks);
+                writer.Complete();
+            }, CancellationToken.None);
+            return channel.Reader.ReadAllAsync(token);
         }
 
         private static bool TryMatch(PluginProxy pair, Query query)
         {
+            if (pair.Metadata.Disabled)
+                return false;
+
             bool validGlobalQuery = query.ActionKeyword is null && pair.Metadata.ActionKeywords[0].IsGlobal;
             bool validNonGlobalQuery = query.ActionKeyword is not null && pair.Metadata.ActionKeywords.Contains(query.ActionKeyword.Value);
             return validGlobalQuery || validNonGlobalQuery;
+        }
+
+        private static PluginQueryResult Empty(PluginProxy plugin, Query query)
+        {
+            return new PluginQueryResult(plugin, query, new List<Result>());
         }
     }
 
@@ -70,9 +79,8 @@ namespace Wox.Core.Services
             this.Results = results;
         }
 
-        public PluginQueryResult(List<Result> newRawResults, string resultId, CancellationToken token)
+        public PluginQueryResult(List<Result> newRawResults, string resultId)
         {
-            Token = token;
             this.Results = newRawResults;
             this.PluginID = resultId;
         }
@@ -84,7 +92,5 @@ namespace Wox.Core.Services
         public Query Query { get; private set; }
 
         public List<Result> Results { get; set; }
-
-        public System.Threading.CancellationToken Token { get; set; }
     }
 }

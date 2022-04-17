@@ -101,6 +101,7 @@
                             <KeyBinding Key="Down" Command="{Binding SelectedResults.SelectNextItemCommand}" />
                             <KeyBinding Key="PageUp" Command="{Binding SelectedResults.SelectPrevPageCommand}" />
                             <KeyBinding Key="PageDown" Command="{Binding SelectedResults.SelectNextPageCommand}" />
+                            <KeyBinding Key="Tab" Command="{Binding AutoComplationCommand}"/>
                         </TextBox.InputBindings>
                     </TextBox>
 

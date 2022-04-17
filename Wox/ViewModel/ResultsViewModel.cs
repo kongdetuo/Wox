@@ -135,10 +135,9 @@ namespace Wox.ViewModel
 
         public void AddResults(List<Result> newRawResults, string resultId)
         {
-            CancellationToken token = new CancellationTokenSource().Token;
             List<PluginQueryResult> updates = new List<PluginQueryResult>()
             {
-                new PluginQueryResult(newRawResults, resultId, token)
+                new PluginQueryResult(newRawResults, resultId)
             };
             AddResults(updates);
 
@@ -167,8 +166,28 @@ namespace Wox.ViewModel
                 Results.Update(newResults);
             }
 
-            if (Results.Count > 0)
-                SelectedIndex = 0;
+            //if (Results.Count > 0)
+            //    SelectedIndex = 0;
+        }
+
+        public void Add(PluginQueryResult update)
+        {
+            // https://stackoverflow.com/questions/14336750
+            lock (_collectionLock)
+            {
+                // because IResultUpdated, updates maybe contains same plugin result
+                // we just need the last one
+
+                var newResults = Results.ToList()
+                    .Where(p => p.Result.PluginID != update.PluginID) // remove previous result
+                    .Concat(update.Results.Select(r => new ResultViewModel(r)))
+                    .OrderByDescending(r => r.Result.Score)
+                    .Take(MaxResults * 4);
+
+                Results.Update(newResults);
+                if (Results.Count > 0)
+                    SelectedIndex = 0;
+            }
         }
 
         #endregion Public Methods
