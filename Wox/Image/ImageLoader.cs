@@ -115,14 +115,9 @@ namespace Wox.Image
 
             if (normalImage)
             {
-                if (TryLoadFromPath(path, out var image))
-                    return image;
-
-                if (!string.IsNullOrEmpty(pluginDirectory) && TryLoadFromPluginDirectory(path, pluginDirectory, out image))
-                    return image;
-
-                if (TryLoadFromWoxDirectory(path, out image))
-                    return image;
+                return TryLoadFromPath(path)
+                    ?? TryLoadFromPluginDirectory(path, pluginDirectory)
+                    ?? TryLoadFromWoxDirectory(path);
             }
             return null;
         }
@@ -150,11 +145,13 @@ namespace Wox.Image
             {
                 try
                 {
-                    return new BitmapImage(new Uri(path))
-                    {
-                        DecodePixelHeight = 32,
-                        DecodePixelWidth = 32
-                    };
+                    BitmapImage image = new BitmapImage();
+                    image.BeginInit();
+                    image.CacheOption = BitmapCacheOption.OnLoad;
+                    image.UriSource = new Uri(path);
+                    image.EndInit();
+                    image.Freeze();
+                    return image;
                 }
                 catch (Exception e)
                 {
@@ -163,46 +160,39 @@ namespace Wox.Image
             return null;
         }
 
-        private static bool TryLoadFromPath(string path, out ImageSource source)
+        private static ImageSource TryLoadFromPath(string path)
         {
             try
             {
                 if (Path.IsPathRooted(path) && File.Exists(path))
                 {
-                    source = new BitmapImage(new Uri(path))
-                    {
-                        DecodePixelHeight = 32,
-                        DecodePixelWidth = 32
-                    };
-                    source.Freeze();
-                    return true;
+                    BitmapImage image = new BitmapImage();
+                    image.BeginInit();
+                    image.CacheOption = BitmapCacheOption.OnLoad;
+                    image.UriSource = new Uri(path);
+                    image.EndInit();
+                    image.Freeze();
+                    return image;
                 }
             }
             catch (Exception)
             {
             }
-            source = null;
-            return false;
+            return null;
         }
 
-        private static bool TryLoadFromPluginDirectory(string path, string pluginDirectory, out ImageSource image)
+        private static ImageSource TryLoadFromPluginDirectory(string path, string pluginDirectory)
         {
-            if (TryLoadFromPath(Path.Combine(pluginDirectory, path), out image))
-                return true;
-            if (TryLoadFromPath(Path.Combine(pluginDirectory, "Images", Path.GetFileName(path)), out image))
-                return true;
-            image = null;
-            return false;
+            if (!string.IsNullOrWhiteSpace(pluginDirectory))
+                return TryLoadFromPath(Path.Combine(pluginDirectory, path))
+                    ?? TryLoadFromPath(Path.Combine(pluginDirectory, "Images", Path.GetFileName(path)));
+            return null;
         }
 
-        private static bool TryLoadFromWoxDirectory(string path, out ImageSource image)
+        private static ImageSource TryLoadFromWoxDirectory(string path)
         {
-            if (TryLoadFromPath(Path.Combine(Constant.ProgramDirectory, path), out image))
-                return true;
-            if (TryLoadFromPath(Path.Combine(Constant.ProgramDirectory, "Images", Path.GetFileName(path)), out image))
-                return true;
-            image = null;
-            return false;
+            return TryLoadFromPath(Path.Combine(Constant.ProgramDirectory, path))
+                ?? TryLoadFromPath(Path.Combine(Constant.ProgramDirectory, "Images", Path.GetFileName(path)));
         }
 
         public static ImageSource GetErrorImage()
