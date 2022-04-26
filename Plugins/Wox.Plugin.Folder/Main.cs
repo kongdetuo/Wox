@@ -251,19 +251,7 @@ namespace Wox.Plugin.Folder
                 SubTitle = filePath,
                 IcoPath = filePath,
                 TitleHighlightData = StringMatcher.FuzzySearch(query.Search, Path.GetFileName(filePath)).MatchData,
-                Action = c =>
-                {
-                    try
-                    {
-                        Process.Start(filePath);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(ex.Message, "Could not start " + filePath);
-                    }
-
-                    return true;
-                },
+                Action = Actions.OpenFile(filePath),
                 ContextData = new SearchResult { Type = ResultType.File, FullPath = filePath}
             };
             return result;
@@ -284,11 +272,7 @@ namespace Wox.Plugin.Folder
                                 $"* to search for file extensions in {folderName} or both >* to combine the search",
                 IcoPath = search,
                 Score = 500,
-                Action = c =>
-                {
-                    Process.Start(search);
-                    return true;
-                }
+                Action = Actions.OpenDirectory(search)
             };
         }
 
