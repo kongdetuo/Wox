@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
-using Sentry;
+//using Sentry;
 using Wox.Infrastructure.Exception;
 using Wox.Infrastructure.UserSettings;
 
@@ -91,12 +91,12 @@ namespace Wox.Infrastructure.Logger
 
         public static void updateSettingsInfo(string woxLanguage)
         {
-            _woxLanguage = woxLanguage;
+            //_woxLanguage = woxLanguage;
 
-            SentrySdk.ConfigureScope(scope =>
-            {
-                scope.SetTag("woxLanguage", _woxLanguage);
-            });
+            //SentrySdk.ConfigureScope(scope =>
+            //{
+            //    scope.SetTag("woxLanguage", _woxLanguage);
+            //});
         }
 
         public static void SendException(System.Exception exception)

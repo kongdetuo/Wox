@@ -7,8 +7,6 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 using NLog;
-using Sentry;
-using Sentry.Protocol;
 using Wox.Infrastructure;
 using Wox.Infrastructure.Exception;
 using Wox.Infrastructure.UserSettings;
@@ -78,30 +76,7 @@ namespace Wox.Helper
 
         public static string SendException(Exception exception)
         {
-            return SentryId.Empty.ToString();
-#if !DEBUG
-            string pluginDiretoryKey = nameof(Plugin.PluginProxy.Metadata.PluginDirectory);
-            if (exception.Data.Contains(pluginDiretoryKey))
-            {
-                string pluginDirectory = exception.Data[pluginDiretoryKey] as string;
-                bool debug = pluginDirectory.Contains(@"\Output\Release") || pluginDirectory.Contains(@"\Output\Release");
-                bool thirdParty = !pluginDirectory.Contains(Constant.ProgramDirectory);
-                if (debug || thirdParty)
-                {
-                    return SentryId.Empty.ToString();
-                }
-            }
-
-            SentryId id = SentryId.Empty;
-            SentrySdk.WithScope(scope =>
-            {
-                scope.Level = SentryLevel.Fatal;
-                id = SentrySdk.CaptureException(exception);
-            });
-            return id.ToString();
-#else
-            return SentryId.Empty.ToString();
-#endif
+            return "";
         }
     }
 }

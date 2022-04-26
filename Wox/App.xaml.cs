@@ -22,7 +22,7 @@ using Wox.Infrastructure.UserSettings;
 using Wox.ViewModel;
 using Stopwatch = Wox.Infrastructure.Stopwatch;
 using Wox.Infrastructure.Exception;
-using Sentry;
+//using Sentry;
 using Wox.Themes;
 
 namespace Wox
