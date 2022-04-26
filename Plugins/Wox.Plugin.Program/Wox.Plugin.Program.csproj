@@ -71,7 +71,7 @@
 		</ProjectReference>
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Ookii.Dialogs.Wpf" Version="2.0.0" />
+		<PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
 	</ItemGroup>
 	<ItemGroup>
 		<Compile Remove="ProgramSetting.xaml.cs" />

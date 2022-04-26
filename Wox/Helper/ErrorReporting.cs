@@ -55,28 +55,30 @@ namespace Wox.Helper
 
         public static IDisposable InitializedSentry(string systemLanguage)
         {
-            var s = SentrySdk.Init(o =>
-            {
-                o.Dsn = new Dsn("https://b87bf28a6fab49bf9cb1b53e9648152f@o385966.ingest.sentry.io/5219588");
-                o.Debug = true; // todo
-                o.Release = Constant.Version;
-                o.SendDefaultPii = true;
-                o.DisableAppDomainUnhandledExceptionCapture();
-            });
-            SentrySdk.ConfigureScope(scope =>
-            {
-                scope.SetExtra("commandLine", Environment.CommandLine);
-                scope.SetExtra("portableMode", DataLocation.PortableDataLocationInUse());
-                scope.SetTag("systemLanguage", systemLanguage);
-                scope.SetTag("timezone", TimeZoneInfo.Local.DisplayName);
-                scope.SetExtra("x64OS", Environment.Is64BitOperatingSystem);
-                scope.SetExtra("x64Process", Environment.Is64BitProcess);
-            });
-            return s;
+            //var s = SentrySdk.Init(o =>
+            //{
+            //    o.Dsn = new Dsn("https://b87bf28a6fab49bf9cb1b53e9648152f@o385966.ingest.sentry.io/5219588");
+            //    o.Debug = true; // todo
+            //    o.Release = Constant.Version;
+            //    o.SendDefaultPii = true;
+            //    o.DisableAppDomainUnhandledExceptionCapture();
+            //});
+            //SentrySdk.ConfigureScope(scope =>
+            //{
+            //    scope.SetExtra("commandLine", Environment.CommandLine);
+            //    scope.SetExtra("portableMode", DataLocation.PortableDataLocationInUse());
+            //    scope.SetTag("systemLanguage", systemLanguage);
+            //    scope.SetTag("timezone", TimeZoneInfo.Local.DisplayName);
+            //    scope.SetExtra("x64OS", Environment.Is64BitOperatingSystem);
+            //    scope.SetExtra("x64Process", Environment.Is64BitProcess);
+            //});
+            //return s;
+            return null;
         }
 
         public static string SendException(Exception exception)
         {
+            return SentryId.Empty.ToString();
 #if !DEBUG
             string pluginDiretoryKey = nameof(Plugin.PluginProxy.Metadata.PluginDirectory);
             if (exception.Data.Contains(pluginDiretoryKey))
