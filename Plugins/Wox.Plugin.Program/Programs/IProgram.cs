@@ -8,5 +8,6 @@ namespace Wox.Plugin.Program.Programs
         Result Result(string query, IPublicAPI api);
         string Name { get; }
         string Location { get; }
+        bool Enabled { get;  }
     }
 }

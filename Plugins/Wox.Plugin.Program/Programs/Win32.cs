@@ -1,19 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Security;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Win32;
 using NLog;
 using Wox.Infrastructure;
 using Wox.Infrastructure.Logger;
-using Microsoft.WindowsAPICodePack.Shell;
-using Windows.ApplicationModel.Resources;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Wox.Plugin.Program.Programs
 {
@@ -122,20 +115,20 @@ namespace Wox.Plugin.Program.Programs
 
         private static bool IsExtension(string path, string extension)
         {
-            return Path.GetExtension(path.AsSpan()).Slice(1).Equals(extension.AsSpan(), StringComparison.OrdinalIgnoreCase);
+            return Path.GetExtension(path.AsSpan())[1..].Equals(extension.AsSpan(), StringComparison.OrdinalIgnoreCase);
         }
 
-        private static ParallelQuery<Win32> UnregisteredPrograms(List<ProgramSource> sources, string[] suffixes)
+        private static IEnumerable<Win32> UnregisteredPrograms(List<ProgramSource> sources, string[] suffixes)
         {
             var paths = sources.Select(s => s.Location)
                                .Select(Environment.ExpandEnvironmentVariables)
                                .Where(Directory.Exists)
                                .SelectMany(location => ProgramPaths(location, suffixes));
-            var programs = paths.AsParallel().Select(Win32Program);
+            var programs = paths.Select(Win32Program);
             return programs;
         }
 
-        private static ParallelQuery<Win32> StartMenuPrograms(string[] suffixes)
+        private static IEnumerable<Win32> StartMenuPrograms(string[] suffixes)
         {
             var directory1 = Environment.GetFolderPath(Environment.SpecialFolder.Programs);
             // some program is not inside program directory, e.g. docker desktop
@@ -146,11 +139,11 @@ namespace Wox.Plugin.Program.Programs
             var paths2 = ProgramPaths(directory2, suffixes);
             var paths = paths1.Concat(paths2);
 
-            var programs = paths.AsParallel().Select(Win32Program);
+            var programs = paths.Select(Win32Program);
             return programs;
         }
 
-        private static ParallelQuery<Win32> AppPathsPrograms(string[] suffixes)
+        private static IEnumerable<Win32> AppPathsPrograms(string[] suffixes)
         {
             // https://msdn.microsoft.com/en-us/library/windows/desktop/ee872121
             const string appPaths = @"SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths";
@@ -170,7 +163,7 @@ namespace Wox.Plugin.Program.Programs
                 }
             }
 
-            var filtered = programs.AsParallel().Where(p => suffixes.Any(s => IsExtension(p.ExecutableName, s)));
+            var filtered = programs.Where(p => suffixes.Any(s => IsExtension(p.ExecutableName, s)));
             return filtered;
         }
 
@@ -205,7 +198,7 @@ namespace Wox.Plugin.Program.Programs
             }
             catch (Exception e) when (e is SecurityException || e is UnauthorizedAccessException)
             {
-                Logger.WoxError($"Permission denied {root.ToString()} {subkey}");
+                Logger.WoxError($"Permission denied {root} {subkey}");
                 return string.Empty;
             }
         }
@@ -229,16 +222,15 @@ namespace Wox.Plugin.Program.Programs
         public static Win32[] All(Settings settings)
         {
 
-            var programs = new List<Win32>().AsParallel();
+            var programs = new List<Win32>();
             try
             {
                 var unregistered = UnregisteredPrograms(settings.ProgramSources, settings.ProgramSuffixes);
-                programs = programs.Concat(unregistered);
+                programs.AddRange(programs.Concat(unregistered));
             }
             catch (Exception e)
             {
                 Logger.WoxError("Cannot read win32", e);
-                return new Win32[] { };
             }
 
             try
@@ -246,13 +238,12 @@ namespace Wox.Plugin.Program.Programs
                 if (settings.EnableRegistrySource)
                 {
                     var appPaths = AppPathsPrograms(settings.ProgramSuffixes);
-                    programs = programs.Concat(appPaths);
+                    programs.AddRange(programs.Concat(appPaths));
                 }
             }
             catch (Exception e)
             {
                 Logger.WoxError("Cannot read win32", e);
-                return new Win32[] { };
             }
 
             try
@@ -260,13 +251,12 @@ namespace Wox.Plugin.Program.Programs
                 if (settings.EnableStartMenuSource)
                 {
                     var startMenu = StartMenuPrograms(settings.ProgramSuffixes);
-                    programs = programs.Concat(startMenu);
+                    programs.AddRange(startMenu);
                 }
             }
             catch (Exception e)
             {
                 Logger.WoxError("Cannot read win32", e);
-                return new Win32[] { };
             }
             return programs.ToArray();
 

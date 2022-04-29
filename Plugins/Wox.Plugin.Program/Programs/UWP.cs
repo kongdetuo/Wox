@@ -41,7 +41,7 @@ namespace Wox.Plugin.Program.Programs
         {
             FullName = id;
             string[] parts = id.Split(new char[] { '_' }, StringSplitOptions.RemoveEmptyEntries);
-            FamilyName = $"{parts[0]}_{parts[parts.Length - 1]}";
+            FamilyName = $"{parts[0]}_{parts[^1]}";
             Location = location;
         }
 
@@ -205,38 +205,27 @@ namespace Wox.Plugin.Program.Programs
 
         public static IEnumerable<UWP> Packages()
         {
-            var user = WindowsIdentity.GetCurrent().User;
-            //if (user == null)
-            PackageManager packageManager =  new PackageManager();
+            var uwps = new PackageManager()
+                .FindPackagesForUser(WindowsIdentity.GetCurrent().User.Value)
+                .Where(package => !package.IsFramework)
+                .Select(package => new UWP(package.Id.Name, package.Id.FullName, package.Id.FamilyName, GetInstallPath(package)))
+                .Where(p => !string.IsNullOrEmpty(p.Location))
+                .ToList();
 
-                
-            var uwps = new List<UWP>();
-            if (packageManager == null)
-                return uwps;
-            foreach (var package in packageManager.FindPackagesForUser(user.Value).Where(p => !p.IsFramework))
+            foreach (var p in uwps)
             {
-                var path = GetInstallPath(package);
-                if (string.IsNullOrEmpty(path))
-                    continue;
-
-                uwps.Add(new UWP(package.Id.Name, package.Id.FullName, package.Id.FamilyName, path));
-            }
-
-            uwps.AsParallel()
-                .ForAll(p =>
+                try
                 {
-                    try
-                    {
-                        p.InitializeAppInfo();
-                    }
-                    catch (Exception e)
-                    {
-                        p.Apps = new Application[0];
-                        e.Data.Add(nameof(p.FullName), p.FullName);
-                        e.Data.Add(nameof(p.Location), p.Location);
-                        Logger.WoxError($"Cannot parse UWP {p.Location}", e, false);
-                    }
-                });
+                    p.InitializeAppInfo();
+                }
+                catch (Exception e)
+                {
+                    p.Apps = Array.Empty<Application>();
+                    e.Data.Add(nameof(p.FullName), p.FullName);
+                    e.Data.Add(nameof(p.Location), p.Location);
+                    Logger.WoxError($"Cannot parse UWP {p.Location}", e, false);
+                }
+            }
 
             return uwps;
 
@@ -312,8 +301,7 @@ namespace Wox.Plugin.Program.Programs
                 };
 
                 string title;
-                if (Description.Length >= DisplayName.Length &&
-                    Description.Substring(0, DisplayName.Length) == DisplayName)
+                if (Description.Length >= DisplayName.Length && Description.StartsWith(DisplayName))
                 {
                     title = Description;
                     result.Title = title;
@@ -370,14 +358,13 @@ namespace Wox.Plugin.Program.Programs
             private async void Launch(IPublicAPI api)
             {
                 var appManager = new ApplicationActivationManager();
-                uint unusedPid;
                 const string noArgs = "";
                 const ACTIVATEOPTIONS noFlags = ACTIVATEOPTIONS.AO_NONE;
                 await Task.Run(() =>
                 {
                     try
                     {
-                        appManager.ActivateApplication(UserModelId, noArgs, noFlags, out unusedPid);
+                        appManager.ActivateApplication(UserModelId, noArgs, noFlags, out uint unusedPid);
                     }
                     catch (Exception)
                     {
@@ -408,7 +395,7 @@ namespace Wox.Plugin.Program.Programs
                 {
 
 
-                    string key = resourceReference.Substring(prefix.Length);
+                    string key = resourceReference[prefix.Length..];
                     string parsed;
                     // DisplayName
                     // Microsoft.ScreenSketch_10.1907.2471.0_x64__8wekyb3d8bbwe -> ms-resource:AppName/Text
@@ -442,7 +429,7 @@ namespace Wox.Plugin.Program.Programs
                         e.Data.Add(nameof(resourceReference), resourceReference);
                         e.Data.Add(nameof(ResourcesFromPri) + nameof(parsed), parsed);
                         e.Data.Add(nameof(ResourcesFromPri) + nameof(packageFullName), packageFullName);
-                        throw e;
+                        throw;
                     }
                 }
                 else
@@ -482,7 +469,7 @@ namespace Wox.Plugin.Program.Programs
                         e.Data.Add(nameof(fileReference), fileReference);
                         e.Data.Add(nameof(PathFromUri) + nameof(parsed), parsed);
                         e.Data.Add(nameof(PathFromUri) + nameof(packageFullName), packageFullName);
-                        throw e;
+                        throw;
                     }
                 }
             }

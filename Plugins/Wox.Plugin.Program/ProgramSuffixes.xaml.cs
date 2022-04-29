@@ -7,8 +7,8 @@ namespace Wox.Plugin.Program
     /// </summary>
     public partial class ProgramSuffixes
     {
-        private PluginInitContext context;
-        private Settings _settings;
+        private readonly PluginInitContext context;
+        private readonly Settings _settings;
 
         public ProgramSuffixes(PluginInitContext context, Settings settings)
         {

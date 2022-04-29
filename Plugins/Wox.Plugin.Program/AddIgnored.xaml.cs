@@ -6,8 +6,8 @@ namespace Wox.Plugin.Program
 {
     public partial class AddIgnored
     {
-        private IgnoredEntry _editing;
-        private Settings _settings;
+        private readonly IgnoredEntry _editing;
+        private readonly Settings _settings;
 
         public AddIgnored(Settings settings)
         {

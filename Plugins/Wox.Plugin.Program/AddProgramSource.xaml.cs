@@ -13,9 +13,9 @@ namespace Wox.Plugin.Program
     /// </summary>
     public partial class AddProgramSource
     {
-        private PluginInitContext _context;
-        private ProgramSource _editing;
-        private Settings _settings;
+        private readonly PluginInitContext _context;
+        private readonly ProgramSource _editing;
+        private readonly Settings _settings;
 
         public AddProgramSource(PluginInitContext context, Settings settings)
         {

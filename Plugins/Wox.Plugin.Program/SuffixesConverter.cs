@@ -9,8 +9,7 @@ namespace Wox.Plugin.Program
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            var text = value as string[];
-            if (text != null)
+            if (value is string[] text)
             {
                 return string.Join(";", text);
             }

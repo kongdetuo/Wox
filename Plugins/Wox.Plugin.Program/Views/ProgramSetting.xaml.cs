@@ -16,12 +16,12 @@ namespace Wox.Plugin.Program.Views
     /// </summary>
     public partial class ProgramSetting : UserControl
     {
-        private PluginInitContext context;
-        private Settings _settings;
+        private readonly PluginInitContext context;
+        private readonly Settings _settings;
         private GridViewColumnHeader _lastHeaderClicked;
         private ListSortDirection _lastDirection;
 
-        public ProgramSetting(PluginInitContext context, Settings settings, Win32[] win32s, UWP.Application[] uwps)
+        public ProgramSetting(PluginInitContext context, Settings settings)
         {
             this.context = context;
             InitializeComponent();
@@ -59,8 +59,7 @@ namespace Wox.Plugin.Program.Views
 
         private void btnEditProgramSource_OnClick(object sender, RoutedEventArgs e)
         {
-            var selectedProgramSource = programSourceView.SelectedItem as ProgramSource;
-            if (selectedProgramSource != null)
+            if (programSourceView.SelectedItem is ProgramSource selectedProgramSource)
             {
                 var add = new AddProgramSource(selectedProgramSource, _settings);
                 if (add.ShowDialog() ?? false)
@@ -122,7 +121,7 @@ namespace Wox.Plugin.Program.Views
                     }
                 }
 
-                if (directoriesToAdd.Count() > 0)
+                if (directoriesToAdd.Count > 0)
                 {
                     directoriesToAdd.ForEach(x => _settings.ProgramSources.Add(x));
                     ReIndexing();
@@ -148,7 +147,7 @@ namespace Wox.Plugin.Program.Views
                                 .SelectedItems.Cast<ProgramSource>()
                                 .ToList();
 
-            if (selectedItems.Count() == 0)
+            if (selectedItems.Count == 0)
             {
                 string msg = context.API.GetTranslation("wox_plugin_program_pls_select_program_source");
                 MessageBox.Show(msg);
@@ -169,10 +168,9 @@ namespace Wox.Plugin.Program.Views
 
         private void GridViewColumnHeaderClickedHandler(object sender, RoutedEventArgs e)
         {
-            var headerClicked = e.OriginalSource as GridViewColumnHeader;
             ListSortDirection direction;
 
-            if (headerClicked != null)
+            if (e.OriginalSource is GridViewColumnHeader headerClicked)
             {
                 if (headerClicked.Role != GridViewColumnHeaderRole.Padding)
                 {
@@ -215,8 +213,7 @@ namespace Wox.Plugin.Program.Views
 
         private void btnDeleteIgnored_OnClick(object sender, RoutedEventArgs e)
         {
-            IgnoredEntry selectedIgnoredEntry = programIgnoreView.SelectedItem as IgnoredEntry;
-            if (selectedIgnoredEntry != null)
+            if (programIgnoreView.SelectedItem is IgnoredEntry selectedIgnoredEntry)
             {
                 string msg = string.Format(context.API.GetTranslation("wox_plugin_program_delete_ignored"), selectedIgnoredEntry);
 
@@ -235,8 +232,7 @@ namespace Wox.Plugin.Program.Views
 
         private void btnEditIgnored_OnClick(object sender, RoutedEventArgs e)
         {
-            IgnoredEntry selectedIgnoredEntry = programIgnoreView.SelectedItem as IgnoredEntry;
-            if (selectedIgnoredEntry != null)
+            if (programIgnoreView.SelectedItem is IgnoredEntry selectedIgnoredEntry)
             {
                 new AddIgnored(selectedIgnoredEntry, _settings).ShowDialog();
                 programIgnoreView.Items.Refresh();

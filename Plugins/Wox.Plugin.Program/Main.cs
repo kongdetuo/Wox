@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
@@ -12,18 +10,16 @@ using Wox.Infrastructure.Logger;
 using Wox.Infrastructure.Storage;
 using Wox.Plugin.Program.Programs;
 using Wox.Plugin.Program.Views;
-using System.Threading;
 
 namespace Wox.Plugin.Program
 {
     public class Main : ISettingProvider, IPlugin, IPluginI18n, IContextMenu, ISavable, IReloadable
     {
-        internal static Win32[] _win32s { get; set; }
+        internal static Win32[] Win32s { get; set; }
         internal static UWP.Application[] _uwps { get; set; }
-        internal static Settings _settings { get; set; }
+        internal static Settings Settings { get; set; }
 
         private static PluginInitContext _context;
-        private CancellationTokenSource _updateSource;
 
         private static BinaryStorage<Win32[]> _win32Storage;
         private static BinaryStorage<UWP.Application[]> _uwpStorage;
@@ -36,71 +32,39 @@ namespace Wox.Plugin.Program
             Logger.StopWatchNormal("Preload programs cost", () =>
             {
                 _win32Storage = new BinaryStorage<Win32[]>("Win32");
-                _win32s = _win32Storage.TryLoad(new Win32[] { });
+                Win32s = _win32Storage.TryLoad(Array.Empty<Win32>());
                 _uwpStorage = new BinaryStorage<UWP.Application[]>("UWP");
-                _uwps = _uwpStorage.TryLoad(new UWP.Application[] { });
+                _uwps = _uwpStorage.TryLoad(Array.Empty<UWP.Application>());
             });
-            Logger.WoxInfo($"Number of preload win32 programs <{_win32s.Length}>");
+            Logger.WoxInfo($"Number of preload win32 programs <{Win32s.Length}>");
             Logger.WoxInfo($"Number of preload uwps <{_uwps.Length}>");
         }
 
         public void Save()
         {
             _settingsStorage.Save();
-            _win32Storage.Save(_win32s);
+            _win32Storage.Save(Win32s);
             _uwpStorage.Save(_uwps);
         }
 
         public List<Result> Query(Query query)
         {
+            return Query(query.RawQuery);
+        }
 
-            if (_updateSource != null && !_updateSource.IsCancellationRequested)
-            {
-                _updateSource.Cancel();
-                Logger.WoxDebug($"cancel init {_updateSource.Token.GetHashCode()} {Thread.CurrentThread.ManagedThreadId} {query.RawQuery}");
-                _updateSource.Dispose();
-            }
-            var source = new CancellationTokenSource();
-            _updateSource = source;
-            var token = source.Token;
+        public static List<Result> Query(string query)
+        {
+            return Enumerable.Empty<IProgram>().Concat(Win32s).Concat(_uwps)
+                .Where(p => p.Enabled)
+                .Select(p => p.Result(query, _context.API))
+                .Where(p => p.Score > 0)
+                .Where(p => !NeedIgnore(p))
+                .OrderByDescending(p => p.Score)
+                .ToList();
 
-            ConcurrentBag<Result> resultRaw = new ConcurrentBag<Result>();
-
-            if (token.IsCancellationRequested) { return new List<Result>(); }
-            Parallel.ForEach(_win32s, (program, state) =>
+            bool NeedIgnore(Result r)
             {
-                if (token.IsCancellationRequested) { state.Break(); }
-                if (program.Enabled)
-                {
-                    var r = program.Result(query.Search, _context.API);
-                    if (r != null && r.Score > 0)
-                    {
-                        resultRaw.Add(r);
-                    }
-                }
-            });
-            if (token.IsCancellationRequested) { return new List<Result>(); }
-            Parallel.ForEach(_uwps, (program, state) =>
-            {
-                if (token.IsCancellationRequested) { state.Break(); }
-                if (program.Enabled)
-                {
-                    var r = program.Result(query.Search, _context.API);
-                    if (token.IsCancellationRequested) { state.Break(); }
-                    if (r != null && r.Score > 0)
-                    {
-                        resultRaw.Add(r);
-                    }
-                }
-            });
-
-            if (token.IsCancellationRequested) { return new List<Result>(); }
-            OrderedParallelQuery<Result> sorted = resultRaw.AsParallel().OrderByDescending(r => r.Score);
-            List<Result> results = new List<Result>();
-            foreach (Result r in sorted)
-            {
-                if (token.IsCancellationRequested) { return new List<Result>(); }
-                var ignored = _settings.IgnoredSequence.Any(entry =>
+                var ignored = Settings.IgnoredSequence.Any(entry =>
                 {
                     if (entry.IsRegex)
                     {
@@ -111,18 +75,9 @@ namespace Wox.Plugin.Program
                         return r.Title.ToLower().Contains(entry.EntryString) || r.SubTitle.ToLower().Contains(entry.EntryString);
                     }
                 });
-                if (!ignored)
-                {
-                    results.Add(r);
-                }
-                if (results.Count == 30)
-                {
-                    break;
-                }
+                return ignored;
             }
-            return results;
         }
-
         public void Init(PluginInitContext context)
         {
             _context = context;
@@ -130,7 +85,7 @@ namespace Wox.Plugin.Program
 
             preloadPrograms();
 
-            Task.Delay(2000).ContinueWith(_ =>
+            _ = Task.Delay(2000).ContinueWith(_ =>
             {
                 IndexPrograms();
                 Save();
@@ -147,13 +102,13 @@ namespace Wox.Plugin.Program
         public void loadSettings()
         {
             _settingsStorage = new PluginJsonStorage<Settings>();
-            _settings = _settingsStorage.Load();
+            Settings = _settingsStorage.Load();
         }
 
         public static void IndexWin32Programs()
         {
-            var win32S = Win32.All(_settings);
-            _win32s = win32S;
+            var win32S = Win32.All(Settings);
+            Win32s = win32S;
         }
 
         public static void IndexUWPPrograms()
@@ -161,7 +116,7 @@ namespace Wox.Plugin.Program
             var windows10 = new Version(10, 0);
             var support = Environment.OSVersion.Version.Major >= windows10.Major;
 
-            var applications = support ? UWP.All() : new UWP.Application[] { };
+            var applications = support ? UWP.All() : Array.Empty<UWP.Application>();
             _uwps = applications;
         }
 
@@ -179,8 +134,8 @@ namespace Wox.Plugin.Program
 
             Task.WaitAll(a, b);
 
-            Logger.WoxInfo($"Number of indexed win32 programs <{_win32s.Length}>");
-            foreach (var win32 in _win32s)
+            Logger.WoxInfo($"Number of indexed win32 programs <{Win32s.Length}>");
+            foreach (var win32 in Win32s)
             {
                 Logger.WoxDebug($" win32: <{win32.Name}> <{win32.ExecutableName}> <{win32.FullPath}>");
             }
@@ -189,13 +144,13 @@ namespace Wox.Plugin.Program
             {
                 Logger.WoxDebug($" uwp: <{uwp.DisplayName}> <{uwp.UserModelId}>");
             }
-            _settings.LastIndexTime = DateTime.Today;
-            
+            Settings.LastIndexTime = DateTime.Today;
+
         }
 
         public Control CreateSettingPanel()
         {
-            return new ProgramSetting(_context, _settings, _win32s, _uwps);
+            return new ProgramSetting(_context, Settings);
         }
 
         public string GetTranslatedPluginTitle()
@@ -211,8 +166,7 @@ namespace Wox.Plugin.Program
         public List<Result> LoadContextMenus(Result selectedResult)
         {
             var menuOptions = new List<Result>();
-            var program = selectedResult.ContextData as IProgram;
-            if (program != null)
+            if (selectedResult.ContextData is IProgram program)
             {
                 menuOptions = program.ContextMenus(_context.API);
             }
