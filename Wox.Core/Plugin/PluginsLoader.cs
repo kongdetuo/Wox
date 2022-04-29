@@ -37,7 +37,7 @@ namespace Wox.Core.Plugin
             var metadatas = source
                 .Where(IsCSharpPlugin);
 
-            return metadatas.AsParallel()
+            return metadatas//.AsParallel()
                 .Select(LoadCSharpPlugin)
                 .Where(p => p != null)
                 .ToList();

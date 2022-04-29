@@ -104,7 +104,8 @@ namespace Wox.Core.Plugin
         {
             API = api;
             var failedPlugins = new ConcurrentQueue<PluginProxy>();
-            Parallel.ForEach(AllPlugins, pair =>
+            //Parallel.ForEach(AllPlugins, pair =>
+            AllPlugins.ForEach(pair =>
             {
                 try
                 {
