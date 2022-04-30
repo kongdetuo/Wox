@@ -204,7 +204,7 @@ namespace Wox.Core.Plugin
         /// <returns></returns>
         public static PluginProxy GetPluginForId(string id)
         {
-            if(PluginDic.TryGetValue(id, out var plugin))
+            if(id != null && PluginDic.TryGetValue(id, out var plugin))
             {
                 return plugin;
             }

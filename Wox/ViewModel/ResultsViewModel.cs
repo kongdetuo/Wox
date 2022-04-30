@@ -78,6 +78,8 @@ namespace Wox.ViewModel
         public Thickness Margin { get; set; }
         public Visibility Visbility { get; set; } = Visibility.Collapsed;
 
+        public string PluginID { get; set; }
+
         #endregion Properties
 
         #region Private Methods
@@ -164,6 +166,19 @@ namespace Wox.ViewModel
                     .Take(MaxResults * 4);
 
                 Results.Update(newResults);
+
+                if(Results.Count > 0)
+                {
+                    var id = Results[0].Result.PluginID;
+                    if (Results.All(p => p.Result.PluginID == id))
+                        this.PluginID = id;
+                    else
+                        this.PluginID = null;
+                }
+                else
+                {
+                    this.PluginID = null;
+                }
             }
 
             //if (Results.Count > 0)

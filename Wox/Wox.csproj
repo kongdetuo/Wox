@@ -202,6 +202,10 @@
         </PackageReference>
         <PackageReference Include="NHotkey.Wpf" Version="2.1.0" />
         <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
+        <PackageReference Include="ReactiveMarbles.PropertyChanged.SourceGenerator" Version="2.0.6">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="System.Linq.Async" Version="6.0.1" />
         <PackageReference Include="System.Reactive.Linq" Version="5.0.0" />
     </ItemGroup>

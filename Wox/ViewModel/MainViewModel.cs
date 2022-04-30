@@ -11,7 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-
+using System.Windows.Media;
 using NHotkey;
 using NHotkey.Wpf;
 using NLog;
@@ -83,12 +83,11 @@ namespace Wox.ViewModel
                 SetHotkey(_settings.Hotkey, OnHotkey);
                 SetCustomPluginHotkey();
             }
+            var queryTextChangeds = this.WhenChanged(p => p.QueryText);
 
-            var queryTextChangeds = Observable.FromEventPattern<PropertyChangedEventArgs>(this, nameof(this.PropertyChanged))
-                .Where(p => p.EventArgs.PropertyName == nameof(this.QueryText))
-                .Select(p => QueryText.Trim());
 
             _ = queryTextChangeds.Where(_ => SelectedIsFromQueryResults())
+                .Select(p => p.Trim())
                 .DistinctUntilChanged()
                 .Throttle(TimeSpan.FromMilliseconds(50))
                 .ObserveOn(NewThreadScheduler.Default)
@@ -101,6 +100,14 @@ namespace Wox.ViewModel
 
             _ = queryTextChangeds.Where(p => HistorySelected())
                 .Subscribe(queryText => QueryHistory());
+
+            var triggers = this.WhenChanged(p => p.QueryText).Select(p => Unit.Default)
+                .Merge(this.WhenChanged(p => p.SelectedResults).Select(p => Unit.Default))
+                .Merge(this.Results.WhenChanged(p => p.PluginID).Select(p => Unit.Default));
+
+            triggers.Subscribe(p => SetPluginIcon());
+
+
         }
 
         private void InitializeKeyCommands()
@@ -213,6 +220,11 @@ namespace Wox.ViewModel
 
         public bool LastQuerySelected { get; set; }
         public bool QueryTextCursorMovedToEnd { get; set; }
+
+        public bool ShowIcon => PluginIcon is null;
+
+        public ImageSource PluginIcon { get; set; }
+
 
         private ResultsViewModel _selectedResults;
 
@@ -418,6 +430,39 @@ namespace Wox.ViewModel
         {
             var selected = SelectedResults == History;
             return selected;
+        }
+
+        private void SetPluginIcon()
+        {
+            var queryText = QueryText.AsSpan().TrimStart();
+            if (SelectedIsFromQueryResults())
+            {
+                var plugin = PluginManager.GetPluginForId(this.Results.PluginID);
+                if (plugin == null && queryText.Contains(' '))
+                {
+                    var key = queryText[..queryText.IndexOf(' ')].ToString();
+                    plugin = PluginManager.AllPlugins
+                       .Where(p => !p.Metadata.Disabled)
+                       .SingleOrDefault(p => key == p.Metadata.ActionKeyword.Key);
+                }
+
+                if (plugin != null)
+                    this.PluginIcon = Image.ImageLoader.Load(plugin.Metadata.IcoPath, plugin.Metadata.PluginDirectory);
+                else
+                    this.PluginIcon = null;
+            }
+            else if (ContextMenuSelected())
+            {
+                this.PluginIcon = Image.ImageLoader.GetErrorImage();
+            }
+            else if (HistorySelected())
+            {
+                this.PluginIcon = Image.ImageLoader.Load("Images/history.png", "");
+            }
+            else
+            {
+                this.PluginIcon = null;
+            }
         }
 
         #region Hotkey

@@ -31,6 +31,7 @@
         d:DataContext="{d:DesignInstance vm:MainViewModel}">
     <Window.Resources>
         <converters:QuerySuggestionBoxConverter x:Key="QuerySuggestionBoxConverter" />
+        <BooleanToVisibilityConverter x:Key="bool2visible"/>
     </Window.Resources>
     <Window.InputBindings>
         <KeyBinding Key="Escape" Command="{Binding EscCommand}" />
@@ -104,8 +105,10 @@
                             <KeyBinding Key="Tab" Command="{Binding AutoComplationCommand}"/>
                         </TextBox.InputBindings>
                     </TextBox>
-
-                    <ContentControl Grid.Column="1" VerticalAlignment="Center" Style="{DynamicResource SearchIconStyle}" />
+                    <Image Grid.Column="1" Width="36" Height="36"
+                           Source="{Binding PluginIcon}"/>
+                    <ContentControl Grid.Column="1" VerticalAlignment="Center" Style="{DynamicResource SearchIconStyle}"
+                                    Visibility="{Binding ShowIcon, Converter={StaticResource bool2visible}}"/>
                 </Grid>
                 <Line x:Name="ProgressBar" HorizontalAlignment="Right"
                   Style="{DynamicResource PendingLineStyle}" Visibility="{Binding ProgressBarVisibility, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
