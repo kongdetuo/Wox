@@ -16,7 +16,7 @@ using Wox.Infrastructure.Hotkey;
 using Wox.Infrastructure.Logger;
 using Wox.Infrastructure.UserSettings;
 using Wox.Plugin;
-using Wox.Storage;
+using Wox.Core.Storage;
 
 namespace Wox.ViewModel
 {

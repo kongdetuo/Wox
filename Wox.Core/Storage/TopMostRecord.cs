@@ -3,7 +3,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using Wox.Plugin;
 
-namespace Wox.Storage
+namespace Wox.Core.Storage
 {
     // todo this class is not thread safe.... but used from multiple threads.
     public class TopMostRecord
@@ -25,12 +25,12 @@ namespace Wox.Storage
             return query != null && records.ContainsKey(query.RawQuery);
         }
 
-        internal void Remove(Result result)
+        public void Remove(Result result)
         {
             records.Remove(result.OriginQuery.RawQuery);
         }
 
-        internal void AddOrUpdate(Result result)
+        public void AddOrUpdate(Result result)
         {
             var record = new Record
             {

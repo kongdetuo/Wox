@@ -1,6 +1,6 @@
 using System;
 
-namespace Wox.Storage
+namespace Wox.Core.Storage
 {
     public class HistoryItem
     {
