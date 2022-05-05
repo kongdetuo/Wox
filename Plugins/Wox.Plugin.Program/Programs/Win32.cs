@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security;
+using System.Text;
 using Microsoft.Win32;
 using NLog;
 using Wox.Infrastructure;
@@ -23,6 +25,8 @@ namespace Wox.Plugin.Program.Programs
         public string Location => ParentDirectory;
 
         private static readonly NLog.Logger Logger = LogManager.GetCurrentClassLogger();
+
+
 
         public Result Result(string query, IPublicAPI api)
         {
@@ -68,8 +72,6 @@ namespace Wox.Plugin.Program.Programs
             return contextMenus;
         }
 
-
-
         public override string ToString()
         {
             return ExecutableName;
@@ -81,7 +83,7 @@ namespace Wox.Plugin.Program.Programs
             {
                 var p = new Win32
                 {
-                    Name = Path.GetFileNameWithoutExtension(path),
+                    Name = GetLocalizationName(path),
                     IcoPath = path,
                     FullPath = path,
                     ParentDirectory = Directory.GetParent(path).FullName,
@@ -260,6 +262,61 @@ namespace Wox.Plugin.Program.Programs
             }
             return programs.ToArray();
 
+        }
+        [DllImport("kernel32.dll", EntryPoint = "LoadLibraryA")]
+        public static extern IntPtr LoadLibrary(string sLibName);
+        [DllImport("kernel32.dll", EntryPoint = "FreeLibrary")]
+        public static extern int FreeLibrary(IntPtr hLib);
+        [DllImport("user32.dll", EntryPoint = "LoadStringW", CharSet = CharSet.Unicode)]
+        public static extern int LoadString(IntPtr hLib, uint resID, byte[] buf, int bufSize);
+
+        [DllImport("kernel32")]
+        private static extern int GetPrivateProfileString(string lpAppName, string lpKeyName, string lpDefault, StringBuilder lpReturnedString, int nSize, string lpFileName);
+
+        private static string GetLocalizationName(string filePath)
+        {
+            var folder = Path.GetDirectoryName(filePath.AsSpan());
+            var iniPath = Path.Join(folder, "desktop.ini");
+            if (File.Exists(iniPath))
+            {
+                var sb = new StringBuilder();
+                if (GetPrivateProfileString("LocalizedFileNames", Path.GetFileName(filePath), "", sb, 1024, iniPath) > 0)
+                {
+                    var value = sb.ToString();
+                    var splitIndex = value.LastIndexOf(',');
+
+                    var path = value[1..splitIndex];
+                    if (path.Contains('%'))
+                    {
+                        var dic = Environment.GetEnvironmentVariables();
+                        foreach (var a in dic.Keys.OfType<string>())
+                        {
+                            path = path.Replace($"%{a}%", dic[a].ToString());
+                        }
+                    }
+                    if (File.Exists(path))
+                    {
+                        IntPtr lib = IntPtr.Zero;
+
+                        try
+                        {
+                            lib = LoadLibrary(path);
+                            var offset = value.Substring(splitIndex + 2);
+                            var buffer = new byte[1024];
+                            var length = LoadString(lib, uint.Parse(offset), buffer, buffer.Length);
+                            if (length > 0)
+                            {
+                                return Encoding.Unicode.GetString(buffer, 0, length * 2);
+                            }
+                        }
+                        finally
+                        {
+                            FreeLibrary(lib);
+                        }
+                    }
+                }
+            }
+            return Path.GetFileNameWithoutExtension(filePath);
         }
     }
 }
