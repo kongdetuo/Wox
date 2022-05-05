@@ -54,5 +54,10 @@ namespace Wox.Infrastructure
                 return content;
             }
         }
+
+        public bool HasChinese(string content)
+        {
+            return WordsHelper.HasChinese(content);
+        }
     }
 }
