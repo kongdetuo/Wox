@@ -91,8 +91,14 @@ namespace Wox.Image
         {
             if (Directory.Exists(path))
             {
+             
                 try
                 {
+                    while (path.Contains(@"\\"))
+                    {
+                        path = path.Replace("\\\\", "\\");
+                    }
+
                     // can be extended to support guid things
                     using ShellObject shell = ShellFile.FromParsingName(path);
                     var image = shell.Thumbnail.SmallBitmapSource;
