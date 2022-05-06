@@ -66,7 +66,7 @@ namespace Wox.ViewModel
             get
             {
                 List<LastQueryMode> modes = new List<LastQueryMode>();
-                var enums = (Infrastructure.UserSettings.LastQueryMode[])Enum.GetValues(typeof(Infrastructure.UserSettings.LastQueryMode));
+                var enums = Enum.GetValues<Infrastructure.UserSettings.LastQueryMode>();
                 foreach (var e in enums)
                 {
                     var key = $"LastQuery{e}";
@@ -104,19 +104,10 @@ namespace Wox.ViewModel
             }
         }
 
-        public List<string> QuerySearchPrecisionStrings
-        {
-            get
-            {
-                var precisionStrings = new List<string>();
-
-                var enumList = Enum.GetValues(typeof(StringMatcher.SearchPrecisionScore)).Cast<StringMatcher.SearchPrecisionScore>().ToList();
-
-                enumList.ForEach(x => precisionStrings.Add(x.ToString()));
-
-                return precisionStrings;
-            }
-        }
+        public List<string> QuerySearchPrecisionStrings =>
+            Enum.GetValues<StringMatcher.SearchPrecisionScore>()
+                .Select(p => p.ToString())
+                .ToList();
 
         private Internationalization _translater => InternationalizationManager.Instance;
         public List<Language> Languages => _translater.LoadAvailableLanguages();
@@ -162,7 +153,7 @@ namespace Wox.ViewModel
             //}
             //catch
             //{
-                return InternationalizationManager.Instance.GetTranslation("proxyConnectFailed");
+            return InternationalizationManager.Instance.GetTranslation("proxyConnectFailed");
             //}
         }
 
