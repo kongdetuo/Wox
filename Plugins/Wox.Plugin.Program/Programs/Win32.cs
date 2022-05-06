@@ -283,37 +283,44 @@ namespace Wox.Plugin.Program.Programs
                 if (GetPrivateProfileString("LocalizedFileNames", Path.GetFileName(filePath), "", sb, 1024, iniPath) > 0)
                 {
                     var value = sb.ToString();
-                    var splitIndex = value.LastIndexOf(',');
 
-                    var path = value[1..splitIndex];
-                    if (path.Contains('%'))
+                    if (value.Contains('/') || value.Contains('\\'))
                     {
-                        var dic = Environment.GetEnvironmentVariables();
-                        foreach (var a in dic.Keys.OfType<string>())
+                        var splitIndex = value.LastIndexOf(',');
+                        if (splitIndex != -1)
                         {
-                            path = path.Replace($"%{a}%", dic[a].ToString());
-                        }
-                    }
-                    if (File.Exists(path))
-                    {
-                        IntPtr lib = IntPtr.Zero;
-
-                        try
-                        {
-                            lib = LoadLibrary(path);
-                            var offset = value.Substring(splitIndex + 2);
-                            var buffer = new byte[1024];
-                            var length = LoadString(lib, uint.Parse(offset), buffer, buffer.Length);
-                            if (length > 0)
+                            var path = value[1..splitIndex];
+                            if (path.Contains('%'))
                             {
-                                return Encoding.Unicode.GetString(buffer, 0, length * 2);
+                                var dic = Environment.GetEnvironmentVariables();
+                                foreach (var a in dic.Keys.OfType<string>())
+                                {
+                                    path = path.Replace(a, dic[a].ToString());
+                                }
+                            }
+                            if (File.Exists(path))
+                            {
+                                IntPtr lib = IntPtr.Zero;
+
+                                try
+                                {
+                                    lib = LoadLibrary(path);
+                                    var offset = value.Substring(splitIndex + 2);
+                                    var buffer = new byte[1024];
+                                    var length = LoadString(lib, uint.Parse(offset), buffer, buffer.Length);
+                                    if (length > 0)
+                                    {
+                                        return Encoding.Unicode.GetString(buffer, 0, length * 2);
+                                    }
+                                }
+                                finally
+                                {
+                                    FreeLibrary(lib);
+                                }
                             }
                         }
-                        finally
-                        {
-                            FreeLibrary(lib);
-                        }
                     }
+                    return value.ToString();
                 }
             }
             return Path.GetFileNameWithoutExtension(filePath);
