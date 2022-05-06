@@ -295,7 +295,7 @@ namespace Wox.Plugin.Program.Programs
                                 var dic = Environment.GetEnvironmentVariables();
                                 foreach (var a in dic.Keys.OfType<string>())
                                 {
-                                    path = path.Replace(a, dic[a].ToString());
+                                    path = path.Replace($"%{a}%", dic[a].ToString());
                                 }
                             }
                             if (File.Exists(path))
