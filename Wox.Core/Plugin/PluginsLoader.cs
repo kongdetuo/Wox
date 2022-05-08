@@ -66,8 +66,10 @@ namespace Wox.Core.Plugin
                 Type type;
                 try
                 {
-                    var types = assembly.GetTypes();
-                    type = types.First(type => typeof(IPlugin).IsAssignableFrom(type)); ;
+                    var types = assembly.GetExportedTypes();
+                    type = types.FirstOrDefault(type => typeof(IPlugin).IsAssignableFrom(type));
+                    if (type is null)
+                        return;
                 }
                 catch (InvalidOperationException e)
                 {
