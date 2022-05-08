@@ -9,6 +9,8 @@ using Microsoft.Win32;
 using NLog;
 using Wox.Infrastructure;
 using Wox.Infrastructure.Logger;
+using Windows.Win32;
+using Windows.Win32.Foundation;
 
 namespace Wox.Plugin.Program.Programs
 {
@@ -81,9 +83,10 @@ namespace Wox.Plugin.Program.Programs
         {
             try
             {
+
                 var p = new Win32
                 {
-                    Name = GetLocalizationName(path),
+                    Name = GetLocalizedName(path),
                     IcoPath = path,
                     FullPath = path,
                     ParentDirectory = Directory.GetParent(path).FullName,
@@ -263,67 +266,30 @@ namespace Wox.Plugin.Program.Programs
             return programs.ToArray();
 
         }
-        [DllImport("kernel32.dll", EntryPoint = "LoadLibraryA")]
-        public static extern IntPtr LoadLibrary(string sLibName);
-        [DllImport("kernel32.dll", EntryPoint = "FreeLibrary")]
-        public static extern int FreeLibrary(IntPtr hLib);
-        [DllImport("user32.dll", EntryPoint = "LoadStringW", CharSet = CharSet.Unicode)]
-        public static extern int LoadString(IntPtr hLib, uint resID, byte[] buf, int bufSize);
 
-        [DllImport("kernel32")]
-        private static extern int GetPrivateProfileString(string lpAppName, string lpKeyName, string lpDefault, StringBuilder lpReturnedString, int nSize, string lpFileName);
-
-        private static string GetLocalizationName(string filePath)
+        private unsafe static string GetLocalizedName(string path)
         {
-            var folder = Path.GetDirectoryName(filePath.AsSpan());
-            var iniPath = Path.Join(folder, "desktop.ini");
-            if (File.Exists(iniPath))
+            var cs = stackalloc char[1024];
+            var buffer = new PWSTR(cs);
+            var result = PInvoke.SHGetLocalizedName(path, buffer, 1024, out var index);
+            if (result.Succeeded)
             {
-                var sb = new StringBuilder();
-                if (GetPrivateProfileString("LocalizedFileNames", Path.GetFileName(filePath), "", sb, 1024, iniPath) > 0)
+                path = System.Environment.ExpandEnvironmentVariables(new string(buffer.AsSpan()));
+                using var ptr = PInvoke.LoadLibrary(path);
+                if (ptr.IsInvalid)
                 {
-                    var value = sb.ToString();
-
-                    if (value.Contains('/') || value.Contains('\\'))
-                    {
-                        var splitIndex = value.LastIndexOf(',');
-                        if (splitIndex != -1)
-                        {
-                            var path = value[1..splitIndex];
-                            if (path.Contains('%'))
-                            {
-                                var dic = Environment.GetEnvironmentVariables();
-                                foreach (var a in dic.Keys.OfType<string>())
-                                {
-                                    path = path.Replace($"%{a}%", dic[a].ToString());
-                                }
-                            }
-                            if (File.Exists(path))
-                            {
-                                IntPtr lib = IntPtr.Zero;
-
-                                try
-                                {
-                                    lib = LoadLibrary(path);
-                                    var offset = value.Substring(splitIndex + 2);
-                                    var buffer = new byte[1024];
-                                    var length = LoadString(lib, uint.Parse(offset), buffer, buffer.Length);
-                                    if (length > 0)
-                                    {
-                                        return Encoding.Unicode.GetString(buffer, 0, length * 2);
-                                    }
-                                }
-                                finally
-                                {
-                                    FreeLibrary(lib);
-                                }
-                            }
-                        }
-                    }
-                    return value.ToString();
+                    var str = new string(buffer.AsSpan());
+                    return str;
+                }
+                else
+                {
+                    var aaa = PInvoke.LoadString(ptr, (uint)index, buffer, 1024);
+                    var str = new string(buffer.AsSpan());
+                    return str;
                 }
             }
-            return Path.GetFileNameWithoutExtension(filePath);
+            return Path.GetFileNameWithoutExtension(path);
+
         }
     }
 }

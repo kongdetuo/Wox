@@ -71,10 +71,17 @@
 		</ProjectReference>
 	</ItemGroup>
 	<ItemGroup>
+		<PackageReference Include="Microsoft.Windows.CsWin32" Version="0.1.647-beta">
+		  <PrivateAssets>all</PrivateAssets>
+
+		</PackageReference>
 		<PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
 	</ItemGroup>
 	<ItemGroup>
 		<Compile Remove="ProgramSetting.xaml.cs" />
 		<Compile Remove="Programs\FileSystemFolderSourceShallow.cs" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="新文件夹\" />
 	</ItemGroup>
 </Project>

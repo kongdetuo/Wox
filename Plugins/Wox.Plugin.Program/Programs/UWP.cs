@@ -15,11 +15,12 @@ using NLog;
 using System.Collections.Concurrent;
 using Microsoft.Win32;
 using System.Xml;
-using Windows.Management.Deployment;
+//using Windows.Management.Deployment;
 using System.Security.Principal;
 using Windows.Foundation.Metadata;
 using Windows.ApplicationModel;
 using Shell;
+using Windows.Management.Deployment;
 
 namespace Wox.Plugin.Program.Programs
 {
@@ -205,6 +206,7 @@ namespace Wox.Plugin.Program.Programs
 
         public static IEnumerable<UWP> Packages()
         {
+    
             var uwps = new PackageManager()
                 .FindPackagesForUser(WindowsIdentity.GetCurrent().User.Value)
                 .Where(package => !package.IsFramework)

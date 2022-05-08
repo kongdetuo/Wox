@@ -1,0 +1,5 @@
+﻿CreateFile
+FreeLibrary
+LoadLibrary
+LoadStringW
+Shell32.*
