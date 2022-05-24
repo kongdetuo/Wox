@@ -39,9 +39,8 @@ namespace Wox.Infrastructure
             query = query.Trim();
             if (string.IsNullOrEmpty(stringToCompare) || string.IsNullOrEmpty(query)) return new MatchResult(false, UserSettingSearchPrecision);
             var queryWithoutCase = query.ToLower();
-            if (_alphabet.HasChinese(query) != _alphabet.HasChinese(stringToCompare))
+            if (!_alphabet.HasChinese(query) && _alphabet.HasChinese(stringToCompare))
             {
-                query = _alphabet.Translate(query);
                 stringToCompare = _alphabet.Translate(stringToCompare);
             }
 

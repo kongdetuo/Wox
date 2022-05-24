@@ -7,7 +7,7 @@ using NLog;
 using ToolGood.Words;
 using Wox.Infrastructure.Logger;
 using Wox.Infrastructure.UserSettings;
-using ToolGood.Words.Pinyin;
+using ToolGood.Words.FirstPinyin;
 
 namespace Wox.Infrastructure
 {
@@ -15,7 +15,7 @@ namespace Wox.Infrastructure
     {
         private Settings _settings;
         private MemoryCache _cache;
-        
+
         private static readonly NLog.Logger Logger = LogManager.GetCurrentClassLogger();
 
         public void Initialize()
@@ -30,23 +30,12 @@ namespace Wox.Infrastructure
 
         public string Translate(string content)
         {
-            if (_settings.ShouldUsePinyin)
+            if (_settings.ShouldUsePinyin && WordsHelper.HasChinese(content) && _cache[content] == null)
             {
-                string result = _cache[content] as string;
-                if (result == null)
-                {
-                    if (WordsHelper.HasChinese(content))
-                    {
-                        result = WordsHelper.GetFirstPinyin(content);
-                    }
-                    else
-                    {
-                        result = content;
-                    }
-                    CacheItemPolicy policy = new CacheItemPolicy();
-                    policy.SlidingExpiration = new TimeSpan(12, 0, 0);
-                    _cache.Set(content, result, policy);
-                }
+                var result = WordsHelper.GetFirstPinyin(content);
+                CacheItemPolicy policy = new CacheItemPolicy();
+                policy.SlidingExpiration = new TimeSpan(12, 0, 0);
+                _cache.Set(content, result, policy);
                 return result;
             }
             else
