@@ -30,9 +30,13 @@ namespace Wox.Infrastructure
 
         public string Translate(string content)
         {
-            if (_settings.ShouldUsePinyin && WordsHelper.HasChinese(content) && _cache[content] == null)
+            if (_settings.ShouldUsePinyin && WordsHelper.HasChinese(content) )
             {
-                var result = WordsHelper.GetFirstPinyin(content);
+                var result = _cache[content] as string;
+                if (result is not null)
+                    return result;
+
+                result = WordsHelper.GetFirstPinyin(content);
                 CacheItemPolicy policy = new CacheItemPolicy();
                 policy.SlidingExpiration = new TimeSpan(12, 0, 0);
                 _cache.Set(content, result, policy);
