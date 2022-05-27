@@ -31,7 +31,7 @@ namespace Wox
 
             }
         }
-
+        
         protected override void OnItemsChanged(NotifyCollectionChangedEventArgs e)
         {
             base.OnItemsChanged(e);

@@ -1,12 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
-using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using System.Reactive.Threading.Tasks;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -22,7 +19,6 @@ using Wox.Core.Services;
 using Wox.Helper;
 using Wox.Infrastructure;
 using Wox.Infrastructure.Hotkey;
-using Wox.Infrastructure.Logger;
 using Wox.Infrastructure.Storage;
 using Wox.Infrastructure.UserSettings;
 using Wox.Plugin;
@@ -83,17 +79,25 @@ namespace Wox.ViewModel
                 SetHotkey(_settings.Hotkey, OnHotkey);
                 SetCustomPluginHotkey();
             }
-            var queryTextChangeds = this.WhenChanged(p => p.QueryText);
+            var queryTextChangeds = this.WhenChanged(p => p.QueryText).Publish();
 
 
-            _ = queryTextChangeds.Where(_ => SelectedIsFromQueryResults())
-                .Select(p => p.Trim())
+            var querys = queryTextChangeds.Where(_ => SelectedIsFromQueryResults())
+                .Select(p => p.TrimStart())
                 .DistinctUntilChanged()
-                .Throttle(TimeSpan.FromMilliseconds(50))
-                .ObserveOn(NewThreadScheduler.Default)
-                .Select(p => Observable.FromAsync(token => QueryResults(p, token)))
-                .Switch()
-                .Subscribe(queryText => { }, onError: e => MessageBox.Show(e.Message));
+                .Throttle(TimeSpan.FromMilliseconds(20))
+                .ObserveOn(this.SynchronizationContext)
+                .Select(p => new QueryViewModel(p))
+                //.Select(p => QueryResults(p))
+                .Publish();
+
+            SetProcessBar(querys);
+
+            //querys.Subscribe(p => { });
+            querys.Subscribe(p => QueryResults(p));
+
+            querys.Connect();
+
 
             _ = queryTextChangeds.Where(p => ContextMenuSelected())
                 .Subscribe(queryText => QueryContextMenu());
@@ -107,8 +111,22 @@ namespace Wox.ViewModel
 
             triggers.Subscribe(p => SetPluginIcon());
 
-
+            queryTextChangeds.Connect();
         }
+
+        private void SetProcessBar(IObservable<QueryViewModel> observable)
+        {
+            IObservable<bool> observable1(QueryViewModel vm)
+            {
+                var start = vm.WhenChanged(p => p.Started).Delay(TimeSpan.FromMilliseconds(200)).Take(1).Select(p => true);
+                var end = vm.WhenChanged(p => p.IsCompleted).Where(p => p).Select(p => false);
+                return start.Merge(end).TakeUntil(p => p == false);
+            }
+
+            _ = observable.SelectMany(p => observable1(p)).DistinctUntilChanged()
+                .Subscribe(p => this.ProgressBarVisibility = p ? Visibility.Visible : Visibility.Hidden);
+        }
+
 
         private void InitializeKeyCommands()
         {
@@ -205,6 +223,8 @@ namespace Wox.ViewModel
         public ResultsViewModel Results { get; private set; }
         public ResultsViewModel ContextMenu { get; private set; }
         public ResultsViewModel History { get; private set; }
+
+        public QueryViewModel CurrentQuery { get; set; }
         public string QueryText { get; set; }
 
         /// <summary>
@@ -327,26 +347,26 @@ namespace Wox.ViewModel
                 || StringMatcher.FuzzySearch(query, result.SubTitle).IsSearchPrecisionScoreMet();
         }
 
-        private async Task QueryResults(string queryText, CancellationToken token)
+        private async Task QueryResults(QueryViewModel vm)
         {
-            var query = QueryBuilder.Build(queryText);
+            CurrentQuery?.Cancel();
+            CurrentQuery = vm;
 
-            bool complate = false;
-            _ = Task.Delay(200, token)
-                .ContinueWith(t =>
-                {
-                    if (!complate)
-                        ProgressBarVisibility = Visibility.Visible;
-                }, token);
+            await Task.Yield();
 
-            await foreach (var item in QueryService.QueryAsync(query, token))
+            vm.Started = true;
+
+            var token = vm.Token;
+            var query = QueryBuilder.Build(vm.QueryText);
+
+            await foreach (var item in QueryService.QueryAsync(query, token).Buffer(TimeSpan.FromMilliseconds(15)))
             {
-                UpdateScore(item);
-                UpdateResultView(item);
-            }
-            complate = true;
 
-            ProgressBarVisibility = Visibility.Hidden;
+                UpdateScore(item);
+                UpdateResultView(item, token);
+            }
+            await Task.Delay(2000);
+            vm.IsCompleted = true;
         }
 
         private void Refresh()
@@ -416,7 +436,8 @@ namespace Wox.ViewModel
 
         private bool SelectedIsFromQueryResults()
         {
-            var selected = SelectedResults == Results;
+            return true;
+            var selected = SelectedResults == CurrentQuery.Results;
             return selected;
         }
 
@@ -577,16 +598,16 @@ namespace Wox.ViewModel
         /// <summary>
         /// To avoid deadlock, this method should not called from main thread
         /// </summary>
-        public void UpdateResultView(IEnumerable<PluginQueryResult> updates)
+        public void UpdateResultView(IEnumerable<PluginQueryResult> updates, CancellationToken token)
         {
             //UpdateScore(updates);
-            Results.AddResults(updates);
+            Results.AddResults(updates, token);
             UpdateResultVisible();
         }
         public void UpdateResultView(PluginQueryResult updates)
         {
             //UpdateScore(updates);
-            Results.AddResults(new[] { updates });
+            Results.AddResults(new[] { updates }, CancellationToken.None);
             UpdateResultVisible();
         }
         private void UpdateScore(IEnumerable<PluginQueryResult> updates)
@@ -619,16 +640,43 @@ namespace Wox.ViewModel
 
         private void UpdateResultVisible()
         {
-            if (ContextMenu != SelectedResults)
-                ContextMenu.Visbility = Visibility.Collapsed;
-            if (Results != SelectedResults)
-                Results.Visbility = Visibility.Collapsed;
-            if (History != SelectedResults)
-                History.Visbility = Visibility.Collapsed;
+            //if (ContextMenu != SelectedResults)
+            //    ContextMenu.Visbility = Visibility.Collapsed;
+            //if (Results != SelectedResults)
+            //    Results.Visbility = Visibility.Collapsed;
+            //if (History != SelectedResults)
+            //    History.Visbility = Visibility.Collapsed;
 
-            SelectedResults.Visbility = SelectedResults.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            //SelectedResults.Visbility = SelectedResults.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         }
 
         #endregion Public Methods
+    }
+
+    public class QueryViewModel : BaseModel
+    {
+        public QueryViewModel(string queryText)
+        {
+            this.QueryText = queryText;
+        }
+        public CancellationToken Token { get; set; }
+
+
+        private CancellationTokenSource source = new CancellationTokenSource();
+
+        public string QueryText { get; set; }
+
+        public QueryResultViewModel Results { get; set; }
+
+        public bool Started { get; set; }
+        public bool IsCompleted { get; set; }
+        public bool Canceled { get; set; }
+        internal void Cancel()
+        {
+            this.Canceled = true;
+            this.Started = false;
+            source.Cancel();
+            source.Dispose();
+        }
     }
 }

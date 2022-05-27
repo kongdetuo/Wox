@@ -141,14 +141,15 @@ namespace Wox.ViewModel
             {
                 new PluginQueryResult(newRawResults, resultId)
             };
-            AddResults(updates);
+            AddResults(updates,CancellationToken.None);
 
         }
+        static int i = 0;
 
         /// <summary>
         /// To avoid deadlock, this method should not called from main thread
         /// </summary>
-        public void AddResults(IEnumerable<PluginQueryResult> updates)
+        public void AddResults(IEnumerable<PluginQueryResult> updates, CancellationToken token)
         {
             // https://stackoverflow.com/questions/14336750
             lock (_collectionLock)
@@ -165,6 +166,9 @@ namespace Wox.ViewModel
                     .OrderByDescending(r => r.Result.Score)
                     .Take(MaxResults * 4);
 
+                i++;
+                if (token.IsCancellationRequested)
+                    return;
                 Results.Update(newResults);
 
                 if(Results.Count > 0)
@@ -179,6 +183,8 @@ namespace Wox.ViewModel
                 {
                     this.PluginID = null;
                 }
+
+                this.Visbility = Results.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
             }
 
             //if (Results.Count > 0)
@@ -240,10 +246,10 @@ namespace Wox.ViewModel
 
         #endregion FormattedText Dependency Property
 
-        public class ResultCollection : Collection<ResultViewModel>, INotifyCollectionChanged
+        public class ResultCollection : List<ResultViewModel>, INotifyCollectionChanged
         {
             public event NotifyCollectionChangedEventHandler CollectionChanged;
-
+           
             public void RemoveAll()
             {
                 this.Clear();
@@ -256,10 +262,7 @@ namespace Wox.ViewModel
             public void Update(IEnumerable<ResultViewModel> newItems)
             {
                 this.Clear();
-                foreach (var i in newItems)
-                {
-                    this.Add(i);
-                }
+                this.AddRange(newItems);
 
                 if (CollectionChanged != null)
                 {
