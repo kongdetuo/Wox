@@ -23,6 +23,7 @@
         <CommandBinding Command="Close" Executed="OnCloseExecuted"/>
     </Window.CommandBindings>
     <Window.Resources>
+
         <CollectionViewSource Source="{Binding Source={x:Static Fonts.SystemFontFamilies}}" x:Key="SortedFontsQuery">
             <CollectionViewSource.SortDescriptions>
                 <scm:SortDescription PropertyName="Source"/>
@@ -33,328 +34,794 @@
                 <scm:SortDescription PropertyName="Source"/>
             </CollectionViewSource.SortDescriptions>
         </CollectionViewSource>
+        <SolidColorBrush x:Key="panelBorder.OnMouseOver" Color="#f4f7f9"/>
+        <Style TargetType="Border" x:Key="panelBorder">
+            <Setter Property="BorderBrush" Value="#e3e3e3" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Background" Value="#fafcfd" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="16" />
+            <Setter Property="Margin" Value="8,4" />
+        </Style>
+        <SolidColorBrush x:Key="tabControlBackground" Color="#fafcfd"/>
+
+        <Style x:Key="OptionMarkFocusVisual">
+            <Setter Property="Control.Template">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <Rectangle Margin="14,0,0,0" StrokeDashArray="1 2" Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" SnapsToDevicePixels="true" StrokeThickness="1"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <SolidColorBrush x:Key="OptionMark.Static.Glyph" Color="#FF212121"/>
+        <SolidColorBrush x:Key="OptionMark.MouseOver.Background" Color="#FFF3F9FF"/>
+        <SolidColorBrush x:Key="OptionMark.MouseOver.Border" Color="#FF5593FF"/>
+        <SolidColorBrush x:Key="OptionMark.MouseOver.Glyph" Color="#FF212121"/>
+        <SolidColorBrush x:Key="OptionMark.Pressed.Background" Color="#FFD9ECFF"/>
+        <SolidColorBrush x:Key="OptionMark.Pressed.Border" Color="#FF3C77DD"/>
+        <SolidColorBrush x:Key="OptionMark.Pressed.Glyph" Color="#FF212121"/>
+        <SolidColorBrush x:Key="OptionMark.Disabled.Background" Color="#FFE6E6E6"/>
+        <SolidColorBrush x:Key="OptionMark.Disabled.Border" Color="#FFBCBCBC"/>
+        <SolidColorBrush x:Key="OptionMark.Disabled.Glyph" Color="#FF707070"/>
+        <ControlTemplate x:Key="CheckBoxTemplate1" TargetType="{x:Type CheckBox}">
+            <Border Style="{StaticResource panelBorder}" SnapsToDevicePixels="True" x:Name="panelborder">
+                <Grid x:Name="templateRoot" Background="Transparent">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Border x:Name="checkBoxBorder" Grid.Column="1" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="1" VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+                        <Grid x:Name="markGrid">
+                            <Path x:Name="optionMark" Data="F1 M 9.97498,1.22334L 4.6983,9.09834L 4.52164,9.09834L 0,5.19331L 1.27664,3.52165L 4.255,6.08833L 8.33331,1.52588e-005L 9.97498,1.22334 Z " Fill="{StaticResource OptionMark.Static.Glyph}" Margin="1" Opacity="0" Stretch="None"/>
+                            <Rectangle x:Name="indeterminateMark" Fill="{StaticResource OptionMark.Static.Glyph}" Margin="2" Opacity="0"/>
+                        </Grid>
+                    </Border>
+                    <ContentPresenter x:Name="contentPresenter" Grid.Column="0"  Focusable="False" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                </Grid>
+            </Border>
+
+            <ControlTemplate.Triggers>
+                <Trigger Property="HasContent" Value="true">
+                    <Setter Property="FocusVisualStyle" Value="{StaticResource OptionMarkFocusVisual}"/>
+                    <Setter Property="Padding" Value="4,-1,0,0"/>
+                </Trigger>
+                <Trigger Property="IsMouseOver" Value="true">
+                    <Setter Property="Background" TargetName="checkBoxBorder" Value="{StaticResource OptionMark.MouseOver.Background}"/>
+                    <Setter Property="BorderBrush" TargetName="checkBoxBorder" Value="{StaticResource OptionMark.MouseOver.Border}"/>
+
+                    <Setter Property="Background" TargetName="panelborder" Value="{StaticResource panelBorder.OnMouseOver}"/>
+
+                    <Setter Property="Fill" TargetName="optionMark" Value="{StaticResource OptionMark.MouseOver.Glyph}"/>
+                    <Setter Property="Fill" TargetName="indeterminateMark" Value="{StaticResource OptionMark.MouseOver.Glyph}"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="false">
+                    <Setter Property="Background" TargetName="checkBoxBorder" Value="{StaticResource OptionMark.Disabled.Background}"/>
+                    <Setter Property="BorderBrush" TargetName="checkBoxBorder" Value="{StaticResource OptionMark.Disabled.Border}"/>
+                    <Setter Property="Fill" TargetName="optionMark" Value="{StaticResource OptionMark.Disabled.Glyph}"/>
+                    <Setter Property="Fill" TargetName="indeterminateMark" Value="{StaticResource OptionMark.Disabled.Glyph}"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="true">
+                    <Setter Property="Background" TargetName="checkBoxBorder" Value="{StaticResource OptionMark.Pressed.Background}"/>
+                    <Setter Property="BorderBrush" TargetName="checkBoxBorder" Value="{StaticResource OptionMark.Pressed.Border}"/>
+                    <Setter Property="Fill" TargetName="optionMark" Value="{StaticResource OptionMark.Pressed.Glyph}"/>
+                    <Setter Property="Fill" TargetName="indeterminateMark" Value="{StaticResource OptionMark.Pressed.Glyph}"/>
+                </Trigger>
+                <Trigger Property="IsChecked" Value="true">
+                    <Setter Property="Opacity" TargetName="optionMark" Value="1"/>
+                    <Setter Property="Opacity" TargetName="indeterminateMark" Value="0"/>
+                </Trigger>
+                <Trigger Property="IsChecked" Value="{x:Null}">
+                    <Setter Property="Opacity" TargetName="optionMark" Value="0"/>
+                    <Setter Property="Opacity" TargetName="indeterminateMark" Value="1"/>
+                </Trigger>
+            </ControlTemplate.Triggers>
+        </ControlTemplate>
+
+        <Style x:Key="TabControlStyle1" TargetType="{x:Type TabControl}">
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+            <Setter Property="TabStripPlacement" Value="Left" />
+
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TabControl}">
+                        <Grid x:Name="templateRoot" ClipToBounds="true" SnapsToDevicePixels="true" KeyboardNavigation.TabNavigation="Local">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <TabPanel x:Name="headerPanel"
+                                      Background="{StaticResource tabControlBackground}" Grid.Column="0" IsItemsHost="true" Margin="2,2,2,0" Grid.Row="0" 
+                                      KeyboardNavigation.TabIndex="1" Panel.ZIndex="1">
+
+                            </TabPanel>
+
+                            <ContentPresenter Grid.Column="1" x:Name="PART_SelectedContentHost" 
+                                        
+                                              ContentSource="SelectedContent" Margin="{TemplateBinding Padding}"
+                                              SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="{x:Type TabItem}">
+
+            <Setter Property="Foreground" Value="Black"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Padding" Value="16,8"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+            <Setter Property="Background" Value="{StaticResource tabControlBackground}" />
+            <Setter Property="Width" Value="150" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TabItem}">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="4" Margin="4">
+                            <DockPanel>
+                                <Border x:Name="selectedTag" 
+                                        DockPanel.Dock="Left"
+                                        VerticalAlignment="Center" 
+                                        Height="16" Width="4" CornerRadius="2" Background="#36bb96"/>
+                                <StackPanel x:Name="templateRoot" SnapsToDevicePixels="true">
+                                    <ContentPresenter x:Name="contentPresenter" 
+                                                      HorizontalAlignment="Left"
+                                              ContentSource="Header" 
+                                              Focusable="False" 
+
+                                              Margin="{TemplateBinding Padding}" 
+                                              RecognizesAccessKey="True" 
+                                              SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" 
+                                              VerticalAlignment="{Binding VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
+                                </StackPanel>
+                            </DockPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="selectedTag" Property="Visibility" Value="Visible"/>
+                                <Setter TargetName="border" Property="Background" Value="#dedede" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="False">
+                                <Setter TargetName="selectedTag" Property="Visibility" Value="Hidden"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsSelected" Value="True"/>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="border" Property="Background" Value="#dedede" />
+                            </MultiTrigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsSelected" Value="False"/>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="border" Property="Background" Value="#dedede" />
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <SolidColorBrush x:Key="Expander.Static.Circle.Stroke" Color="#FF333333"/>
+        <SolidColorBrush x:Key="Expander.Static.Circle.Fill" Color="#FFFFFFFF"/>
+        <SolidColorBrush x:Key="Expander.Static.Arrow.Stroke" Color="#FF333333"/>
+        <SolidColorBrush x:Key="Expander.MouseOver.Circle.Stroke" Color="#FF5593FF"/>
+        <SolidColorBrush x:Key="Expander.MouseOver.Circle.Fill" Color="#FFF3F9FF"/>
+        <SolidColorBrush x:Key="Expander.MouseOver.Arrow.Stroke" Color="#FF000000"/>
+        <SolidColorBrush x:Key="Expander.Pressed.Circle.Stroke" Color="#FF3C77DD"/>
+        <SolidColorBrush x:Key="Expander.Pressed.Circle.Fill" Color="#FFD9ECFF"/>
+        <SolidColorBrush x:Key="Expander.Pressed.Arrow.Stroke" Color="#FF000000"/>
+        <SolidColorBrush x:Key="Expander.Disabled.Circle.Stroke" Color="#FFBCBCBC"/>
+        <SolidColorBrush x:Key="Expander.Disabled.Circle.Fill" Color="#FFE6E6E6"/>
+        <SolidColorBrush x:Key="Expander.Disabled.Arrow.Stroke" Color="#FF707070"/>
+        <Style x:Key="ExpanderHeaderFocusVisual">
+            <Setter Property="Control.Template">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <Border>
+                            <Rectangle Margin="0" StrokeDashArray="1 2" Stroke="Black" SnapsToDevicePixels="true" StrokeThickness="1"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ExpanderDownHeaderStyle" TargetType="{x:Type ToggleButton}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                        <Grid Background="Transparent" SnapsToDevicePixels="False">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="19"/>
+                            </Grid.ColumnDefinitions>
+                            <ContentPresenter Grid.Column="0" HorizontalAlignment="Stretch"
+                                                  Margin="4,0,0,0" RecognizesAccessKey="True"
+                                                  SnapsToDevicePixels="True" VerticalAlignment="Center"/>
+                            <Path Grid.Column="1" x:Name="arrow" Data="M 1,1.5 L 4.5,5 L 8,1.5" HorizontalAlignment="Center" Stroke="{StaticResource Expander.Static.Arrow.Stroke}" SnapsToDevicePixels="false" StrokeThickness="2" VerticalAlignment="Center"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="true">
+                                <Setter Property="Data" TargetName="arrow" Value="M 1,4.5  L 4.5,1  L 8,4.5"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="true">
+                                <Setter Property="Stroke" TargetName="arrow" Value="{StaticResource Expander.MouseOver.Arrow.Stroke}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="true">
+                                <Setter Property="Stroke" TargetName="arrow" Value="{StaticResource Expander.Pressed.Arrow.Stroke}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Stroke" TargetName="arrow" Value="{StaticResource Expander.Disabled.Arrow.Stroke}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ExpanderUpHeaderStyle" TargetType="{x:Type ToggleButton}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                        <Border Padding="{TemplateBinding Padding}">
+                            <Grid Background="Transparent" SnapsToDevicePixels="False">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="19"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Grid>
+                                    <Grid.LayoutTransform>
+                                        <TransformGroup>
+                                            <TransformGroup.Children>
+                                                <TransformCollection>
+                                                    <RotateTransform Angle="180"/>
+                                                </TransformCollection>
+                                            </TransformGroup.Children>
+                                        </TransformGroup>
+                                    </Grid.LayoutTransform>
+                                    <Ellipse x:Name="circle" Fill="{StaticResource Expander.Static.Circle.Fill}" HorizontalAlignment="Center" Height="19" Stroke="{StaticResource Expander.Static.Circle.Stroke}" VerticalAlignment="Center" Width="19"/>
+                                    <Path x:Name="arrow" Data="M 1,1.5 L 4.5,5 L 8,1.5" HorizontalAlignment="Center" Stroke="{StaticResource Expander.Static.Arrow.Stroke}" SnapsToDevicePixels="false" StrokeThickness="2" VerticalAlignment="Center"/>
+                                </Grid>
+                                <ContentPresenter Grid.Column="1" HorizontalAlignment="Left" Margin="4,0,0,0" RecognizesAccessKey="True" SnapsToDevicePixels="True" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="true">
+                                <Setter Property="Data" TargetName="arrow" Value="M 1,4.5  L 4.5,1  L 8,4.5"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="true">
+                                <Setter Property="Stroke" TargetName="circle" Value="{StaticResource Expander.MouseOver.Circle.Stroke}"/>
+                                <Setter Property="Fill" TargetName="circle" Value="{StaticResource Expander.MouseOver.Circle.Fill}"/>
+                                <Setter Property="Stroke" TargetName="arrow" Value="{StaticResource Expander.MouseOver.Arrow.Stroke}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="true">
+                                <Setter Property="Stroke" TargetName="circle" Value="{StaticResource Expander.Pressed.Circle.Stroke}"/>
+                                <Setter Property="StrokeThickness" TargetName="circle" Value="1.5"/>
+                                <Setter Property="Fill" TargetName="circle" Value="{StaticResource Expander.Pressed.Circle.Fill}"/>
+                                <Setter Property="Stroke" TargetName="arrow" Value="{StaticResource Expander.Pressed.Arrow.Stroke}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Stroke" TargetName="circle" Value="{StaticResource Expander.Disabled.Circle.Stroke}"/>
+                                <Setter Property="Fill" TargetName="circle" Value="{StaticResource Expander.Disabled.Circle.Fill}"/>
+                                <Setter Property="Stroke" TargetName="arrow" Value="{StaticResource Expander.Disabled.Arrow.Stroke}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ExpanderLeftHeaderStyle" TargetType="{x:Type ToggleButton}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                        <Border Padding="{TemplateBinding Padding}">
+                            <Grid Background="Transparent" SnapsToDevicePixels="False">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="19"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Grid>
+                                    <Grid.LayoutTransform>
+                                        <TransformGroup>
+                                            <TransformGroup.Children>
+                                                <TransformCollection>
+                                                    <RotateTransform Angle="90"/>
+                                                </TransformCollection>
+                                            </TransformGroup.Children>
+                                        </TransformGroup>
+                                    </Grid.LayoutTransform>
+                                    <Ellipse x:Name="circle" Fill="{StaticResource Expander.Static.Circle.Fill}" HorizontalAlignment="Center" Height="19" Stroke="{StaticResource Expander.Static.Circle.Stroke}" VerticalAlignment="Center" Width="19"/>
+                                    <Path x:Name="arrow" Data="M 1,1.5 L 4.5,5 L 8,1.5" HorizontalAlignment="Center" Stroke="{StaticResource Expander.Static.Arrow.Stroke}" SnapsToDevicePixels="false" StrokeThickness="2" VerticalAlignment="Center"/>
+                                </Grid>
+                                <ContentPresenter HorizontalAlignment="Center" Margin="0,4,0,0" RecognizesAccessKey="True" Grid.Row="1" SnapsToDevicePixels="True" VerticalAlignment="Top"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="true">
+                                <Setter Property="Data" TargetName="arrow" Value="M 1,4.5  L 4.5,1  L 8,4.5"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="true">
+                                <Setter Property="Stroke" TargetName="circle" Value="{StaticResource Expander.MouseOver.Circle.Stroke}"/>
+                                <Setter Property="Fill" TargetName="circle" Value="{StaticResource Expander.MouseOver.Circle.Fill}"/>
+                                <Setter Property="Stroke" TargetName="arrow" Value="{StaticResource Expander.MouseOver.Arrow.Stroke}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="true">
+                                <Setter Property="Stroke" TargetName="circle" Value="{StaticResource Expander.Pressed.Circle.Stroke}"/>
+                                <Setter Property="StrokeThickness" TargetName="circle" Value="1.5"/>
+                                <Setter Property="Fill" TargetName="circle" Value="{StaticResource Expander.Pressed.Circle.Fill}"/>
+                                <Setter Property="Stroke" TargetName="arrow" Value="{StaticResource Expander.Pressed.Arrow.Stroke}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Stroke" TargetName="circle" Value="{StaticResource Expander.Disabled.Circle.Stroke}"/>
+                                <Setter Property="Fill" TargetName="circle" Value="{StaticResource Expander.Disabled.Circle.Fill}"/>
+                                <Setter Property="Stroke" TargetName="arrow" Value="{StaticResource Expander.Disabled.Arrow.Stroke}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ExpanderRightHeaderStyle" TargetType="{x:Type ToggleButton}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                        <Border Padding="{TemplateBinding Padding}">
+                            <Grid Background="Transparent" SnapsToDevicePixels="False">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="19"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+                                <Grid>
+                                    <Grid.LayoutTransform>
+                                        <TransformGroup>
+                                            <TransformGroup.Children>
+                                                <TransformCollection>
+                                                    <RotateTransform Angle="-90"/>
+                                                </TransformCollection>
+                                            </TransformGroup.Children>
+                                        </TransformGroup>
+                                    </Grid.LayoutTransform>
+                                    <Ellipse x:Name="circle" Fill="{StaticResource Expander.Static.Circle.Fill}" HorizontalAlignment="Center" Height="19" Stroke="{StaticResource Expander.Static.Circle.Stroke}" VerticalAlignment="Center" Width="19"/>
+                                    <Path x:Name="arrow" Data="M 1,1.5 L 4.5,5 L 8,1.5" HorizontalAlignment="Center" Stroke="{StaticResource Expander.Static.Arrow.Stroke}" SnapsToDevicePixels="false" StrokeThickness="2" VerticalAlignment="Center"/>
+                                </Grid>
+                                <ContentPresenter HorizontalAlignment="Center" Margin="0,4,0,0" RecognizesAccessKey="True" Grid.Row="1" SnapsToDevicePixels="True" VerticalAlignment="Top"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="true">
+                                <Setter Property="Data" TargetName="arrow" Value="M 1,4.5  L 4.5,1  L 8,4.5"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="true">
+                                <Setter Property="Stroke" TargetName="circle" Value="{StaticResource Expander.MouseOver.Circle.Stroke}"/>
+                                <Setter Property="Fill" TargetName="circle" Value="{StaticResource Expander.MouseOver.Circle.Fill}"/>
+                                <Setter Property="Stroke" TargetName="arrow" Value="{StaticResource Expander.MouseOver.Arrow.Stroke}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="true">
+                                <Setter Property="Stroke" TargetName="circle" Value="{StaticResource Expander.Pressed.Circle.Stroke}"/>
+                                <Setter Property="StrokeThickness" TargetName="circle" Value="1.5"/>
+                                <Setter Property="Fill" TargetName="circle" Value="{StaticResource Expander.Pressed.Circle.Fill}"/>
+                                <Setter Property="Stroke" TargetName="arrow" Value="{StaticResource Expander.Pressed.Arrow.Stroke}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Stroke" TargetName="circle" Value="{StaticResource Expander.Disabled.Circle.Stroke}"/>
+                                <Setter Property="Fill" TargetName="circle" Value="{StaticResource Expander.Disabled.Circle.Fill}"/>
+                                <Setter Property="Stroke" TargetName="arrow" Value="{StaticResource Expander.Disabled.Arrow.Stroke}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="ExpanderStyle1" TargetType="{x:Type Expander}">
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Expander}">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="3" SnapsToDevicePixels="true">
+                            <DockPanel>
+                                <ToggleButton x:Name="HeaderSite" 
+                                              ContentTemplate="{TemplateBinding HeaderTemplate}"
+                                              Content="{TemplateBinding Header}"
+                                              ContentTemplateSelector="{TemplateBinding HeaderTemplateSelector}"
+                                              DockPanel.Dock="Top" FontStretch="{TemplateBinding FontStretch}"
+                                              Foreground="{TemplateBinding Foreground}"
+                                              FocusVisualStyle="{StaticResource ExpanderHeaderFocusVisual}" 
+                                              FontStyle="{TemplateBinding FontStyle}" 
+                                              FontFamily="{TemplateBinding FontFamily}" 
+                                              FontWeight="{TemplateBinding FontWeight}"
+                                              FontSize="{TemplateBinding FontSize}" 
+                                              HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              IsChecked="{Binding IsExpanded, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}" 
+                                              Margin="1" MinWidth="0" MinHeight="0"
+                                              Padding="{TemplateBinding Padding}"
+                                              Style="{StaticResource ExpanderDownHeaderStyle}" VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                                <ContentPresenter x:Name="ExpandSite" DockPanel.Dock="Bottom" Focusable="false" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Visibility="Collapsed"/>
+                            </DockPanel>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsExpanded" Value="true">
+                                <Setter Property="Visibility" TargetName="ExpandSite" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="ExpandDirection" Value="Right">
+                                <Setter Property="DockPanel.Dock" TargetName="ExpandSite" Value="Right"/>
+                                <Setter Property="DockPanel.Dock" TargetName="HeaderSite" Value="Left"/>
+                                <Setter Property="Style" TargetName="HeaderSite" Value="{StaticResource ExpanderRightHeaderStyle}"/>
+                            </Trigger>
+                            <Trigger Property="ExpandDirection" Value="Up">
+                                <Setter Property="DockPanel.Dock" TargetName="ExpandSite" Value="Top"/>
+                                <Setter Property="DockPanel.Dock" TargetName="HeaderSite" Value="Bottom"/>
+                                <Setter Property="Style" TargetName="HeaderSite" Value="{StaticResource ExpanderUpHeaderStyle}"/>
+                            </Trigger>
+                            <Trigger Property="ExpandDirection" Value="Left">
+                                <Setter Property="DockPanel.Dock" TargetName="ExpandSite" Value="Left"/>
+                                <Setter Property="DockPanel.Dock" TargetName="HeaderSite" Value="Right"/>
+                                <Setter Property="Style" TargetName="HeaderSite" Value="{StaticResource ExpanderLeftHeaderStyle}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="false">
+                                <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
     </Window.Resources>
 
-    <TabControl Height="auto" SelectedIndex="0">
+    <TabControl Style="{DynamicResource TabControlStyle1}" Height="auto" SelectedIndex="0">
         <TabItem Header="{DynamicResource general}">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Orientation="Vertical">
-                <StackPanel.Resources>
-                    <Style TargetType="CheckBox">
-                        <Setter Property="Margin" Value="10" />
-                    </Style>
-                </StackPanel.Resources>
-                <CheckBox IsChecked="{Binding PortableMode}">
-                    <TextBlock Text="{DynamicResource portableMode}" />
-                </CheckBox>
-                <CheckBox IsChecked="{Binding Settings.StartWoxOnSystemStartup}"
+                    <StackPanel.Resources>
+                        <Style TargetType="CheckBox">
+                            <Setter Property="Template" Value="{StaticResource CheckBoxTemplate1}" />
+                        </Style>
+                        <Style TargetType="Border" BasedOn="{StaticResource panelBorder}">
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="{StaticResource panelBorder.OnMouseOver}" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+
+                    </StackPanel.Resources>
+                    <CheckBox IsChecked="{Binding PortableMode}">
+                        <TextBlock Text="{DynamicResource portableMode}" />
+                    </CheckBox>
+                    <CheckBox IsChecked="{Binding Settings.StartWoxOnSystemStartup}"
                           Checked="OnAutoStartupChecked" Unchecked="OnAutoStartupUncheck">
-                    <TextBlock Text="{DynamicResource startWoxOnSystemStartup}" />
-                </CheckBox>
-                <CheckBox IsChecked="{Binding Settings.HideOnStartup}">
-                    <TextBlock Text="{DynamicResource hideOnStartup}" />
-                </CheckBox>
-                <CheckBox IsChecked="{Binding Settings.HideWhenDeactive}">
-                    <TextBlock Text="{DynamicResource hideWoxWhenLoseFocus}" />
-                </CheckBox>
-                <CheckBox IsChecked="{Binding Settings.HideNotifyIcon}">
-                    <TextBlock Text="{DynamicResource hideNotifyIcon}" />
-                </CheckBox>
-                <CheckBox IsChecked="{Binding Settings.RememberLastLaunchLocation}">
-                    <TextBlock Text="{DynamicResource rememberLastLocation}" />
-                </CheckBox>
-                <CheckBox IsChecked="{Binding Settings.IgnoreHotkeysOnFullscreen}">
-                    <TextBlock Text="{DynamicResource ignoreHotkeysOnFullscreen}" />
-                </CheckBox>
-                <CheckBox IsChecked="{Binding Settings.AutoUpdates}">
-                    <TextBlock Text="{DynamicResource autoUpdates}" />
-                </CheckBox>
-                <CheckBox IsChecked="{Binding Settings.UpdateToPrereleases}">
-                    <TextBlock Text="{DynamicResource updateToPrereleases}" />
-                </CheckBox>
-                <CheckBox IsChecked="{Binding ShouldUsePinyin}">
-                    <TextBlock Text="{DynamicResource ShouldUsePinyin}" />
-                </CheckBox>
-                <StackPanel Margin="10" Orientation="Horizontal">
-                    <TextBlock Text="{DynamicResource querySearchPrecision}" />
-                    <ComboBox Margin="10 0 0 0"
+                        <TextBlock Text="{DynamicResource startWoxOnSystemStartup}" />
+                    </CheckBox>
+                    <CheckBox IsChecked="{Binding Settings.HideOnStartup}">
+                        <TextBlock Text="{DynamicResource hideOnStartup}" />
+                    </CheckBox>
+                    <CheckBox IsChecked="{Binding Settings.HideWhenDeactive}">
+                        <TextBlock Text="{DynamicResource hideWoxWhenLoseFocus}" />
+                    </CheckBox>
+                    <CheckBox IsChecked="{Binding Settings.HideNotifyIcon}">
+                        <TextBlock Text="{DynamicResource hideNotifyIcon}" />
+                    </CheckBox>
+                    <CheckBox IsChecked="{Binding Settings.RememberLastLaunchLocation}">
+                        <TextBlock Text="{DynamicResource rememberLastLocation}" />
+                    </CheckBox>
+                    <CheckBox IsChecked="{Binding Settings.IgnoreHotkeysOnFullscreen}">
+                        <TextBlock Text="{DynamicResource ignoreHotkeysOnFullscreen}" />
+                    </CheckBox>
+                    <CheckBox IsChecked="{Binding Settings.AutoUpdates}">
+                        <TextBlock Text="{DynamicResource autoUpdates}" />
+                    </CheckBox>
+                    <CheckBox IsChecked="{Binding Settings.UpdateToPrereleases}">
+                        <TextBlock Text="{DynamicResource updateToPrereleases}" />
+                    </CheckBox>
+                    <CheckBox Template="{DynamicResource CheckBoxTemplate1}" IsChecked="{Binding ShouldUsePinyin}">
+                        <TextBlock Text="{DynamicResource ShouldUsePinyin}" />
+                    </CheckBox>
+                    <Border>
+                        <DockPanel>
+                            <ComboBox Margin="10 0 0 0" DockPanel.Dock="Right"
                               ItemsSource="{Binding QuerySearchPrecisionStrings}" 
                               SelectedItem="{Binding Settings.QuerySearchPrecisionString}" />
-                </StackPanel>
-                <StackPanel Margin="10" Orientation="Horizontal">
-                    <TextBlock Text="{DynamicResource lastQueryMode}" />
-                    <ComboBox Margin="10 0 0 0"
+                            <TextBlock Text="{DynamicResource querySearchPrecision}" />
+                        </DockPanel>
+                    </Border>
+                    <Border>
+                        <DockPanel>
+                            <ComboBox Margin="10 0 0 0" DockPanel.Dock="Right"
                               ItemsSource="{Binding LastQueryModes}" SelectedValue="{Binding Settings.LastQueryMode}"
                               DisplayMemberPath="Display" SelectedValuePath="Value" />
-                </StackPanel>
-                <StackPanel Margin="10" Orientation="Horizontal">
-                    <TextBlock Text="{DynamicResource language}" />
-                    <ComboBox Margin="10 0 0 0" Width="120"
-                              ItemsSource="{Binding Languages}" SelectedValue="{Binding Language}"
-                              DisplayMemberPath="Display" SelectedValuePath="LanguageCode" />
-                </StackPanel>
-                <StackPanel Orientation="Horizontal" Margin="10">
-                    <TextBlock Text="{DynamicResource maxShowResults}" />
-                    <ComboBox Margin="10 0 0 0" Width="45" ItemsSource="{Binding MaxResultsRange}"
+                            <TextBlock Text="{DynamicResource lastQueryMode}" />
+                        </DockPanel>
+                    </Border>
+                    <Border  Style="{StaticResource panelBorder}">
+                        <DockPanel>
+                            <ComboBox Margin="10 0 0 0" Width="120" DockPanel.Dock="Right"
+                                  ItemsSource="{Binding Languages}" SelectedValue="{Binding Language}"
+                                  DisplayMemberPath="Display" SelectedValuePath="LanguageCode" />
+                            <TextBlock Text="{DynamicResource language}" />
+                        </DockPanel>
+                    </Border>
+                    <Border Style="{StaticResource panelBorder}">
+                        <DockPanel>
+                            <ComboBox Margin="10 0 0 0" Width="45" DockPanel.Dock="Right" ItemsSource="{Binding MaxResultsRange}"
                               SelectedItem="{Binding Settings.MaxResultsToShow}" />
+                            <TextBlock Text="{DynamicResource maxShowResults}" />
+                        </DockPanel>
+                    </Border>
+                    <Border  Style="{StaticResource panelBorder}">
+                        <DockPanel>
+                            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                                <TextBox Width="300"  Text="{Binding Settings.PluginSettings.PythonDirectory}" />
+                                <Button  Click="OnSelectPythonDirectoryClick" Content="{DynamicResource selectPythonDirectory}" />
+                            </StackPanel>
+                            <TextBlock Text="{DynamicResource pythonDirectory}" />
+                        </DockPanel>
+                    </Border>
                 </StackPanel>
-                <StackPanel Orientation="Horizontal">
-                    <TextBlock Margin="10" Text="{DynamicResource pythonDirectory}" />
-                    <TextBox Width="300" Margin="10" Text="{Binding Settings.PluginSettings.PythonDirectory}" />
-                    <Button Margin="10" Click="OnSelectPythonDirectoryClick"
-                            Content="{DynamicResource selectPythonDirectory}" />
-                </StackPanel>
-            </StackPanel>
             </ScrollViewer>
         </TabItem>
         <TabItem Header="{DynamicResource plugin}">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="200" />
-                    <ColumnDefinition />
-                </Grid.ColumnDefinitions>
-                <DockPanel Grid.Column="0">
-                    <TextBlock DockPanel.Dock="Top" Margin="10">
+            <Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch" >
+
+
+                <TextBlock DockPanel.Dock="Top" Margin="10">
                         <Hyperlink NavigateUri="{Binding Plugin, Mode=OneWay}" RequestNavigate="OnRequestNavigate">
                             <Run Text="{DynamicResource browserMorePlugins}" />
                         </Hyperlink>
-                    </TextBlock>
-                    <ListBox SelectedIndex="0" SelectedItem="{Binding SelectedPlugin}"
+                </TextBlock>
+
+                <ListBox SelectedIndex="0" SelectedItem="{Binding SelectedPlugin}"
                              ItemsSource="{Binding PluginViewModels}"
-                             Margin="10, 0, 10, 10" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal" Margin="3">
-                                    <Image Source="{Binding Image, IsAsync=True}"
-                                           Width="32" Height="32" />
-                                    <StackPanel Margin="3 0 3 0">
-                                        <TextBlock Text="{Binding PluginPair.Metadata.Name}"
+                         BorderThickness="0"
+                         HorizontalContentAlignment="Stretch"
+                         HorizontalAlignment="Stretch"
+                         ScrollViewer.CanContentScroll="False"
+                         ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                         d:ItemsSource="{d:SampleData ItemCount=5}"
+                         d:SelectedIndex="1">
+
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Expander x:Name="exp"  HorizontalAlignment="Stretch" Style="{StaticResource ExpanderStyle1}">
+                                <Expander.Header>
+                                    <Grid HorizontalAlignment="Stretch" Margin="12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="auto"/>
+                                            <ColumnDefinition Width="auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <Image Source="{Binding Image, IsAsync=True}" Width="32" Height="32" />
+                                        <StackPanel Margin="3 0 3 0" Grid.Column="1">
+                                            <TextBlock Text="{Binding PluginPair.Metadata.Name}"
                                                    ToolTip="{Binding PluginPair.Metadata.Name}" />
-                                        <TextBlock Text="{Binding PluginPair.Metadata.Description}"
+                                            <TextBlock Text="{Binding PluginPair.Metadata.Description}"
                                                    ToolTip="{Binding PluginPair.Metadata.Description}"
                                                    Opacity="0.5" />
-                                    </StackPanel>
-                                </StackPanel>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-                </DockPanel>
-                <GridSplitter Width="3"/>
-                <Grid Grid.Column="1">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                    </Grid.RowDefinitions>
-                    <ContentControl DataContext="{Binding Path=SelectedPlugin}"
-                                    Grid.ColumnSpan="1" Grid.Row="0" Margin="10 10 10 0">
-                        <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="48" />
-                                <ColumnDefinition />
-                            </Grid.ColumnDefinitions>
-                            <Image Source="{Binding Image, IsAsync=True}"
-                                   Width="48" Height="48" HorizontalAlignment="Left" VerticalAlignment="Top" />
-                            <Grid Margin="10,0,0,0" Grid.Column="1" HorizontalAlignment="Stretch">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition />
-                                    <RowDefinition />
-                                    <RowDefinition />
-                                </Grid.RowDefinitions>
-                                <Grid Grid.Row="0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition />
-                                        <ColumnDefinition />
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Text="{Binding PluginPair.Metadata.Name}"
-                                               ToolTip="{Binding PluginPair.Metadata.Name}"
-                                               Grid.Column="0"
-                                               Cursor="Hand" MouseUp="OnPluginNameClick" FontSize="24"
-                                               HorizontalAlignment="Left" />
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right"
-                                                VerticalAlignment="Bottom" Opacity="0.5">
-                                        <TextBlock Text="{DynamicResource author}" />
-                                        <TextBlock Text=": " />
-                                        <TextBlock Text="{Binding PluginPair.Metadata.Author}" ToolTip="{Binding PluginPair.Metadata.Author}" />
-                                    </StackPanel>
-                                </Grid>
-                                <TextBlock Text="{Binding PluginPair.Metadata.Description}"
-                                           ToolTip="{Binding PluginPair.Metadata.Description}"
-                                           Grid.Row="1" Opacity="0.5" />
-                                <DockPanel Grid.Row="2" Margin="0 10 0 8">
-                                    <CheckBox IsChecked="{Binding PluginPair.Metadata.Disabled}" Checked="OnPluginToggled"
+                                        </StackPanel>
+                                        <CheckBox Grid.Column="3" VerticalContentAlignment="Center" IsChecked="{Binding PluginPair.Metadata.Disabled}" Checked="OnPluginToggled"
                                               Unchecked="OnPluginToggled">
-                                        <TextBlock Text="{DynamicResource disable}" />
-                                    </CheckBox>
-                                    <TextBlock Text="{DynamicResource actionKeywords}"
+                                            <TextBlock Text="{DynamicResource disable}" />
+                                        </CheckBox>
+                                    </Grid>
+                                </Expander.Header>
+
+                                <StackPanel Margin="10,0,0,0" Grid.Column="1" HorizontalAlignment="Stretch">
+                                    <ContentControl Content="{Binding SettingProvider}" Margin="4"
+                                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+                                    <StackPanel Orientation="Horizontal" Margin="4">
+                                        <TextBlock Text="{DynamicResource actionKeywords}"
                                                Visibility="{Binding ActionKeywordsVisibility}"
                                                Cursor="Hand" Foreground="Blue"
                                                Margin="20,0,0,0"
                                                MouseUp="OnPluginActionKeywordsClick" Padding="0,0,5,0" />
-                                    <TextBlock Text="{Binding ActionKeywordsText}"
+                                        <TextBlock Text="{Binding ActionKeywordsText}"
                                                Visibility="{Binding ActionKeywordsVisibility}"
                                                ToolTip="Change Action Keywords"
                                                Margin="0 0 0 0" Cursor="Hand" Foreground="Blue"
                                                MouseUp="OnPluginActionKeywordsClick" />
-                                    <TextBlock Text="{Binding InitilizaTime}" Margin="10 0 0 0" />
-                                    <TextBlock Text="{Binding QueryTime}" Margin="10 0 0 0" />
-                                    <TextBlock Text="{DynamicResource pluginDirectory}"
+                                        <TextBlock Text="{Binding InitilizaTime}" Margin="10 0 0 0" />
+                                        <TextBlock Text="{Binding QueryTime}" Margin="10 0 0 0" />
+                                        <TextBlock Text="{DynamicResource pluginDirectory}"
                                                HorizontalAlignment="Right" Cursor="Hand"
                                                MouseUp="OnPluginDirecotyClick" Foreground="Blue" />
-                                </DockPanel>
-                            </Grid>
-                        </Grid>
-                    </ContentControl>
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right"
+                                                VerticalAlignment="Bottom" Opacity="0.5">
+                                            <TextBlock Text="{DynamicResource author}" />
+                                            <TextBlock Text=": " />
+                                            <TextBlock Text="{Binding PluginPair.Metadata.Author}" ToolTip="{Binding PluginPair.Metadata.Author}" />
+                                        </StackPanel>
+                                    </StackPanel>
 
-                    <ContentControl Content="{Binding SettingProvider}"
-                                    Grid.ColumnSpan="1" Grid.Row="1"
-                                    HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
-                </Grid>
+                                </StackPanel>
+                            </Expander>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Background" Value="White" />
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="Margin" Value="0,4,0,4" />
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="BorderBrush" Value="#e3e3e3" />
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="{x:Type ListBoxItem}">
+                                        <Border 
+                                            x:Name="Bd"
+                                            Padding="{TemplateBinding Padding}"
+                                            Background="{TemplateBinding Background}"
+                                            BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="{TemplateBinding BorderThickness}"
+                                            CornerRadius="5"
+                                            SnapsToDevicePixels="True">
+                                            <ContentPresenter
+                                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                Content="{TemplateBinding Content}"
+                                                ContentStringFormat="{TemplateBinding ContentStringFormat}"
+                                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger  Property="IsMouseOver" Value="True" >
+                                                <Setter TargetName="Bd" Property="Background" Value="{StaticResource panelBorder.OnMouseOver}" />
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <Setter Property="Height" Value="Auto" />
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                </ListBox>
             </Grid>
         </TabItem>
         <TabItem Header="{DynamicResource theme}">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="200" />
-                    <ColumnDefinition />
-                </Grid.ColumnDefinitions>
-                <DockPanel Grid.Column="0">
-                    <TextBlock DockPanel.Dock="Top" Margin="10" HorizontalAlignment="Left">
+            <StackPanel Margin="4">
+
+
+                <TextBlock DockPanel.Dock="Top" HorizontalAlignment="Left">
                         <Hyperlink NavigateUri="{Binding Theme, Mode=OneWay}" RequestNavigate="OnRequestNavigate">
                             <Run Text="{DynamicResource browserMoreThemes}" />
                         </Hyperlink>
-                    </TextBlock>
+                </TextBlock>
 
-                    <ListBox SelectedItem="{Binding SelectedTheme}" ItemsSource="{Binding Themes}"
-                             Margin="10, 0, 10, 10"
-                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
-                </DockPanel>
-                <GridSplitter Width="3"/>
-                <Grid Margin="0" Grid.Column="1">
-                    <Grid.RowDefinitions>
-                        <RowDefinition />
-                        <RowDefinition Height="150" />
-                    </Grid.RowDefinitions>
-                    <StackPanel Background="{Binding PreviewBackground}" Grid.Row="0" Margin="0">
-                        <StackPanel Orientation="Horizontal" Margin="10"
+                <ComboBox SelectedItem="{Binding SelectedTheme}" ItemsSource="{Binding Themes}"
+                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch"  Margin="4"/>
+                <StackPanel Background="{Binding PreviewBackground}" Grid.Row="1" Margin="4">
+                    <StackPanel Orientation="Horizontal" Margin="10"
                                     HorizontalAlignment="Center" VerticalAlignment="Center">
-                            <Border Width="500" Style="{DynamicResource WindowBorderStyle}">
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="50" />
-                                        <RowDefinition />
-                                    </Grid.RowDefinitions>
-                                    <TextBox Text="{DynamicResource helloWox}" IsReadOnly="True"
+                        <Border Width="500" Style="{DynamicResource WindowBorderStyle}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="50" />
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
+                                <TextBox Text="{DynamicResource helloWox}" IsReadOnly="True"
                                              Style="{DynamicResource QueryTextSuggestionBoxStyle}" Grid.Row="0" />
-                                    <TextBox Text="{DynamicResource helloWox}" IsReadOnly="True"
+                                <TextBox Text="{DynamicResource helloWox}" IsReadOnly="True"
                                              Style="{DynamicResource QueryBoxStyle}" Grid.Row="0" />
-                                    <ContentControl Grid.Row="1">
-                                        <wox:ResultListBox DataContext="{Binding PreviewResults, Mode=OneTime}" Visibility="Visible"/>
-                                    </ContentControl>
-                                </Grid>
-                            </Border>
-                        </StackPanel>
+                                <ContentControl Grid.Row="1">
+                                    <wox:ResultListBox DataContext="{Binding PreviewResults, Mode=OneTime}" Visibility="Visible"/>
+                                </ContentControl>
+                            </Grid>
+                        </Border>
                     </StackPanel>
+                </StackPanel>
 
-                    <Grid Grid.Row="1" Margin="0 10">
-                        <Grid.Resources>
-                            <Style TargetType="ComboBox">
-                                <Setter Property="VerticalAlignment" Value="Center"/>
-                                <Setter Property="HorizontalAlignment" Value="Center"/>
-                                <Setter Property="Height" Value="25" />
-                                <Setter Property="MinWidth" Value="170"/>
-                            </Style>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Margin" Value="5"/>
-                                <Setter Property="TextAlignment" Value="Right"/>
-                                <Setter Property="VerticalAlignment" Value="Center"/>
-                            </Style>
-                        </Grid.Resources>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition/>
-                            <ColumnDefinition/>
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition/>
-                            <RowDefinition/>
-                            <RowDefinition/>
-                        </Grid.RowDefinitions>
-                        <TextBlock Text="{DynamicResource queryBoxFont}"
+                <Grid Margin="4">
+                    <Grid.Resources>
+                        <Style TargetType="ComboBox">
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                            <Setter Property="HorizontalAlignment" Value="Center"/>
+                            <Setter Property="Height" Value="25" />
+                            <Setter Property="MinWidth" Value="170"/>
+                        </Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Margin" Value="5"/>
+                            <Setter Property="TextAlignment" Value="Right"/>
+                            <Setter Property="VerticalAlignment" Value="Center"/>
+                        </Style>
+                    </Grid.Resources>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                        <RowDefinition/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Text="{DynamicResource queryBoxFont}"
                                    Grid.Column="0" Grid.Row="0" HorizontalAlignment="Left" />
-                        <ComboBox ItemsSource="{Binding Source={StaticResource SortedFontsQuery}}"
+                    <ComboBox ItemsSource="{Binding Source={StaticResource SortedFontsQuery}}" Margin="4"
                                   SelectedItem="{Binding SelectedQueryBoxFont}"
                                   Grid.Column="1" Grid.Row="0"/>
-                        <ComboBox ItemsSource="{Binding SelectedQueryBoxFont.FamilyTypefaces}"
+                    <ComboBox ItemsSource="{Binding SelectedQueryBoxFont.FamilyTypefaces}" Margin="4"
                                   SelectedItem="{Binding SelectedQueryBoxFontFaces}"
                                   Grid.Column="2" Grid.Row="0">
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate>
-                                    <ItemsControl ItemsSource="{Binding AdjustedFaceNames}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding Value}" />
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <ItemsControl ItemsSource="{Binding AdjustedFaceNames}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Value}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
 
-                        <TextBlock Text="{DynamicResource resultItemFont}"
+                    <TextBlock Text="{DynamicResource resultItemFont}"
                                    Grid.Column="0" Grid.Row="1" HorizontalAlignment="Left" />
-                        <ComboBox ItemsSource="{Binding Source={StaticResource SortedFontsResult}}"
+                    <ComboBox ItemsSource="{Binding Source={StaticResource SortedFontsResult}}" Margin="4"
                                   SelectedItem="{Binding SelectedResultFont}"
                                   Grid.Column="1" Grid.Row="1"/>
-                        <ComboBox ItemsSource="{Binding SelectedResultFont.FamilyTypefaces}"
+                    <ComboBox ItemsSource="{Binding SelectedResultFont.FamilyTypefaces}"
                                   SelectedItem="{Binding SelectedResultFontFaces}"
                                   Grid.Column="2" Grid.Row="1">
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate>
-                                    <ItemsControl ItemsSource="{Binding AdjustedFaceNames}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding Value}" />
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
-                        <TextBlock Text="{DynamicResource resultItemHighlightFont}" Grid.Row="2" HorizontalAlignment="Left" />
-                        <ComboBox ItemsSource="{Binding SelectedResultFont.FamilyTypefaces}"
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <ItemsControl ItemsSource="{Binding AdjustedFaceNames}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Value}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <TextBlock Text="{DynamicResource resultItemHighlightFont}" Grid.Row="2" HorizontalAlignment="Left" />
+                    <ComboBox ItemsSource="{Binding SelectedResultFont.FamilyTypefaces}"  Margin="4"
                                   SelectedItem="{Binding SelectedResultHighlightFontFaces}"
                                   Grid.Column="2" Grid.Row="2">
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate>
-                                    <ItemsControl ItemsSource="{Binding AdjustedFaceNames}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding Value}" />
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
-                        <TextBlock Grid.Row="2" Grid.Column="1" HorizontalAlignment="Center" Text="{DynamicResource resultItemHighlightFontSameAbove}" />
-                    </Grid>
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <ItemsControl ItemsSource="{Binding AdjustedFaceNames}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Value}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <TextBlock Grid.Row="2" Grid.Column="1" HorizontalAlignment="Center" Text="{DynamicResource resultItemHighlightFontSameAbove}" />
                 </Grid>
-            </Grid>
+
+            </StackPanel>
         </TabItem>
         <TabItem Header="{DynamicResource hotkey}">
             <Grid Margin="10">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="35" />
+                    <RowDefinition Height="auto" />
                     <RowDefinition Height="30" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="50" />
                 </Grid.RowDefinitions>
-                <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Center" Height="24"
-                            Margin="5 0">
-                    <TextBlock VerticalAlignment="Center" Margin="0 0 10 0" Text="{DynamicResource woxHotkey}" />
-                    <wox:HotkeyControl x:Name="HotkeyControl" HotkeyChanged="OnHotkeyChanged"
+                <Border Style="{StaticResource panelBorder}" Grid.Row="0"  VerticalAlignment="Center" Margin="5 0">
+
+                    <DockPanel>
+                        <wox:HotkeyControl x:Name="HotkeyControl" Width="150"  HotkeyChanged="OnHotkeyChanged" DockPanel.Dock="Right"
                                        Loaded="OnHotkeyControlLoaded" />
-                </StackPanel>
+                        <TextBlock VerticalAlignment="Center" Text="{DynamicResource woxHotkey}" />
+                    </DockPanel>
+                </Border>
                 <TextBlock VerticalAlignment="Center" Grid.Row="1" Margin="10 0"
                            Text="{DynamicResource customQueryHotkey}" />
                 <ListView ItemsSource="{Binding Settings.CustomPluginHotkeys}"
@@ -392,71 +859,102 @@
         </TabItem>
         <TabItem Header="{DynamicResource proxy}">
             <StackPanel>
-                <CheckBox Margin="10" IsChecked="{Binding Settings.Proxy.Enabled}">
-                    <TextBlock Text="{DynamicResource enableProxy}" />
-                </CheckBox>
-                <Grid Margin="10" IsEnabled="{Binding Settings.Proxy.Enabled}">
-                    <Grid.RowDefinitions>
-                        <RowDefinition />
-                        <RowDefinition />
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="100" />
-                        <ColumnDefinition Width="200" />
-                        <ColumnDefinition Width="100" />
-                        <ColumnDefinition Width="200" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="{DynamicResource server}" Grid.Row="0" Grid.Column="0" Padding="5" />
-                    <TextBox Text="{Binding Settings.Proxy.Server}" Grid.Row="0" Grid.Column="1" Padding="5" />
-                    <TextBlock Text="{DynamicResource port}" Grid.Row="0" Grid.Column="2" Padding="5" />
-                    <TextBox Text="{Binding Settings.Proxy.Port, TargetNullValue={x:Static sys:String.Empty} }" Grid.Row="0" Grid.Column="3" Padding="5" />
-                    <TextBlock Text="{DynamicResource userName}" Grid.Row="1" Grid.Column="0" Padding="5" />
-                    <TextBox Text="{Binding Settings.Proxy.UserName}" Grid.Row="1" Grid.Column="1" Padding="5" />
-                    <TextBlock Text="{DynamicResource password}" Grid.Row="1" Grid.Column="2" Padding="5" />
-                    <TextBox Text="{Binding Settings.Proxy.Password}" Grid.Row="1" Grid.Column="3" Padding="5" />
-                </Grid>
-                <Button Content="{DynamicResource testProxy}" IsEnabled="{Binding Settings.Proxy.Enabled}"
+                <Border Style="{StaticResource panelBorder}">
+                    <StackPanel>
+                        <DockPanel>
+
+                            <CheckBox IsChecked="{Binding Settings.Proxy.Enabled}" DockPanel.Dock="Right"/>
+                            <TextBlock Text="{DynamicResource enableProxy}" />
+
+                        </DockPanel>
+                        <Grid Margin="16" IsEnabled="{Binding Settings.Proxy.Enabled}">
+                            <Grid.Resources>
+                                <Style TargetType="TextBox">
+                                    <Setter Property="Margin" Value="4" />
+                                </Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="HorizontalAlignment" Value="Right" />
+                                </Style>
+                            </Grid.Resources>
+                            <Grid.RowDefinitions>
+                                <RowDefinition />
+                                <RowDefinition />
+                                <RowDefinition />
+                                <RowDefinition />
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="100" />
+                                <ColumnDefinition Width="200" />
+
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="{DynamicResource server}" Grid.Row="0" Grid.Column="0" Padding="5" />
+                            <TextBox Text="{Binding Settings.Proxy.Server}" Grid.Row="0" Grid.Column="1" Padding="5" />
+                            <TextBlock Text="{DynamicResource port}" Grid.Row="1" Grid.Column="0" Padding="5" />
+                            <TextBox Text="{Binding Settings.Proxy.Port, TargetNullValue={x:Static sys:String.Empty} }" Grid.Row="1" Grid.Column="1" Padding="5" />
+                            <TextBlock Text="{DynamicResource userName}" Grid.Row="2" Grid.Column="0" Padding="5" />
+                            <TextBox Text="{Binding Settings.Proxy.UserName}" Grid.Row="2" Grid.Column="1" Padding="5" />
+                            <TextBlock Text="{DynamicResource password}" Grid.Row="3" Grid.Column="0" Padding="5" />
+                            <TextBox Text="{Binding Settings.Proxy.Password}" Grid.Row="3" Grid.Column="1" Padding="5" />
+                        </Grid>
+                        <Button Content="{DynamicResource testProxy}" IsEnabled="{Binding Settings.Proxy.Enabled}"
                         Width="80" HorizontalAlignment="Left" Margin="10" Click="OnTestProxyClick" />
+                    </StackPanel>
+                </Border>
+
             </StackPanel>
         </TabItem>
         <TabItem Header="{DynamicResource about}">
-            <Grid>
-                <Grid.Resources>
-                    <Style TargetType="{x:Type TextBlock}">
-                        <Setter Property="Margin" Value="10, 10, 0, 0" />
-                    </Style>
-                </Grid.Resources>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-                <TextBlock Grid.Row="0" Grid.ColumnSpan="2" Text="{Binding ActivatedTimes, Mode=OneWay}" />
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="{DynamicResource website}" />
-                <TextBlock Grid.Row="1" Grid.Column="1" HorizontalAlignment="Left">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Bottom" Margin="16" HorizontalAlignment="Center" Text="{Binding ActivatedTimes, Mode=OneWay}" />
+                <StackPanel>
+                    <Border Style="{StaticResource panelBorder}">
+                        <DockPanel>
+                            <Button Content="{DynamicResource checkUpdates}" DockPanel.Dock="Right"/>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="Version" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Version}" Margin="4,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </DockPanel>
+                    </Border>
+                </StackPanel>
+
+                <!--<Grid>
+                    <Grid.Resources>
+                        <Style TargetType="{x:Type TextBlock}">
+                            <Setter Property="Margin" Value="10, 10, 0, 0" />
+                        </Style>
+                    </Grid.Resources>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="{DynamicResource website}" />
+                    <TextBlock Grid.Row="1" Grid.Column="1" HorizontalAlignment="Left">
                     <Hyperlink NavigateUri="{Binding Github, Mode=OneWay}" RequestNavigate="OnRequestNavigate">
                         <Run Text="{Binding Github, Mode=OneWay}" />
                     </Hyperlink>
-                </TextBlock>
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="Version" />
-                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Version}" />
-                <TextBlock Grid.Row="3" Grid.Column="0" Text="{DynamicResource releaseNotes}" />
-                <TextBlock Grid.Row="3" Grid.Column="1">
+                    </TextBlock>
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="Version" />
+                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding Version}" />
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="{DynamicResource releaseNotes}" />
+                    <TextBlock Grid.Row="3" Grid.Column="1">
                     <Hyperlink NavigateUri="{Binding ReleaseNotes, Mode=OneWay}"
                                RequestNavigate="OnRequestNavigate">
                         <Run Text="{Binding ReleaseNotes, Mode=OneWay}" />
                     </Hyperlink>
-                </TextBlock>
-                <Button Grid.Row="4" Grid.Column="0"
-                        Content="{DynamicResource checkUpdates}" Click="OnCheckUpdates"
-                        HorizontalAlignment="Left" Margin="10 10 10 10" />
-            </Grid>
+                    </TextBlock>
+  
+                </Grid>-->
+            </DockPanel>
+
         </TabItem>
     </TabControl>
 </Window>
