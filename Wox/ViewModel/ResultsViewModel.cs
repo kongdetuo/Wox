@@ -213,39 +213,6 @@ namespace Wox.ViewModel
 
         #endregion Public Methods
 
-        #region FormattedText Dependency Property
-
-        public static readonly DependencyProperty FormattedTextProperty = DependencyProperty.RegisterAttached(
-            "FormattedText",
-            typeof(Inline),
-            typeof(ResultsViewModel),
-            new PropertyMetadata(null, FormattedTextPropertyChanged));
-
-        public static void SetFormattedText(DependencyObject textBlock, IList<int> value)
-        {
-            textBlock.SetValue(FormattedTextProperty, value);
-        }
-
-        public static Inline GetFormattedText(DependencyObject textBlock)
-        {
-            return (Inline)textBlock.GetValue(FormattedTextProperty);
-        }
-
-        private static void FormattedTextPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
-        {
-            var textBlock = d as TextBlock;
-            if (textBlock == null) return;
-
-            var inline = (Inline)e.NewValue;
-
-            textBlock.Inlines.Clear();
-            if (inline == null) return;
-
-            textBlock.Inlines.Add(inline);
-        }
-
-        #endregion FormattedText Dependency Property
-
         public class ResultCollection : List<ResultViewModel>, INotifyCollectionChanged
         {
             public event NotifyCollectionChangedEventHandler CollectionChanged;

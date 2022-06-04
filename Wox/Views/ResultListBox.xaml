@@ -4,6 +4,7 @@
          xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
          xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
          xmlns:vm="clr-namespace:Wox.ViewModel"
+         xmlns:local="clr-namespace:Wox"
          xmlns:converter="clr-namespace:Wox.Converters"
          mc:Ignorable="d" d:DesignWidth="100" d:DesignHeight="100"
          d:DataContext="{d:DesignInstance vm:ResultsViewModel}"
@@ -20,6 +21,7 @@
     <!--IsSynchronizedWithCurrentItem: http://stackoverflow.com/a/7833798/2833083-->
     <ListBox.ItemTemplate>
         <DataTemplate>
+
             <Button MouseRightButtonDown="Button_MouseRightButtonDown" Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}, Path=DataContext.OpenResultCommand}">
                 <Button.Template>
                     <ControlTemplate>
@@ -29,10 +31,7 @@
                 <Button.Content>
                     <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="5"
                           Cursor="Hand" UseLayoutRounding="False">
-                        <Grid.Resources>
-                            <converter:HighlightTextConverter x:Key="HighlightTextConverter" />
-                            <converter:MultilineTextConverter x:Key="MultilineTextConverter" />
-                        </Grid.Resources>
+
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="32" />
                             <ColumnDefinition />
@@ -46,26 +45,16 @@
                                 <RowDefinition Height="Auto" x:Name="SubTitleRowDefinition" />
                             </Grid.RowDefinitions>
                             <TextBlock Style="{DynamicResource ItemTitleStyle}" DockPanel.Dock="Left"
-                                       VerticalAlignment="Center" ToolTip="{Binding Result.Title}" x:Name="Title">
-                                <vm:ResultsViewModel.FormattedText>
-                                    <MultiBinding Converter="{StaticResource HighlightTextConverter}" Mode="TwoWay">
-                                        <Binding Path="Result.Title" Converter="{StaticResource MultilineTextConverter}" />
-                                        <Binding Path="Result.TitleHighlightData" />
-                                        <Binding RelativeSource="{RelativeSource Mode=FindAncestor,AncestorType={x:Type ListBoxItem}}"
-                                                 Path="IsSelected" />
-                                    </MultiBinding>
-                                </vm:ResultsViewModel.FormattedText>
+                                       VerticalAlignment="Center" ToolTip="{Binding Result.Title}" x:Name="Title"
+                                       local:HighLightTextBlock.Foreground="{DynamicResource ItemHighlightColor}"
+                                       local:HighLightTextBlock.HighlightText="{Binding Result.HighlightTitle}">
+            
                             </TextBlock>
                             <TextBlock Style="{DynamicResource ItemSubTitleStyle}" ToolTip="{Binding Result.SubTitle}"
-                                       Grid.Row="1" x:Name="SubTitle">
-                                <vm:ResultsViewModel.FormattedText>
-                                    <MultiBinding Converter="{StaticResource HighlightTextConverter}">
-                                        <Binding Path="Result.SubTitle"  Converter="{StaticResource MultilineTextConverter}" />
-                                        <Binding Path="Result.SubTitleHighlightData" />
-                                        <Binding RelativeSource="{RelativeSource Mode=FindAncestor,AncestorType={x:Type ListBoxItem}}"
-                                                 Path="IsSelected" />
-                                    </MultiBinding>
-                                </vm:ResultsViewModel.FormattedText>
+                                       Grid.Row="1" x:Name="SubTitle"
+                                       local:HighLightTextBlock.Foreground="{DynamicResource ItemHighlightColor}"
+                                       local:HighLightTextBlock.HighlightText="{Binding Result.HighlightSubTitle}">
+
                             </TextBlock>
                         </Grid>
                     </Grid>
@@ -77,7 +66,9 @@
                     Binding="{Binding RelativeSource={RelativeSource Mode=FindAncestor,AncestorType={x:Type ListBoxItem}}, Path=IsSelected}"
                     Value="True">
                     <Setter TargetName="Title" Property="Style" Value="{DynamicResource ItemTitleSelectedStyle}" />
+                    <Setter TargetName="Title" Property="local:HighLightTextBlock.Foreground" Value="{DynamicResource ItemSelectedHighlightColor}"/>
                     <Setter TargetName="SubTitle" Property="Style" Value="{DynamicResource ItemSubTitleSelectedStyle}" />
+                    <Setter TargetName="SubTitle" Property="local:HighLightTextBlock.Foreground" Value="{DynamicResource ItemSelectedHighlightColor}"/>
                 </DataTrigger>
             </DataTemplate.Triggers>
         </DataTemplate>

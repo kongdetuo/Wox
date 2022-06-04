@@ -91,7 +91,7 @@ namespace Wox.ViewModel
                 //.Select(p => QueryResults(p))
                 .Publish();
 
-            SetProcessBar(querys);
+            //SetProcessBar(querys);
 
             //querys.Subscribe(p => { });
             querys.Subscribe(p => QueryResults(p));
@@ -105,11 +105,11 @@ namespace Wox.ViewModel
             _ = queryTextChangeds.Where(p => HistorySelected())
                 .Subscribe(queryText => QueryHistory());
 
-            var triggers = this.WhenChanged(p => p.QueryText).Select(p => Unit.Default)
-                .Merge(this.WhenChanged(p => p.SelectedResults).Select(p => Unit.Default))
-                .Merge(this.Results.WhenChanged(p => p.PluginID).Select(p => Unit.Default));
+            //var triggers = this.WhenChanged(p => p.QueryText).Select(p => Unit.Default)
+            //    .Merge(this.WhenChanged(p => p.SelectedResults).Select(p => Unit.Default))
+            //    .Merge(this.Results.WhenChanged(p => p.PluginID).Select(p => Unit.Default));
 
-            triggers.Subscribe(p => SetPluginIcon());
+            //triggers.Subscribe(p => SetPluginIcon());
 
             queryTextChangeds.Connect();
         }
@@ -359,13 +359,12 @@ namespace Wox.ViewModel
             var token = vm.Token;
             var query = QueryBuilder.Build(vm.QueryText);
 
-            await foreach (var item in QueryService.QueryAsync(query, token).Buffer(TimeSpan.FromMilliseconds(15)))
+            await foreach (var item in QueryService.QueryAsync(query, token)/*.Buffer(TimeSpan.FromMilliseconds(15))*/)
             {
-
                 UpdateScore(item);
-                UpdateResultView(item, token);
+                UpdateResultView(item);
             }
-            await Task.Delay(2000);
+            //await Task.Delay(2000);
             vm.IsCompleted = true;
         }
 

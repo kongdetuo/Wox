@@ -20,7 +20,6 @@ namespace Wox.Themes
     {
         private readonly List<string> _themeDirectories = new List<string>();
         private ResourceDictionary _oldResource;
-        private string _oldTheme;
         public Settings Settings { get; set; }
         private const string Folder = "Themes";
         private const string Extension = ".xaml";
@@ -46,7 +45,6 @@ namespace Wox.Themes
                 var found = f == Folder && e == Extension;
                 return found;
             });
-            _oldTheme = Path.GetFileNameWithoutExtension(_oldResource.Source.AbsolutePath);
 
             // https://github.com/Wox-launcher/Wox/issues/2935
             var support = Environment.OSVersion.Version.Major >= new Version(10, 0).Major;
@@ -93,10 +91,6 @@ namespace Wox.Themes
                 var newResource = GetResourceDictionary();
                 dicts.Add(newResource);
                 _oldResource = newResource;
-                _oldTheme = Path.GetFileNameWithoutExtension(_oldResource.Source.AbsolutePath);
-                HighLightStyle = new HightLightStyle(false);
-                HighLightSelectedStyle = new HightLightStyle(true);
-
                 //SetBlurForWindow();
             }
             catch (DirectoryNotFoundException)
@@ -203,9 +197,6 @@ namespace Wox.Themes
             }
             return dict;
         }
-
-        public HightLightStyle HighLightStyle = new HightLightStyle();
-        public HightLightStyle HighLightSelectedStyle = new HightLightStyle();
 
         public List<string> LoadAvailableThemes()
         {
@@ -342,34 +333,5 @@ namespace Wox.Themes
             Marshal.FreeHGlobal(accentPtr);
         }
         #endregion
-    }
-
-    public class HightLightStyle
-    {
-        public Brush Color { get; set; }
-        public FontStyle FontStyle { get; set; }
-        public FontWeight FontWeight { get; set; }
-        public FontStretch FontStretch { get; set; }
-
-        public HightLightStyle()
-        {
-            Color = Brushes.Black;
-            FontStyle = FontStyles.Normal;
-            FontWeight = FontWeights.Normal;
-            FontStretch = FontStretches.Normal;
-        }
-
-        public HightLightStyle(bool selected)
-        {
-            ResourceDictionary resources = ThemeManager.Instance.GetResourceDictionary();
-
-            Color = (Brush)(selected ?
-                resources.Contains("ItemSelectedHighlightColor") ? resources["ItemSelectedHighlightColor"] : resources["BaseItemSelectedHighlightColor"] :
-                resources.Contains("ItemHighlightColor") ? resources["ItemHighlightColor"] : resources["BaseItemHighlightColor"]);
-            FontStyle = FontHelper.GetFontStyleFromInvariantStringOrNormal(Settings.Instance.ResultHighlightFontStyle);
-            FontWeight = FontHelper.GetFontWeightFromInvariantStringOrNormal(Settings.Instance.ResultHighlightFontWeight);
-            FontStretch = FontHelper.GetFontStretchFromInvariantStringOrNormal(Settings.Instance.ResultHighlightFontStretch);
-        }
-
     }
 }

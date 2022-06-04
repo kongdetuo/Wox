@@ -8,9 +8,12 @@ namespace Wox.Plugin
 {
     public class Result : BaseModel
     {
-        public string Title { get; set; }
+        public HighlightText HighlightTitle { get; set; } = new HighlightText("");
+        public HighlightText HighlightSubTitle { get; set; } = new HighlightText("");
 
-        public string SubTitle { get; set; }
+        public string Title { get => HighlightTitle.Text; set => HighlightTitle.Text = value; }
+
+        public string SubTitle { get => HighlightSubTitle.Text; set => HighlightSubTitle.Text = value; }
 
         /// <summary>
         /// This holds the action keyword that triggered the result.
@@ -34,12 +37,12 @@ namespace Wox.Plugin
         /// <summary>
         /// A list of indexes for the characters to be highlighted in Title
         /// </summary>
-        public IList<int> TitleHighlightData { get; set; }
+        public IList<int> TitleHighlightData { get => HighlightTitle.HighlightData; set => HighlightTitle.HighlightData = value; }
 
         /// <summary>
         /// A list of indexes for the characters to be highlighted in SubTitle
         /// </summary>
-        public IList<int> SubTitleHighlightData { get; set; }
+        public IList<int> SubTitleHighlightData { get => HighlightSubTitle.HighlightData; set => HighlightSubTitle.HighlightData = value; }
 
         /// <summary>
         /// Only results that originQuery match with current query will be displayed in the panel
@@ -85,5 +88,28 @@ namespace Wox.Plugin
         /// Plugin ID that generated this result
         /// </summary>
         public string PluginID { get; set; }
+    }
+
+    public class HighlightText
+    {
+        public HighlightText(string text) : this(text, Empty)
+        {
+
+        }
+        public HighlightText(string text, List<int> highlightData)
+        {
+            this.Text = text;
+            this.HighlightData = highlightData;
+        }
+        public string Text { get; set; }
+
+        public IList<int> HighlightData { get; set; }
+
+        private static readonly List<int> Empty = new List<int>();
+
+        public static implicit operator HighlightText(string text)
+        {
+            return new HighlightText(text);
+        }
     }
 }

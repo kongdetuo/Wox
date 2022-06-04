@@ -3,6 +3,9 @@
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="Base.xaml" />
     </ResourceDictionary.MergedDictionaries>
+    <SolidColorBrush x:Key="ItemHighlightColor" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="ItemSelectedHighlightColor" Color="#FFFFFF" />
+    
     <Style x:Key="QueryBoxStyle" BasedOn="{StaticResource BaseQueryBoxStyle}" TargetType="{x:Type TextBox}">
         <Setter Property="Foreground" Value="#ffffff" />
         <Setter Property="CaretBrush" Value="#ffffff" />
