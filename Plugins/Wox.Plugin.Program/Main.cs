@@ -21,30 +21,18 @@ namespace Wox.Plugin.Program
 
         private static PluginInitContext _context;
 
-        private static BinaryStorage<Win32[]> _win32Storage;
-        private static BinaryStorage<UWP.Application[]> _uwpStorage;
         private PluginJsonStorage<Settings> _settingsStorage;
 
         private static readonly NLog.Logger Logger = LogManager.GetCurrentClassLogger();
 
         private static void preloadPrograms()
         {
-            Logger.StopWatchNormal("Preload programs cost", () =>
-            {
-                _win32Storage = new BinaryStorage<Win32[]>("Win32");
-                Win32s = _win32Storage.TryLoad(Array.Empty<Win32>());
-                _uwpStorage = new BinaryStorage<UWP.Application[]>("UWP");
-                _uwps = _uwpStorage.TryLoad(Array.Empty<UWP.Application>());
-            });
-            Logger.WoxInfo($"Number of preload win32 programs <{Win32s.Length}>");
-            Logger.WoxInfo($"Number of preload uwps <{_uwps.Length}>");
+
         }
 
         public void Save()
         {
             _settingsStorage.Save();
-            _win32Storage.Save(Win32s);
-            _uwpStorage.Save(_uwps);
         }
 
         public List<Result> Query(Query query)
