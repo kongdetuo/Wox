@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net7.0-windows10.0.19041.0</TargetFramework>
+        <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
         <OutputType>WinExe</OutputType>
 		<PublishSingleFile>true</PublishSingleFile>
 		<SelfContained>false</SelfContained>
@@ -188,21 +188,21 @@
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="CommandLineParser">
-            <Version>2.8.0</Version>
+            <Version>2.9.1</Version>
         </PackageReference>
         <PackageReference Include="NuGet.CommandLine">
-            <Version>6.1.0</Version>
+            <Version>6.5.0</Version>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
         <PackageReference Include="PropertyChanged.Fody">
-            <Version>3.4.0</Version>
+            <Version>4.1.0</Version>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="NHotkey.Wpf" Version="2.1.0" />
+        <PackageReference Include="NHotkey.Wpf" Version="2.1.1" />
         <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
-        <PackageReference Include="ReactiveMarbles.PropertyChanged.SourceGenerator" Version="2.0.6">
+        <PackageReference Include="ReactiveMarbles.PropertyChanged.SourceGenerator" Version="2.0.27">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>

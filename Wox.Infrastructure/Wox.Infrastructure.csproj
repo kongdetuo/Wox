@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net7.0-windows7.0</TargetFramework>
+    <TargetFramework>net8.0-windows7.0</TargetFramework>
     <OutputType>Library</OutputType>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <UseWPF>true</UseWPF>
@@ -28,15 +28,15 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations">
-      <Version>2022.1.0</Version>
+      <Version>2022.3.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft-WindowsAPICodePack-Shell">
       <Version>1.1.4</Version>
     </PackageReference>
     <PackageReference Include="NLog.Schema" GeneratePathProperty="true">
-      <Version>4.7.15</Version>
+      <Version>5.1.4</Version>
     </PackageReference>
-    <PackageReference Include="ToolGood.Words.FirstPinyin" Version="3.0.1.4" />
+    <PackageReference Include="ToolGood.Words.FirstPinyin" Version="3.1.0" />
   </ItemGroup>
   <PropertyGroup />
 </Project>

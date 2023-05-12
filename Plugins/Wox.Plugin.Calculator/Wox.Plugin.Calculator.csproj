@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>net7.0-windows7.0</TargetFramework>
+		<TargetFramework>net8.0-windows7.0</TargetFramework>
 		<OutputType>Library</OutputType>
 		<RootNamespace>Wox.Plugin.Caculator</RootNamespace>
 		<AssemblyName>Wox.Plugin.Caculator</AssemblyName>
@@ -85,7 +85,7 @@
 		</None>
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Mages" Version="2.0.0" />
+		<PackageReference Include="Mages" Version="2.0.1" />
 	</ItemGroup>
 	<PropertyGroup>
 		<ApplicationIcon />
