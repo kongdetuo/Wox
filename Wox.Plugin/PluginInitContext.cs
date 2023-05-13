@@ -4,6 +4,16 @@ namespace Wox.Plugin
 {
     public class PluginInitContext
     {
+        public PluginInitContext()
+        {
+        }
+
+        public PluginInitContext(PluginMetadata currentPluginMetadata, IPublicAPI aPI)
+        {
+            CurrentPluginMetadata = currentPluginMetadata;
+            API = aPI;
+        }
+
         public PluginMetadata CurrentPluginMetadata { get; set; }
 
         /// <summary>

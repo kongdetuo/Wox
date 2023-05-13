@@ -100,23 +100,17 @@ namespace Wox.Core.Plugin
         /// Call initialize for all plugins
         /// </summary>
         /// <returns>return the list of failed to init plugins or null for none</returns>
-        public static void InitializePlugins(IPublicAPI api)
+        public static async Task InitializePluginsAsync(IPublicAPI api)
         {
             API = api;
             var failedPlugins = new ConcurrentQueue<PluginProxy>();
-            //Parallel.ForEach(AllPlugins, pair =>
-            AllPlugins.ForEach(pair =>
+
+            await Task.WhenAll(AllPlugins.AsParallel().Select(async pair =>
             {
                 try
                 {
-                    var milliseconds = Logger.StopWatchDebug($"Init method time cost for <{pair.Metadata.Name}>", () =>
-                    {
-                        pair.Plugin.Init(new PluginInitContext
-                        {
-                            CurrentPluginMetadata = pair.Metadata,
-                            API = API
-                        });
-                    });
+                    var milliseconds = await Logger.StopWatchDebugAsync($"Init method time cost for <{pair.Metadata.Name}>",
+                        () => pair.InitAsync(new PluginInitContext(pair.Metadata, api)));
                     pair.Metadata.InitTime += milliseconds;
                     Logger.WoxInfo($"Total init cost for <{pair.Metadata.Name}> is <{pair.Metadata.InitTime}ms>");
                 }
@@ -130,7 +124,7 @@ namespace Wox.Core.Plugin
                     pair.Metadata.Disabled = true;
                     failedPlugins.Enqueue(pair);
                 }
-            });
+            }));
 
             _contextMenuPlugins = GetPluginsForInterface<IContextMenu>();
             foreach (var plugin in AllPlugins)

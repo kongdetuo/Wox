@@ -41,9 +41,9 @@ namespace Wox
             }
         }
 
-        private void OnStartup(object sender, StartupEventArgs e)
+        private async void OnStartup(object sender, StartupEventArgs e)
         {
-            var time = Logger.StopWatchNormal("Startup cost", () =>
+            var time = await Logger.StopWatchNormal("Startup cost", async () =>
             {
                 _systemLanguage = CultureInfo.CurrentUICulture.Name;
                 RegisterAppDomainExceptions();
@@ -68,7 +68,7 @@ namespace Wox
                 _mainVM = new MainViewModel();
                 var window = new MainWindow(_mainVM);
                 API = new PublicAPIInstance(_settingsVM, _mainVM);
-                PluginManager.InitializePlugins(API);
+                await PluginManager.InitializePluginsAsync(API);
 
                 Current.MainWindow = window;
                 Current.MainWindow.Title = Constant.Wox;

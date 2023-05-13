@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Runtime.CompilerServices;
-using System.Threading;
 
 namespace Wox.Plugin
 {
@@ -20,10 +19,5 @@ namespace Wox.Plugin
         string GetTranslatedPluginTitle();
 
         string GetTranslatedPluginDescription();
-    }
-
-    public interface IResultUpdated : IFeatures
-    {
-        IAsyncEnumerable<List<Result>> QueryUpdates(Query query, CancellationToken token);
     }
 }

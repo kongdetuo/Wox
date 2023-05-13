@@ -50,7 +50,7 @@ namespace Wox.Core.Services
                             return;
                         }
 
-                        ob.OnNext(Query(plugin, query));
+                        ob.OnNext(await QueryAsync(plugin, query, token));
 
                         await foreach (var item in QueryUpdate(plugin, query, token))
                         {
@@ -88,15 +88,15 @@ namespace Wox.Core.Services
 
 
 
-        public PluginQueryResult Query(PluginProxy pair, Query query)
+        public async Task<PluginQueryResult> QueryAsync(PluginProxy pair, Query query, CancellationToken token)
         {
             try
             {
                 var metadata = pair.Metadata;
                 List<Result> results = new List<Result>();
-                var milliseconds = Logger.StopWatchDebug($"Query <{query.RawQuery}> Cost for {metadata.Name}", () =>
+                var milliseconds = await Logger.StopWatchDebugAsync($"Query <{query.RawQuery}> Cost for {metadata.Name}", async () =>
                 {
-                    results = pair.Plugin.Query(query) ?? new List<Result>();
+                    results = await pair.QueryAsync(query, token) ?? new List<Result>();
                 });
 
                 metadata.QueryCount += 1;

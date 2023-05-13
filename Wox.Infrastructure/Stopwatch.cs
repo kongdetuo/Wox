@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using NLog;
 using Wox.Infrastructure.Logger;
 
@@ -26,6 +27,18 @@ namespace Wox.Infrastructure
             return milliseconds;
         }
 
+        public static async Task<long> StopWatchDebugAsync(this NLog.Logger logger, string message, Func<Task> action, [CallerMemberName] string methodName = "")
+        {
+            var stopWatch = new System.Diagnostics.Stopwatch();
+            stopWatch.Start();
+            await action();
+            stopWatch.Stop();
+            var milliseconds = stopWatch.ElapsedMilliseconds;
+            string info = $"{message} <{milliseconds}ms>";
+            logger.WoxDebug(info, methodName);
+            return milliseconds;
+        }
+
         public static long StopWatchNormal(this NLog.Logger logger, string message, Action action, [CallerMemberName] string methodName = "")
         {
             var stopWatch = new System.Diagnostics.Stopwatch();
@@ -37,7 +50,17 @@ namespace Wox.Infrastructure
             logger.WoxInfo(info, methodName);
             return milliseconds;
         }
-
+        public static async Task<long> StopWatchNormal(this NLog.Logger logger, string message, Func<Task> action, [CallerMemberName] string methodName = "")
+        {
+            var stopWatch = new System.Diagnostics.Stopwatch();
+            stopWatch.Start();
+            await action();
+            stopWatch.Stop();
+            var milliseconds = stopWatch.ElapsedMilliseconds;
+            string info = $"{message} <{milliseconds}ms>";
+            logger.WoxInfo(info, methodName);
+            return milliseconds;
+        }
         public static void StartCount(string name, Action action)
         {
             var stopWatch = new System.Diagnostics.Stopwatch();

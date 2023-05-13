@@ -1,34 +1,32 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Wox.Plugin
 {
     public class PluginProxy
     {
-        public IPlugin Plugin { get;  set; }
+        public IAsyncPlugin Plugin { get;  set; }
         public PluginMetadata Metadata { get;  set; }
         
-        public override string ToString()
+        public async Task<List<Result>> QueryAsync(Query query, CancellationToken token)
         {
-            return Metadata.Name;
+            return await Plugin.QueryAsync(query, token);
         }
 
-        public override bool Equals(object obj)
+        public async Task InitAsync(PluginInitContext context)
         {
-            PluginProxy r = obj as PluginProxy;
-            if (r != null)
-            {
-                return string.Equals(r.Metadata.ID, Metadata.ID);
-            }
-            else
-            {
-                return false;
-            }
+            await Plugin.InitAsync(context);
         }
 
-        public override int GetHashCode()
+        public IAsyncEnumerable<List<Result>> QueryUpdates(Query query, CancellationToken token)
         {
-            var hashcode = Metadata.ID?.GetHashCode() ?? 0;
-            return hashcode;
+            if(Plugin is IResultUpdated updated)
+            {
+                return updated.QueryUpdates(query, token);
+            }
+            return null;
         }
     }
 }
