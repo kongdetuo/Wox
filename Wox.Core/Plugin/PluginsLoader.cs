@@ -67,7 +67,7 @@ namespace Wox.Core.Plugin
                 try
                 {
                     var types = assembly.GetExportedTypes();
-                    type = types.FirstOrDefault(type => typeof(IPlugin).IsAssignableFrom(type));
+                    type = types.FirstOrDefault(type => typeof(IAsyncPlugin).IsAssignableFrom(type));
                     if (type is null)
                         return;
                 }
@@ -80,10 +80,10 @@ namespace Wox.Core.Plugin
                     Logger.WoxError($"Can't find class implement IPlugin for <{metadata.Name}>", e);
                     return;
                 }
-                IPlugin plugin;
+                IAsyncPlugin plugin;
                 try
                 {
-                    plugin = (IPlugin)Activator.CreateInstance(type);
+                    plugin = (IAsyncPlugin)Activator.CreateInstance(type);
                 }
                 catch (Exception e)
                 {
