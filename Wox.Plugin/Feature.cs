@@ -24,6 +24,6 @@ namespace Wox.Plugin
 
     public interface IResultUpdated : IFeatures
     {
-        IAsyncEnumerable<List<Result>> QueryUpdates(Query query);
+        IAsyncEnumerable<List<Result>> QueryUpdates(Query query, CancellationToken token);
     }
 }

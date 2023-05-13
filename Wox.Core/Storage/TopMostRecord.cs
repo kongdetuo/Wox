@@ -1,20 +1,22 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Forms;
 using Newtonsoft.Json;
 using Wox.Plugin;
 
 namespace Wox.Core.Storage
 {
-    // todo this class is not thread safe.... but used from multiple threads.
     public class TopMostRecord
     {
         [JsonProperty]
-        private Dictionary<string, Record> records = new Dictionary<string, Record>();
+        private Dictionary<string, Record> records = new();
+        private ConcurrentDictionary<string, Record> recordDic;
 
+        public ConcurrentDictionary<string, Record> RecordDic => recordDic ??= new ConcurrentDictionary<string, Record>(this.records);
         public bool IsTopMost(Result result)
         {
-            return records.Count > 0
-                && records.TryGetValue(result.OriginQuery.RawQuery, out Record record)
+            return RecordDic.TryGetValue(result.OriginQuery.RawQuery, out Record record)
                 && record.Title == result.Title
                 && record.SubTitle == result.SubTitle
                 && record.PluginID == result.PluginID;
@@ -22,12 +24,12 @@ namespace Wox.Core.Storage
 
         public bool HasTopMost(Query query)
         {
-            return query != null && records.ContainsKey(query.RawQuery);
+            return query != null && RecordDic.ContainsKey(query.RawQuery);
         }
 
         public void Remove(Result result)
         {
-            records.Remove(result.OriginQuery.RawQuery);
+            RecordDic.Remove(result.OriginQuery.RawQuery, out _);
         }
 
         public void AddOrUpdate(Result result)
@@ -38,13 +40,8 @@ namespace Wox.Core.Storage
                 Title = result.Title,
                 SubTitle = result.SubTitle
             };
-            records[result.OriginQuery.RawQuery] = record;
+            RecordDic[result.OriginQuery.RawQuery] = record;
 
-        }
-
-        public void Load(Dictionary<string, Record> dictionary)
-        {
-            records = dictionary;
         }
     }
 

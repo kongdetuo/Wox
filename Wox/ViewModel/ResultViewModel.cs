@@ -1,12 +1,14 @@
 ﻿using System;
+using System.IO;
 using System.Windows.Forms;
 using System.Windows.Media;
 using System.Windows.Threading;
 using NLog;
-
+using Wox.Core.Plugin;
 using Wox.Image;
 using Wox.Infrastructure;
 using Wox.Infrastructure.Logger;
+using Wox.Infrastructure.UserSettings;
 using Wox.Plugin;
 
 namespace Wox.ViewModel
@@ -30,6 +32,18 @@ namespace Wox.ViewModel
         private ImageSource SetImage(Result result)
         {
             string imagePath = result.IcoPath;
+            string key = "EmbededIcon:";
+
+            var plugin = PluginManager.GetPluginForId(result.PluginID);
+            var pluginDirectory = plugin?.Metadata?.PluginDirectory;
+            //// todo, use icon path type enum in the future
+            //if (!string.IsNullOrEmpty(pluginDirectory)
+            //    && !string.IsNullOrEmpty(imagePath)
+            //    && !Path.IsPathRooted(imagePath)
+            //    && !imagePath.StartsWith(key))
+            //{
+            //    imagePath = Path.Combine(plugin.Metadata.PluginDirectory, result.IcoPath);
+            //}
             if (string.IsNullOrEmpty(imagePath) && result.Icon != null)
             {
                 var r = result;
@@ -41,9 +55,8 @@ namespace Wox.ViewModel
                 {
                     e.Data.Add(nameof(result.Title), result.Title);
                     e.Data.Add(nameof(result.PluginID), result.PluginID);
-                    e.Data.Add(nameof(result.PluginDirectory), result.PluginDirectory);
                     e.Data.Add(nameof(result.IcoPath), result.IcoPath);
-                    Logger.WoxError($"IcoPath is empty and exception when calling Icon() for result <{r.Title}> of plugin <{r.PluginDirectory}>", e);
+                    Logger.WoxError($"IcoPath is empty and exception when calling Icon() for result <{r.Title}> of plugin <{pluginDirectory}>", pluginDirectory);
                     return ImageLoader.GetErrorImage();
                 }
             }
@@ -55,13 +68,12 @@ namespace Wox.ViewModel
             try
             {
                 // will get here either when icoPath has value\icon delegate is null\when had exception in delegate
-                return ImageLoader.Load(imagePath, UpdateImageCallback, result.Title, result.PluginID, result.PluginDirectory);
+                return ImageLoader.Load(imagePath, UpdateImageCallback, result.Title, result.PluginID, pluginDirectory);
             }
             catch (Exception e)
             {
                 e.Data.Add(nameof(result.Title), result.Title);
                 e.Data.Add(nameof(result.PluginID), result.PluginID);
-                e.Data.Add(nameof(result.PluginDirectory), result.PluginDirectory);
                 e.Data.Add(nameof(result.IcoPath), result.IcoPath);
                 Logger.WoxError($"Cannot read image {result.IcoPath}", e);
                 return ImageLoader.GetErrorImage();

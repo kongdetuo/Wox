@@ -49,12 +49,6 @@ namespace Wox.Plugin
         /// </summary>
         public Query OriginQuery { get; set; }
 
-        /// <summary>
-        /// Plugin directory
-        /// </summary>
-        [Obsolete("useless")]
-        public string PluginDirectory { get; set; }
-
         public override bool Equals(object obj)
         {
             var r = obj as Result;

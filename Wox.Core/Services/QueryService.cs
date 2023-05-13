@@ -13,46 +13,137 @@ using System.Reactive.Linq;
 using System.Reactive.Concurrency;
 using System.Threading;
 using System.Threading.Channels;
+using Wox.Infrastructure.UserSettings;
+using System.Diagnostics;
+using Wox.Core.Storage;
+using NLog.Config;
 
 namespace Wox.Core.Services
 {
     public class QueryService
     {
-        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        private readonly TopMostRecord topMostRecord;
+        private readonly UserSelectedRecord userSelectedRecord;
+        private readonly Logger Logger;
 
-        public static IAsyncEnumerable<PluginQueryResult> QueryAsync(Query query, CancellationToken token)
+        public QueryService(TopMostRecord topMostRecord, UserSelectedRecord userSelectedRecord)
         {
-            var channel = Channel.CreateUnbounded<PluginQueryResult>();
-            _ = Task.Run(async () =>
-            {
-                var plugins = PluginManager.AllPlugins;
-                var writer = channel.Writer;
-                var tasks = plugins.AsParallel().Select(async plugin =>
-                {
-                    if (query is null || !TryMatch(plugin, query))
-                    {
-                        await channel.Writer.WriteAsync(Empty(plugin, query), token);
-                    }
-                    else
-                    {
-                        await writer.WriteAsync(new PluginQueryResult(plugin, query, PluginManager.QueryForPlugin(plugin, query)), token);
-                        if (plugin.Plugin is IResultUpdated updatedPlugin)
-                        {
-                            await foreach (var item in updatedPlugin.QueryUpdates(query).WithCancellation(token))
-                            {
-                                PluginManager.UpdatePluginMetadata(item, plugin.Metadata, query);
-                                await writer.WriteAsync(new PluginQueryResult(plugin, query, item), token);
-                            }
-                        }
-                    }
-                });
+            this.topMostRecord = topMostRecord;
+            this.userSelectedRecord = userSelectedRecord;
+            this.Logger = LogManager.GetCurrentClassLogger();
 
-                await Task.WhenAll(tasks);
-                writer.Complete();
-            }, CancellationToken.None);
-            return channel.Reader.ReadAllAsync(token);
+            // Query(QueryBuilder.Build("我")).IgnoreElements().Subscribe();
         }
 
+        public IObservable<PluginQueryResult> Query(Query query)
+        {
+            return Observable.Create<PluginQueryResult>(async (ob, token) =>
+            {
+                var plugins = PluginManager.AllPlugins;
+                await Task.WhenAll(plugins.AsParallel().Select(async plugin =>
+                {
+                    try
+                    {
+                        if (query is null || !TryMatch(plugin, query))
+                        {
+                            ob.OnNext(Empty(plugin, query));
+                            return;
+                        }
+
+                        ob.OnNext(Query(plugin, query));
+
+                        await foreach (var item in QueryUpdate(plugin, query, token))
+                        {
+                            if (token.IsCancellationRequested)
+                                break;
+                            ob.OnNext(item);
+                        }
+                    }
+                    catch (Exception)
+                    {
+
+                    }
+                }));
+                ob.OnCompleted();
+            });
+        }
+
+        private PluginQueryResult CreatePluginQueryResult(PluginProxy plugin, Query query, List<Result> results)
+        {
+            var result = new PluginQueryResult(plugin, query, results ?? new());
+            UpdatePluginMetadata(result.Results, plugin.Metadata, query);
+            UpdateScore(result);
+            return result;
+        }
+
+
+        public IAsyncEnumerable<PluginQueryResult> QueryUpdate(PluginProxy plugin, Query query, CancellationToken token)
+        {
+            if (plugin.Plugin is IResultUpdated updatedPlugin)
+            {
+                return updatedPlugin.QueryUpdates(query, token).Select(p => CreatePluginQueryResult(plugin, query, p));
+            }
+            return AsyncEnumerable.Empty<PluginQueryResult>();
+        }
+
+
+
+        public PluginQueryResult Query(PluginProxy pair, Query query)
+        {
+            try
+            {
+                var metadata = pair.Metadata;
+                List<Result> results = new List<Result>();
+                var milliseconds = Logger.StopWatchDebug($"Query <{query.RawQuery}> Cost for {metadata.Name}", () =>
+                {
+                    results = pair.Plugin.Query(query) ?? new List<Result>();
+                });
+
+                metadata.QueryCount += 1;
+                metadata.AvgQueryTime = metadata.QueryCount == 1 ? milliseconds : (metadata.AvgQueryTime + milliseconds) / 2;
+                return CreatePluginQueryResult(pair, query, results);
+            }
+            catch (Exception e)
+            {
+                e.Data.Add(nameof(pair.Metadata.ID), pair.Metadata.ID);
+                e.Data.Add(nameof(pair.Metadata.Name), pair.Metadata.Name);
+                e.Data.Add(nameof(pair.Metadata.PluginDirectory), pair.Metadata.PluginDirectory);
+                e.Data.Add(nameof(pair.Metadata.Website), pair.Metadata.Website);
+                Logger.WoxError($"Exception for plugin <{pair.Metadata.Name}> when query <{query}>", e);
+                return Empty(pair, query);
+            }
+        }
+
+        private void UpdateScore(PluginQueryResult update)
+        {
+            var queryHasTopMoustRecord = topMostRecord.HasTopMost(update.Query);
+            foreach (var result in update.Results)
+            {
+                if (queryHasTopMoustRecord && topMostRecord.IsTopMost(result))
+                {
+                    result.Score = int.MaxValue;
+                }
+                else if (!update.Plugin.Metadata.KeepResultRawScore)
+                {
+                    result.Score += userSelectedRecord.GetSelectedCount(result) * 10;
+                }
+                else
+                {
+                    result.Score = result.Score;
+                }
+            }
+        }
+        private static Result SetPluginMetadata(Result result, PluginMetadata plugin, Query query)
+        {
+            result.PluginID = plugin.ID;
+            result.OriginQuery = query;
+
+            // ActionKeywordAssigned is used for constructing MainViewModel's query text auto-complete suggestions
+            // Plugins may have multi-actionkeywords eg. WebSearches. In this scenario it needs to be overriden on the plugin level
+            if (plugin.ActionKeywords.Count == 1)
+                result.ActionKeywordAssigned = query.ActionKeyword;
+            return result;
+        }
         private static bool TryMatch(PluginProxy pair, Query query)
         {
             if (pair.Metadata.Disabled)
@@ -61,6 +152,13 @@ namespace Wox.Core.Services
             bool validGlobalQuery = query.ActionKeyword is null && pair.Metadata.ActionKeywords[0].IsGlobal;
             bool validNonGlobalQuery = query.ActionKeyword is not null && pair.Metadata.ActionKeywords.Contains(query.ActionKeyword.Value);
             return validGlobalQuery || validNonGlobalQuery;
+        }
+        public static void UpdatePluginMetadata(List<Result> results, PluginMetadata metadata, Query query)
+        {
+            foreach (var r in results)
+            {
+                SetPluginMetadata(r, metadata, query);
+            }
         }
 
         private static PluginQueryResult Empty(PluginProxy plugin, Query query)
@@ -92,5 +190,21 @@ namespace Wox.Core.Services
         public Query Query { get; private set; }
 
         public List<Result> Results { get; set; }
+    }
+
+    static class AsyncEnumerable
+    {
+        public async static IAsyncEnumerable<T> Empty<T>()
+        {
+            yield break;
+        }
+
+        public static async IAsyncEnumerable<R> Select<T, R>(this IAsyncEnumerable<T> source, Func<T, R> selector)
+        {
+            await foreach (var item in source)
+            {
+                yield return selector(item);
+            }
+        }
     }
 }

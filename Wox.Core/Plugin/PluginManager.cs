@@ -158,40 +158,6 @@ namespace Wox.Core.Plugin
             PluginInstaller.Install(path);
         }
 
-        public static List<Result> QueryForPlugin(PluginProxy pair, Query query)
-        {
-            try
-            {
-                var metadata = pair.Metadata;
-                List<Result> results = new List<Result>();
-                var milliseconds = Logger.StopWatchDebug($"Query <{query.RawQuery}> Cost for {metadata.Name}", () =>
-                {
-                    results = pair.Plugin.Query(query) ?? new List<Result>();
-                });
-                UpdatePluginMetadata(results, metadata, query);
-                metadata.QueryCount += 1;
-                metadata.AvgQueryTime = metadata.QueryCount == 1 ? milliseconds : (metadata.AvgQueryTime + milliseconds) / 2;
-                return results;
-            }
-            catch (Exception e)
-            {
-                e.Data.Add(nameof(pair.Metadata.ID), pair.Metadata.ID);
-                e.Data.Add(nameof(pair.Metadata.Name), pair.Metadata.Name);
-                e.Data.Add(nameof(pair.Metadata.PluginDirectory), pair.Metadata.PluginDirectory);
-                e.Data.Add(nameof(pair.Metadata.Website), pair.Metadata.Website);
-                Logger.WoxError($"Exception for plugin <{pair.Metadata.Name}> when query <{query}>", e);
-                return new List<Result>();
-            }
-        }
-
-        public static void UpdatePluginMetadata(List<Result> results, PluginMetadata metadata, Query query)
-        {
-            foreach (var r in results)
-            {
-                SetPluginMetadata(r, metadata, query);
-            }
-        }
-
         private static bool IsGlobalPlugin(PluginMetadata metadata)
         {
             return metadata.ActionKeywords.Contains(Keyword.Global);
@@ -204,7 +170,7 @@ namespace Wox.Core.Plugin
         /// <returns></returns>
         public static PluginProxy GetPluginForId(string id)
         {
-            if(id != null && PluginDic.TryGetValue(id, out var plugin))
+            if (id != null && PluginDic.TryGetValue(id, out var plugin))
             {
                 return plugin;
             }
@@ -229,7 +195,6 @@ namespace Wox.Core.Plugin
                     var results = plugin.LoadContextMenus(result);
                     foreach (var r in results)
                     {
-                        r.PluginDirectory = metadata.PluginDirectory;
                         r.PluginID = metadata.ID;
                         r.OriginQuery = result.OriginQuery;
                     }
@@ -328,24 +293,20 @@ namespace Wox.Core.Plugin
                 AddActionKeyword(id, newActionKeyword);
             }
         }
-        private static Result SetPluginMetadata(Result result, PluginMetadata plugin, Query query)
+
+
+    }
+
+    public class HistoryPlugin : IPlugin
+    {
+        public void Init(PluginInitContext context)
         {
-            result.PluginDirectory = plugin.PluginDirectory;
-            result.PluginID = plugin.ID;
-            result.OriginQuery = query;
+            throw new NotImplementedException();
+        }
 
-            string key = "EmbededIcon:";
-            // todo, use icon path type enum in the future
-            if (!string.IsNullOrEmpty(plugin.PluginDirectory) && !string.IsNullOrEmpty(result.IcoPath) && !Path.IsPathRooted(result.IcoPath) && !result.IcoPath.StartsWith(key))
-            {
-                result.IcoPath = Path.Combine(plugin.PluginDirectory, result.IcoPath);
-            }
-
-            // ActionKeywordAssigned is used for constructing MainViewModel's query text auto-complete suggestions
-            // Plugins may have multi-actionkeywords eg. WebSearches. In this scenario it needs to be overriden on the plugin level
-            if (plugin.ActionKeywords.Count == 1)
-                result.ActionKeywordAssigned = query.ActionKeyword;
-            return result;
+        public List<Result> Query(Query query)
+        {
+            throw new NotImplementedException();
         }
     }
 }

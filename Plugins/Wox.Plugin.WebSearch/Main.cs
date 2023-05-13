@@ -34,33 +34,50 @@ namespace Wox.Plugin.WebSearch
             _viewModel.Save();
         }
 
-        public List<Result> Query(Query query) => new();
-
-        public async IAsyncEnumerable<List<Result>> QueryUpdates(Query query)
+        public List<Result> Query(Query query)
         {
             var enabledSource = _settings.SearchSources.Where(p => p.Enabled);
-            var searchSourceList = enabledSource
+            var source = enabledSource
                 .Where(o => o.ActionKeyword == query.ActionKeyword?.Key)
                 .Concat(enabledSource.Where(p => p.ActionKeyword == SearchSourceGlobalPluginWildCardSign))
-                .ToList();
+                .FirstOrDefault();
 
-            if (searchSourceList.Any())
+            if (source is not null)
             {
-                var defaultResults = searchSourceList
-                    .Select(source => GetResult(source, GetKeyword(query, source), GetSubtitle(source)))
-                    .ToList();
+                return new List<Result>()
+                {
+                    GetResult(source, GetKeyword(query, source), GetSubtitle(source))
+                };
+            }
+            return null;
+        }
 
-                yield return defaultResults;
+        public async IAsyncEnumerable<List<Result>> QueryUpdates(Query query, CancellationToken token)
+        {
+            var enabledSource = _settings.SearchSources.Where(p => p.Enabled);
+            var source = enabledSource
+                .Where(o => o.ActionKeyword == query.ActionKeyword?.Key)
+                .Concat(enabledSource.Where(p => p.ActionKeyword == SearchSourceGlobalPluginWildCardSign))
+                .FirstOrDefault();
+
+            if (source is not null)
+            {
+                var defaultResults = new List<Result>()
+                {
+                    GetResult(source, GetKeyword(query, source), GetSubtitle(source))
+                };
+
+                if (token.IsCancellationRequested)
+                    yield break;
+
                 if (_settings.EnableSuggestion && _settings.SelectedSuggestion != null)
                 {
-                    foreach (var source in searchSourceList)
-                    {
-                        var suggest = await Suggestions(source, query);
+                    var suggest = await Suggestions(source, query);
 
-                        // List<T> is not thread safe
-                        defaultResults = defaultResults.Concat(suggest).ToList();
-                        yield return defaultResults;
-                    }
+                    // List<T> is not thread safe
+                    defaultResults = defaultResults.Concat(suggest).ToList();
+                  token.ThrowIfCancellationRequested();
+                    yield return defaultResults;
                 }
             }
             else

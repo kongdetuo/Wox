@@ -231,7 +231,6 @@ namespace Wox.Plugin.Sys
                 },
                 new Result
                 {
-                    PluginDirectory = context.CurrentPluginMetadata.PluginDirectory,
                     Title = "Check For Update",
                     SubTitle = "Check for new Wox update",
                     IcoPath = "Images\\update.png",

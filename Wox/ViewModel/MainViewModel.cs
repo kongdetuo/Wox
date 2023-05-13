@@ -23,6 +23,9 @@ using Wox.Infrastructure.Storage;
 using Wox.Infrastructure.UserSettings;
 using Wox.Plugin;
 using Wox.Core.Storage;
+using System.Threading.Channels;
+using System.ComponentModel;
+using System.Reactive.Concurrency;
 
 namespace Wox.ViewModel
 {
@@ -46,6 +49,8 @@ namespace Wox.ViewModel
 
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
         private readonly SynchronizationContext SynchronizationContext;
+        private readonly QueryService QueryService;
+
 
         #endregion Private Fields
 
@@ -65,6 +70,8 @@ namespace Wox.ViewModel
             _history = _historyItemsStorage.Load();
             _userSelectedRecord = _userSelectedRecordStorage.Load();
             _topMostRecord = _topMostRecordStorage.Load();
+            this.QueryService= new QueryService(_topMostRecord,_userSelectedRecord);
+
 
             ContextMenu = new ContextViewModel(_settings);
             Results = new QueryResultViewModel(_settings, _userSelectedRecord, _history);
@@ -79,22 +86,29 @@ namespace Wox.ViewModel
                 SetHotkey(_settings.Hotkey, OnHotkey);
                 SetCustomPluginHotkey();
             }
-            var queryTextChangeds = this.WhenChanged(p => p.QueryText).Publish();
 
+            var queryTextChangeds = this.WhenChanged(p => p.QueryText).Skip(1)
+                .Where(p => MainWindowVisibility == Visibility.Visible)
+                .Publish();
 
             var querys = queryTextChangeds.Where(_ => SelectedIsFromQueryResults())
                 .Select(p => p.TrimStart())
                 .DistinctUntilChanged()
+                .ObserveOn(ThreadPoolScheduler.Instance)
                 .Throttle(TimeSpan.FromMilliseconds(20))
-                .ObserveOn(this.SynchronizationContext)
-                .Select(p => new QueryViewModel(p))
-                //.Select(p => QueryResults(p))
                 .Publish();
 
-            //SetProcessBar(querys);
-
-            //querys.Subscribe(p => { });
-            querys.Subscribe(p => QueryResults(p));
+            
+            querys
+                .Select(p => QueryService.Query(QueryBuilder.Build(p)))
+                .Switch()
+                .Buffer(TimeSpan.FromMilliseconds(20))
+                .Where(p => p.Count > 0)
+                .ObserveOn(this.SynchronizationContext)
+                .Subscribe(p =>
+                {
+                    UpdateResultView(p, CancellationToken.None);
+                });
 
             querys.Connect();
 
@@ -105,11 +119,6 @@ namespace Wox.ViewModel
             _ = queryTextChangeds.Where(p => HistorySelected())
                 .Subscribe(queryText => QueryHistory());
 
-            //var triggers = this.WhenChanged(p => p.QueryText).Select(p => Unit.Default)
-            //    .Merge(this.WhenChanged(p => p.SelectedResults).Select(p => Unit.Default))
-            //    .Merge(this.Results.WhenChanged(p => p.PluginID).Select(p => Unit.Default));
-
-            //triggers.Subscribe(p => SetPluginIcon());
 
             queryTextChangeds.Connect();
         }
@@ -224,7 +233,8 @@ namespace Wox.ViewModel
         public ResultsViewModel ContextMenu { get; private set; }
         public ResultsViewModel History { get; private set; }
 
-        public QueryViewModel CurrentQuery { get; set; }
+        public string PluginID { get; set; }
+
         public string QueryText { get; set; }
 
         /// <summary>
@@ -347,27 +357,6 @@ namespace Wox.ViewModel
                 || StringMatcher.FuzzySearch(query, result.SubTitle).IsSearchPrecisionScoreMet();
         }
 
-        private async Task QueryResults(QueryViewModel vm)
-        {
-            CurrentQuery?.Cancel();
-            CurrentQuery = vm;
-
-            await Task.Yield();
-
-            vm.Started = true;
-
-            var token = vm.Token;
-            var query = QueryBuilder.Build(vm.QueryText);
-
-            await foreach (var item in QueryService.QueryAsync(query, token)/*.Buffer(TimeSpan.FromMilliseconds(15))*/)
-            {
-                UpdateScore(item);
-                UpdateResultView(item);
-            }
-            //await Task.Delay(2000);
-            vm.IsCompleted = true;
-        }
-
         private void Refresh()
         {
             PluginManager.ReloadData();
@@ -382,7 +371,6 @@ namespace Wox.ViewModel
                 {
                     Title = InternationalizationManager.Instance.GetTranslation("cancelTopMostInThisQuery"),
                     IcoPath = "Images\\down.png",
-                    PluginDirectory = Constant.ProgramDirectory,
                     Action = _ =>
                     {
                         _topMostRecord.Remove(result);
@@ -397,7 +385,6 @@ namespace Wox.ViewModel
                 {
                     Title = InternationalizationManager.Instance.GetTranslation("setAsTopMostInThisQuery"),
                     IcoPath = "Images\\up.png",
-                    PluginDirectory = Constant.ProgramDirectory,
                     Action = _ =>
                     {
                         _topMostRecord.AddOrUpdate(result);
@@ -427,7 +414,6 @@ namespace Wox.ViewModel
                 Title = title,
                 IcoPath = icon,
                 SubTitle = subtitle,
-                PluginDirectory = metadata.PluginDirectory,
                 Action = _ => false
             };
             return menu;
@@ -435,8 +421,7 @@ namespace Wox.ViewModel
 
         private bool SelectedIsFromQueryResults()
         {
-            return true;
-            var selected = SelectedResults == CurrentQuery.Results;
+            var selected = SelectedResults is QueryResultViewModel;
             return selected;
         }
 
@@ -457,19 +442,23 @@ namespace Wox.ViewModel
             var queryText = QueryText.AsSpan().TrimStart();
             if (SelectedIsFromQueryResults())
             {
-                var plugin = PluginManager.GetPluginForId(this.Results.PluginID);
-                if (plugin == null && queryText.Contains(' '))
+                if (this.Results.PluginID != this.PluginID)
                 {
-                    var key = queryText[..queryText.IndexOf(' ')].ToString();
-                    plugin = PluginManager.AllPlugins
-                       .Where(p => !p.Metadata.Disabled)
-                       .SingleOrDefault(p => key == p.Metadata.ActionKeyword.Key);
-                }
+                    this.PluginID = this.Results.PluginID;
+                    var plugin = PluginManager.GetPluginForId(this.Results.PluginID);
+                    if (plugin == null && queryText.Contains(' '))
+                    {
+                        var key = queryText[..queryText.IndexOf(' ')].ToString();
+                        plugin = PluginManager.AllPlugins
+                           .Where(p => !p.Metadata.Disabled)
+                           .SingleOrDefault(p => key == p.Metadata.ActionKeyword.Key);
+                    }
 
-                if (plugin != null)
-                    this.PluginIcon = Image.ImageLoader.Load(plugin.Metadata.IcoPath, plugin.Metadata.PluginDirectory);
-                else
-                    this.PluginIcon = null;
+                    if (plugin != null)
+                        this.PluginIcon = Image.ImageLoader.Load(plugin.Metadata.IcoPath, plugin.Metadata.PluginDirectory);
+                    else
+                        this.PluginIcon = null;
+                }
             }
             else if (ContextMenuSelected())
             {
@@ -597,56 +586,27 @@ namespace Wox.ViewModel
         /// <summary>
         /// To avoid deadlock, this method should not called from main thread
         /// </summary>
-        public void UpdateResultView(IEnumerable<PluginQueryResult> updates, CancellationToken token)
+        public void UpdateResultView(IList<PluginQueryResult> updates, CancellationToken token)
         {
-            //UpdateScore(updates);
             Results.AddResults(updates, token);
             UpdateResultVisible();
-        }
-        public void UpdateResultView(PluginQueryResult updates)
-        {
-            //UpdateScore(updates);
-            Results.AddResults(new[] { updates }, CancellationToken.None);
-            UpdateResultVisible();
-        }
-        private void UpdateScore(IEnumerable<PluginQueryResult> updates)
-        {
-            foreach (PluginQueryResult update in updates)
-            {
-                UpdateScore(update);
-            }
+            SetPluginIcon();
         }
 
-        private void UpdateScore(PluginQueryResult update)
-        {
-            var queryHasTopMoustRecord = _topMostRecord.HasTopMost(update.Query);
-            foreach (var result in update.Results)
-            {
-                if (queryHasTopMoustRecord && _topMostRecord.IsTopMost(result))
-                {
-                    result.Score = int.MaxValue;
-                }
-                else if (!update.Plugin.Metadata.KeepResultRawScore)
-                {
-                    result.Score += _userSelectedRecord.GetSelectedCount(result) * 10;
-                }
-                else
-                {
-                    result.Score = result.Score;
-                }
-            }
-        }
+
+
+
 
         private void UpdateResultVisible()
         {
-            //if (ContextMenu != SelectedResults)
-            //    ContextMenu.Visbility = Visibility.Collapsed;
-            //if (Results != SelectedResults)
-            //    Results.Visbility = Visibility.Collapsed;
-            //if (History != SelectedResults)
-            //    History.Visbility = Visibility.Collapsed;
+            if (ContextMenu != SelectedResults)
+                ContextMenu.Visbility = Visibility.Collapsed;
+            if (Results != SelectedResults)
+                Results.Visbility = Visibility.Collapsed;
+            if (History != SelectedResults)
+                History.Visbility = Visibility.Collapsed;
 
-            //SelectedResults.Visbility = SelectedResults.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            SelectedResults.Visbility = SelectedResults.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         }
 
         #endregion Public Methods
@@ -658,10 +618,6 @@ namespace Wox.ViewModel
         {
             this.QueryText = queryText;
         }
-        public CancellationToken Token { get; set; }
-
-
-        private CancellationTokenSource source = new CancellationTokenSource();
 
         public string QueryText { get; set; }
 
@@ -670,12 +626,5 @@ namespace Wox.ViewModel
         public bool Started { get; set; }
         public bool IsCompleted { get; set; }
         public bool Canceled { get; set; }
-        internal void Cancel()
-        {
-            this.Canceled = true;
-            this.Started = false;
-            source.Cancel();
-            source.Dispose();
-        }
     }
 }

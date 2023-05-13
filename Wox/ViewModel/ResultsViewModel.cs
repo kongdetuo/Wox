@@ -24,6 +24,7 @@ namespace Wox.ViewModel
     {
         #region Private Fields
 
+        private Dictionary<string, PluginQueryResult> pluginQueryResults = new();
         public ResultCollection Results { get; }
 
         private readonly Settings _settings;
@@ -130,6 +131,7 @@ namespace Wox.ViewModel
 
         public void Clear()
         {
+            this.pluginQueryResults.Clear();
             Results.RemoveAll();
         }
 
@@ -141,10 +143,9 @@ namespace Wox.ViewModel
             {
                 new PluginQueryResult(newRawResults, resultId)
             };
-            AddResults(updates,CancellationToken.None);
+            AddResults(updates, CancellationToken.None);
 
         }
-        static int i = 0;
 
         /// <summary>
         /// To avoid deadlock, this method should not called from main thread
@@ -152,40 +153,39 @@ namespace Wox.ViewModel
         public void AddResults(IEnumerable<PluginQueryResult> updates, CancellationToken token)
         {
             // https://stackoverflow.com/questions/14336750
-            lock (_collectionLock)
+
+            // because IResultUpdated, updates maybe contains same plugin result
+            // we just need the last one
+
+            foreach (var update in updates)
             {
-                // because IResultUpdated, updates maybe contains same plugin result
-                // we just need the last one
-                updates = updates.Reverse().DistinctBy(p => p.PluginID).Reverse();
-
-                var hs = updates.Select(p => p.PluginID).ToHashSet();
-
-                var newResults = Results.ToList()
-                    .Where(p => !hs.Contains(p.Result.PluginID)) // remove previous result
-                    .Concat(updates.SelectMany(u => u.Results).Select(r => new ResultViewModel(r)))
-                    .OrderByDescending(r => r.Result.Score)
-                    .Take(MaxResults * 4);
-
-                i++;
-                if (token.IsCancellationRequested)
-                    return;
-                Results.Update(newResults);
-
-                if(Results.Count > 0)
-                {
-                    var id = Results[0].Result.PluginID;
-                    if (Results.All(p => p.Result.PluginID == id))
-                        this.PluginID = id;
-                    else
-                        this.PluginID = null;
-                }
-                else
-                {
-                    this.PluginID = null;
-                }
-
-                this.Visbility = Results.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+                this.pluginQueryResults[update.PluginID] = update;
             }
+
+            var newResults = this.pluginQueryResults.Values
+                .SelectMany(p => p.Results)
+                .Select(p => new ResultViewModel(p))
+                .OrderByDescending(r => r.Result.Score)
+                .Take(MaxResults * 4);
+
+            if (token.IsCancellationRequested)
+                return;
+            Results.Update(newResults);
+
+            if (Results.Count > 0)
+            {
+                var id = Results[0].Result.PluginID;
+                if (Results.All(p => p.Result.PluginID == id))
+                    this.PluginID = id;
+                else
+                    this.PluginID = null;
+            }
+            else
+            {
+                this.PluginID = null;
+            }
+
+            this.Visbility = Results.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
 
             //if (Results.Count > 0)
             //    SelectedIndex = 0;
@@ -216,7 +216,7 @@ namespace Wox.ViewModel
         public class ResultCollection : List<ResultViewModel>, INotifyCollectionChanged
         {
             public event NotifyCollectionChangedEventHandler CollectionChanged;
-           
+
             public void RemoveAll()
             {
                 this.Clear();
