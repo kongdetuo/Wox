@@ -208,13 +208,6 @@ namespace Wox
 
         #region Plugin
 
-        private void OnPluginToggled(object sender, RoutedEventArgs e)
-        {
-            var id = _viewModel.SelectedPlugin.PluginPair.Metadata.ID;
-            // used to sync the current status from the plugin manager into the setting to keep consistency after save
-            _settings.PluginSettings.Plugins[id].Disabled = _viewModel.SelectedPlugin.PluginPair.Metadata.Disabled; 
-        }
-
         private void OnPluginActionKeywordsClick(object sender, MouseButtonEventArgs e)
         {
             if (e.ChangedButton == MouseButton.Left)

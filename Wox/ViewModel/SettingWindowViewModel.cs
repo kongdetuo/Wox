@@ -171,7 +171,7 @@ namespace Wox.ViewModel
                 var metadatas = PluginManager.AllPlugins
                     .OrderBy(x => x.Metadata.Disabled)
                     .ThenBy(y => y.Metadata.Name)
-                    .Select(p => new PluginViewModel { PluginPair = p })
+                    .Select(p => new PluginViewModel(p) )
                     .ToList();
                 return metadatas;
             }
