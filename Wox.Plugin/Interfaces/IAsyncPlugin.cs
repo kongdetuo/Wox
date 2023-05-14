@@ -8,6 +8,9 @@ namespace Wox.Plugin
     {
         Task<List<Result>> QueryAsync(Query query, CancellationToken token);
 
-        Task InitAsync(PluginInitContext context);
+        virtual Task InitAsync(PluginInitContext context)
+        {
+            return Task.CompletedTask;
+        }
     }
 }
