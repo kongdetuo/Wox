@@ -31,13 +31,6 @@ namespace Wox
 
             }
         }
-        
-        protected override void OnItemsChanged(NotifyCollectionChangedEventArgs e)
-        {
-            base.OnItemsChanged(e);
-            if (this.Items.Count > 0)
-                SelectedIndex = 0;
-        }
 
         private void OnMouseEnter(object sender, MouseEventArgs e)
         {

@@ -22,6 +22,7 @@ namespace Wox.ViewModel
 {
     public class ResultsViewModel : BaseModel
     {
+
         #region Private Fields
 
         private Dictionary<string, PluginQueryResult> pluginQueryResults = new();
@@ -41,6 +42,8 @@ namespace Wox.ViewModel
             SelectNextPageCommand = new RelayCommand(_ => SelectNextPage());
             SelectPrevPageCommand = new RelayCommand(_ => SelectPrevPage());
             SelectFirstResultCommand = new RelayCommand(_ => SelectFirstResult());
+
+
         }
 
         public ResultsViewModel(Settings settings) : this()
@@ -52,7 +55,21 @@ namespace Wox.ViewModel
                 {
                     OnPropertyChanged(nameof(MaxHeight));
                 }
+
             };
+            this.PropertyChanged += ResultsViewModel_PropertyChanged;
+        }
+
+        private void ResultsViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(SelectedItem))
+            {
+
+            }
+            if (e.PropertyName == nameof(SelectedIndex))
+            {
+
+            }
         }
 
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
@@ -152,43 +169,45 @@ namespace Wox.ViewModel
         /// </summary>
         public void AddResults(IEnumerable<PluginQueryResult> updates, CancellationToken token)
         {
-            // https://stackoverflow.com/questions/14336750
-
-            // because IResultUpdated, updates maybe contains same plugin result
-            // we just need the last one
-
-            foreach (var update in updates)
+            lock (_collectionLock)
             {
-                this.pluginQueryResults[update.PluginID] = update;
-            }
+                // https://stackoverflow.com/questions/14336750
+                // because IResultUpdated, updates maybe contains same plugin result
+                // we just need the last one
+                this.SelectedItem = null;
 
-            var newResults = this.pluginQueryResults.Values
-                .SelectMany(p => p.Results)
-                .Select(p => new ResultViewModel(p))
-                .OrderByDescending(r => r.Result.Score)
-                .Take(MaxResults * 4);
+                foreach (var update in updates)
+                {
+                    this.pluginQueryResults[update.PluginID] = update;
+                }
 
-            if (token.IsCancellationRequested)
-                return;
-            Results.Update(newResults);
+                var newResults = this.pluginQueryResults.Values
+                    .SelectMany(p => p.Results)
+                    .OrderByDescending(r => r.Score)
+                    .Take(MaxResults * 6)
+                    .Select(p => new ResultViewModel(p))
+                    .ToList();
 
-            if (Results.Count > 0)
-            {
-                var id = Results[0].Result.PluginID;
-                if (Results.All(p => p.Result.PluginID == id))
-                    this.PluginID = id;
+                if (token.IsCancellationRequested)
+                    return;
+                Results.Update(newResults);
+                this.Visbility = Results.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+
+                if (Results.Count > 0)
+                {
+                    this.SelectedItem = Results[0];
+                    this.SelectedIndex = 0;
+                    var id = Results[0].Result.PluginID;
+                    if (Results.All(p => p.Result.PluginID == id))
+                        this.PluginID = id;
+                    else
+                        this.PluginID = null;
+                }
                 else
+                {
                     this.PluginID = null;
+                }
             }
-            else
-            {
-                this.PluginID = null;
-            }
-
-            this.Visbility = Results.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-
-            //if (Results.Count > 0)
-            //    SelectedIndex = 0;
         }
 
         public void Add(PluginQueryResult update)
