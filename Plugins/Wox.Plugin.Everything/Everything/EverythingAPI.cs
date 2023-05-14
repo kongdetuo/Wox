@@ -119,79 +119,88 @@ namespace Wox.Plugin.Everything.Everything
         /// <returns></returns>
         public List<SearchResult> Search(string keyWord, CancellationToken token, int maxCount)
         {
-            var results = new List<SearchResult>();
-
-            if (string.IsNullOrEmpty(keyWord))
-                throw new ArgumentNullException(nameof(keyWord));
-            if (maxCount < 0)
-                throw new ArgumentOutOfRangeException(nameof(maxCount));
-
-            if (token.IsCancellationRequested) { return results; }
-            if (keyWord.StartsWith("@"))
+            try
             {
-                EverythingApiDllImport.Everything_SetRegex(true);
-                keyWord = keyWord.Substring(1);
-            }
-            else
-            {
-                EverythingApiDllImport.Everything_SetRegex(false);
-            }
 
-            if (token.IsCancellationRequested) { return results; }
-            EverythingApiDllImport.Everything_SetRequestFlags(RequestFlag.HighlightedFileName | RequestFlag.HighlightedFullPathAndFileName);
-            if (token.IsCancellationRequested) { return results; }
-            EverythingApiDllImport.Everything_SetOffset(0);
-            if (token.IsCancellationRequested) { return results; }
-            EverythingApiDllImport.Everything_SetMax(maxCount);
-            if (token.IsCancellationRequested) { return results; }
-            EverythingApiDllImport.Everything_SetSearchW(keyWord);
 
-            if (token.IsCancellationRequested) { return results; }
-            if (!EverythingApiDllImport.Everything_QueryW(true))
-            {
-                CheckAndThrowExceptionOnError();
-                return results;
-            }
+                var results = new List<SearchResult>();
 
-            if (token.IsCancellationRequested) { return results; }
-            int count = EverythingApiDllImport.Everything_GetNumResults();
-            for (int idx = 0; idx < count; ++idx)
-            {
+                if (string.IsNullOrEmpty(keyWord))
+                    throw new ArgumentNullException(nameof(keyWord));
+                if (maxCount < 0)
+                    throw new ArgumentOutOfRangeException(nameof(maxCount));
+
                 if (token.IsCancellationRequested) { return results; }
-                // https://www.voidtools.com/forum/viewtopic.php?t=8169
-                string fileNameHighted = Marshal.PtrToStringUni(EverythingApiDllImport.Everything_GetResultHighlightedFileNameW(idx));
-                string fullPathHighted = Marshal.PtrToStringUni(EverythingApiDllImport.Everything_GetResultHighlightedFullPathAndFileNameW(idx));
-                if (fileNameHighted == null | fullPathHighted == null)
+                if (keyWord.StartsWith("@"))
                 {
-                    CheckAndThrowExceptionOnError();
-                }
-                if (token.IsCancellationRequested) { return results; }
-                ConvertHightlightFormat(fileNameHighted, out List<int> fileNameHightlightData, out string fileName);
-                if (token.IsCancellationRequested) { return results; }
-                ConvertHightlightFormat(fullPathHighted, out List<int> fullPathHightlightData, out string fullPath);
-
-                var result = new SearchResult
-                {
-                    FileName = fileName,
-                    FileNameHightData = fileNameHightlightData,
-                    FullPath = fullPath,
-                    FullPathHightData = fullPathHightlightData,
-                };
-
-                if (token.IsCancellationRequested) { return results; }
-                if (EverythingApiDllImport.Everything_IsFolderResult(idx))
-                {
-                    result.Type = ResultType.Folder;
+                    EverythingApiDllImport.Everything_SetRegex(true);
+                    keyWord = keyWord.Substring(1);
                 }
                 else
                 {
-                    result.Type = ResultType.File;
+                    EverythingApiDllImport.Everything_SetRegex(false);
                 }
 
-                results.Add(result);
-            }
+                if (token.IsCancellationRequested) { return results; }
+                EverythingApiDllImport.Everything_SetRequestFlags(RequestFlag.HighlightedFileName | RequestFlag.HighlightedFullPathAndFileName);
+                if (token.IsCancellationRequested) { return results; }
+                EverythingApiDllImport.Everything_SetOffset(0);
+                if (token.IsCancellationRequested) { return results; }
+                EverythingApiDllImport.Everything_SetMax(maxCount);
+                if (token.IsCancellationRequested) { return results; }
+                EverythingApiDllImport.Everything_SetSearchW(keyWord);
 
-            return results;
+                if (token.IsCancellationRequested) { return results; }
+                if (!EverythingApiDllImport.Everything_QueryW(true))
+                {
+                    CheckAndThrowExceptionOnError();
+                    return results;
+                }
+
+                if (token.IsCancellationRequested) { return results; }
+                int count = EverythingApiDllImport.Everything_GetNumResults();
+                for (int idx = 0; idx < count; ++idx)
+                {
+                    if (token.IsCancellationRequested) { return new(); }
+                    // https://www.voidtools.com/forum/viewtopic.php?t=8169
+                    string fileNameHighted = Marshal.PtrToStringUni(EverythingApiDllImport.Everything_GetResultHighlightedFileNameW(idx));
+                    string fullPathHighted = Marshal.PtrToStringUni(EverythingApiDllImport.Everything_GetResultHighlightedFullPathAndFileNameW(idx));
+                    if (fileNameHighted == null | fullPathHighted == null)
+                    {
+                        CheckAndThrowExceptionOnError();
+                    }
+                    if (token.IsCancellationRequested) { return new(); }
+                    ConvertHightlightFormat(fileNameHighted, out List<int> fileNameHightlightData, out string fileName);
+                    if (token.IsCancellationRequested) { return new(); }
+                    ConvertHightlightFormat(fullPathHighted, out List<int> fullPathHightlightData, out string fullPath);
+
+                    var result = new SearchResult
+                    {
+                        FileName = fileName,
+                        FileNameHightData = fileNameHightlightData,
+                        FullPath = fullPath,
+                        FullPathHightData = fullPathHightlightData,
+                    };
+
+                    if (token.IsCancellationRequested) { return new(); }
+                    if (EverythingApiDllImport.Everything_IsFolderResult(idx))
+                    {
+                        result.Type = ResultType.Folder;
+                    }
+                    else
+                    {
+                        result.Type = ResultType.File;
+                    }
+
+                    results.Add(result);
+                }
+
+                return results;
+            }
+            finally
+            {
+                EverythingApiDllImport.Everything_Reset();
+            }
         }
 
         private static void ConvertHightlightFormat(string contentHightlighted, out List<int> hightlightData, out string fn)

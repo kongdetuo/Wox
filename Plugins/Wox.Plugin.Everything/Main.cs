@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using NLog;
@@ -16,7 +17,7 @@ using Wox.Plugin.Everything.Everything;
 
 namespace Wox.Plugin.Everything
 {
-    public class Main : IPlugin, ISettingProvider, IPluginI18n, IContextMenu, ISavable
+    public class Main : IAsyncPlugin, ISettingProvider, IPluginI18n, IContextMenu, ISavable
     {
         public const string DLL = "Everything.dll";
         private readonly EverythingApi _api = new EverythingApi();
@@ -33,18 +34,9 @@ namespace Wox.Plugin.Everything
             _storage.Save();
         }
 
-        public List<Result> Query(Query query)
+        public async Task<List<Result>> QueryAsync(Query query, CancellationToken token)
         {
-            if (_updateSource != null && !_updateSource.IsCancellationRequested)
-            {
-                _updateSource.Cancel();
-                Logger.WoxDebug($"cancel init {_updateSource.Token.GetHashCode()} {Thread.CurrentThread.ManagedThreadId} {query.RawQuery}");
-                _updateSource.Dispose();
-            }
-            var source = new CancellationTokenSource();
-            _updateSource = source;
-            var token = source.Token;
-
+            await Task.Yield();
             var results = new List<Result>();
             if (!string.IsNullOrEmpty(query.Search))
             {
@@ -142,7 +134,7 @@ namespace Wox.Plugin.Everything
             return defaultContextMenus;
         }
 
-        public void Init(PluginInitContext context)
+        public async Task InitAsync(PluginInitContext context)
         {
             _context = context;
             _storage = new PluginJsonStorage<Settings>();
