@@ -50,6 +50,10 @@ namespace Wox.Image
         private static ImageSource LoadInternal(string path, string pluginDirectory)
         {
             Logger.WoxDebug($"load from disk {path}");
+            if (string.IsNullOrEmpty(path))
+            {
+                return _defaultFileImage;
+            }
 
             var image = LoadEmbededImage(path)
                 ?? LoadDataImage(path)
@@ -91,7 +95,7 @@ namespace Wox.Image
         {
             if (Directory.Exists(path))
             {
-             
+
                 try
                 {
                     while (path.Contains(@"\\"))
