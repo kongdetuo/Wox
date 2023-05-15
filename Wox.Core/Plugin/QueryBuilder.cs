@@ -21,13 +21,14 @@ namespace Wox.Core.Plugin
             string actionKeyword, search;
             var possibleActionKeyword = new Keyword(terms[0]);
 
-            if (PluginManager.NonGlobalPlugins.TryGetValue(possibleActionKeyword, out var pluginPair)
+            if ((terms.Length > 1 || text.EndsWith(Query.TermSeperater))
+                && PluginManager.NonGlobalPlugins.TryGetValue(possibleActionKeyword, out var pluginPair)
                 && !pluginPair.Metadata.Disabled)
             { // use non global plugin for query
                 actionKeyword = possibleActionKeyword.Key;
 
-                search = terms.Skip(1).Any() 
-                    ? rawQuery.Substring(actionKeyword.Length + 1) 
+                search = terms.Skip(1).Any()
+                    ? rawQuery.Substring(actionKeyword.Length + 1)
                     : string.Empty;
             }
             else
