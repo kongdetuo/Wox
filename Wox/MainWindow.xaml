@@ -26,7 +26,6 @@
         Activated="Window_Activated"
         Deactivated="OnDeactivated"
         Background="Transparent"
-        IsVisibleChanged="Window_IsVisibleChanged"
         Visibility="{Binding MainWindowVisibility, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
         d:DataContext="{d:DesignInstance vm:MainViewModel}">
     <Window.Resources>

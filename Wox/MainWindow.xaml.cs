@@ -60,8 +60,6 @@ namespace Wox
         private void OnLoaded(object sender, RoutedEventArgs _)
         {
             InitializeNotifyIcon();
-            // todo is there a way to set blur only once?
-            //ThemeManager.Instance.SetBlurForWindow();
             WindowsInteropHelper.DisableControlBox(this);
             InitProgressbarAnimation();
             InitializePosition();
@@ -75,9 +73,9 @@ namespace Wox
                 {
                     if (Visibility == Visibility.Visible)
                     {
-                        Activate();
-                        QueryTextBox.Focus();
                         UpdatePosition();
+                        Show();
+                        QueryTextBox.Focus();
                         _settings.ActivateTimes++;
                         if (!_viewModel.LastQuerySelected)
                         {
@@ -92,7 +90,7 @@ namespace Wox
                 {
                     if (_viewModel.ProgressBarVisibility == Visibility.Visible)
                     {
-                        this.Dispatcher.Invoke(()=> ProgressBar.BeginStoryboard(_progressBarStoryboard));
+                        this.Dispatcher.Invoke(() => ProgressBar.BeginStoryboard(_progressBarStoryboard));
                     }
                     else
                     {
@@ -237,6 +235,7 @@ namespace Wox
 
         private void OnDeactivated(object sender, EventArgs e)
         {
+            ThemeManager.Instance.DisableBlur();
             if (_settings.HideWhenDeactive)
             {
                 Hide();
@@ -290,14 +289,6 @@ namespace Wox
             {
                 QueryTextBox.CaretIndex = QueryTextBox.Text.Length;
                 _viewModel.QueryTextCursorMovedToEnd = false;
-            }
-        }
-
-        private void Window_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            if (this.Visibility != Visibility.Visible)
-            {
-                ThemeManager.Instance.DisableBlur();
             }
         }
     }

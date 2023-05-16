@@ -66,7 +66,7 @@ namespace Wox
 
                 PluginManager.LoadPlugins(Settings.Instance.PluginSettings);
                 _mainVM = new MainViewModel();
-                var window = new MainWindow(_mainVM);
+                var window = new MainWindow(_mainVM) { Visibility = Visibility.Hidden };
                 API = new PublicAPIInstance(_settingsVM, _mainVM);
                 await PluginManager.InitializePluginsAsync(API);
 
@@ -86,7 +86,8 @@ namespace Wox
 
                 AutoStartup();
 
-                _mainVM.MainWindowVisibility = Settings.Instance.HideOnStartup ? Visibility.Hidden : Visibility.Visible;
+                if (Settings.Instance.HideOnStartup == false)
+                    _mainVM.MainWindowVisibility = Visibility.Visible;
 
                 Logger.WoxInfo($"SDK Info: {ExceptionFormatter.SDKInfo()}");
                 Logger.WoxInfo("End Wox startup ----------------------------------------------------  ");
