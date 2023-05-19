@@ -293,7 +293,7 @@ namespace Wox.Plugin.Program.Programs
                 var result = new Result
                 {
                     SubTitle = "Windows Ó¦ÓÃ³ÌÐò",
-                    Icon = Logo,
+                    IcoPath= LogoPath,
                     ContextData = this,
                     Action = e =>
                     {
@@ -510,85 +510,6 @@ namespace Wox.Plugin.Program.Programs
                     e.Data.Add(nameof(parsed), parsed);
                     Logger.WoxError($"Load pri failed {source} location {Package.Location}", e);
                     return string.Empty;
-                }
-            }
-
-
-            public ImageSource Logo()
-            {
-                var logo = ImageFromPath(LogoPath);
-                var plated = PlatedImage(logo);
-
-                // todo magic! temp fix for cross thread object
-                plated.Freeze();
-                return plated;
-            }
-
-
-            private BitmapImage ImageFromPath(string path)
-            {
-                if (File.Exists(path))
-                {
-                    var image = new BitmapImage(new Uri(path));
-                    return image;
-                }
-                else
-                {
-                    Logger.WoxError($"|Unable to get logo for {UserModelId} from {path} and located in {Package.Location}");
-                    return new BitmapImage(new Uri(Constant.ErrorIcon));
-                }
-            }
-
-            private ImageSource PlatedImage(BitmapImage image)
-            {
-                if (!string.IsNullOrEmpty(BackgroundColor) && BackgroundColor != "transparent")
-                {
-                    var width = image.Width;
-                    var height = image.Height;
-                    var x = 0;
-                    var y = 0;
-
-                    var group = new DrawingGroup();
-
-                    var converted = ColorConverter.ConvertFromString(BackgroundColor);
-                    if (converted != null)
-                    {
-                        var color = (Color)converted;
-                        var brush = new SolidColorBrush(color);
-                        var pen = new Pen(brush, 1);
-                        var backgroundArea = new Rect(0, 0, width, width);
-                        var rectabgle = new RectangleGeometry(backgroundArea);
-                        var rectDrawing = new GeometryDrawing(brush, pen, rectabgle);
-                        group.Children.Add(rectDrawing);
-
-                        var imageArea = new Rect(x, y, image.Width, image.Height);
-                        var imageDrawing = new ImageDrawing(image, imageArea);
-                        group.Children.Add(imageDrawing);
-
-                        // http://stackoverflow.com/questions/6676072/get-system-drawing-bitmap-of-a-wpf-area-using-visualbrush
-                        var visual = new DrawingVisual();
-                        var context = visual.RenderOpen();
-                        context.DrawDrawing(group);
-                        context.Close();
-                        const int dpiScale100 = 96;
-                        var bitmap = new RenderTargetBitmap(
-                            Convert.ToInt32(width), Convert.ToInt32(height),
-                            dpiScale100, dpiScale100,
-                            PixelFormats.Pbgra32
-                        );
-                        bitmap.Render(visual);
-                        return bitmap;
-                    }
-                    else
-                    {
-                        Logger.WoxError($"Unable to convert background string {BackgroundColor} to color for {Package.Location}");
-                        return new BitmapImage(new Uri(Constant.ErrorIcon));
-                    }
-                }
-                else
-                {
-                    // todo use windows theme as background
-                    return image;
                 }
             }
 

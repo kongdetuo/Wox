@@ -44,22 +44,6 @@ namespace Wox.ViewModel
             //{
             //    imagePath = Path.Combine(plugin.Metadata.PluginDirectory, result.IcoPath);
             //}
-            if (string.IsNullOrEmpty(imagePath) && result.Icon != null)
-            {
-                var r = result;
-                try
-                {
-                    return r.Icon();
-                }
-                catch (Exception e)
-                {
-                    e.Data.Add(nameof(result.Title), result.Title);
-                    e.Data.Add(nameof(result.PluginID), result.PluginID);
-                    e.Data.Add(nameof(result.IcoPath), result.IcoPath);
-                    Logger.WoxError($"IcoPath is empty and exception when calling Icon() for result <{r.Title}> of plugin <{pluginDirectory}>", pluginDirectory);
-                    return ImageLoader.GetErrorImage();
-                }
-            }
 
             if (!string.IsNullOrEmpty(imagePath))
             {

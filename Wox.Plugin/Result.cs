@@ -23,10 +23,6 @@ namespace Wox.Plugin
 
         public string IcoPath { get; set; }
 
-        public delegate ImageSource IconDelegate();
-
-        public IconDelegate Icon;
-
         /// <summary>
         /// return true to hide wox after select result
         /// </summary>
