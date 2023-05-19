@@ -7,7 +7,7 @@ using System.Windows.Media.Imaging;
 
 namespace Wox.Plugin
 {
-    public class Result : BaseModel
+    public class Result : IEquatable<Result>
     {
         public HighlightText Title { get; set; } = HighlightText.Empty;
 
@@ -28,15 +28,6 @@ namespace Wox.Plugin
 
         public int Score { get; set; }
 
-        ///// <summary>
-        ///// A list of indexes for the characters to be highlighted in Title
-        ///// </summary>
-        //public IList<int> TitleHighlightData { get => HighlightTitle.HighlightData; set => HighlightTitle.HighlightData = value; }
-
-        ///// <summary>
-        ///// A list of indexes for the characters to be highlighted in SubTitle
-        ///// </summary>
-        //public IList<int> SubTitleHighlightData { get => HighlightSubTitle.HighlightData; set => HighlightSubTitle.HighlightData = value; }
 
         /// <summary>
         /// Only results that originQuery match with current query will be displayed in the panel
@@ -45,16 +36,15 @@ namespace Wox.Plugin
 
         public override bool Equals(object obj)
         {
-            var r = obj as Result;
-            var equality = r?.PluginID == PluginID && r?.Title == Title && r?.SubTitle == SubTitle;
-            return equality;
+            return obj is Result && Equals((Result)obj);
+
         }
 
         public override int GetHashCode()
         {
             int hash1 = PluginID?.GetHashCode() ?? 0;
-            int hash2 = Title?.GetHashCode() ?? 0;
-            int hash3 = SubTitle?.GetHashCode() ?? 0;
+            int hash2 = Title?.Text?.GetHashCode() ?? 0;
+            int hash3 = SubTitle?.Text?.GetHashCode() ?? 0;
             int hashcode = hash1 ^ hash2 ^ hash3;
             return hashcode;
         }
@@ -62,6 +52,15 @@ namespace Wox.Plugin
         public override string ToString()
         {
             return Title.Text + SubTitle.Text;
+        }
+
+        public bool Equals(Result other)
+        {
+            var equality = other is not null
+                && other.PluginID == PluginID
+                && other.Title.Text == Title.Text
+                && other.SubTitle.Text == SubTitle.Text;
+            return equality;
         }
 
         public Result()
@@ -113,7 +112,7 @@ namespace Wox.Plugin
                         s = i;
                     }
                 }
-                if(s != HighlightData.Count - 1)
+                if (s != HighlightData.Count - 1)
                     yield return new Range(HighlightData[s], HighlightData[HighlightData.Count - 1] + 1);
             }
         }
