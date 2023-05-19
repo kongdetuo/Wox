@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -84,7 +86,7 @@ namespace Wox
 
         // Using a DependencyProperty as the backing store for Foreground.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty ForegroundProperty =
-            DependencyProperty.RegisterAttached("Foreground", typeof(Brush), typeof(HighLightTextBlock), new PropertyMetadata(Brushes.Black ,Refresh));
+            DependencyProperty.RegisterAttached("Foreground", typeof(Brush), typeof(HighLightTextBlock), new PropertyMetadata(Brushes.Black, Refresh));
 
 
         #endregion
@@ -112,41 +114,34 @@ namespace Wox
         {
             var textBlock = d as TextBlock;
             var highlightText = GetHighlightText(d);
-            if (textBlock is not null && highlightText is not null)
+            textBlock.Inlines.Clear();
+            if (textBlock is not null && highlightText is not null && !string.IsNullOrWhiteSpace(highlightText.Text))
             {
-                textBlock.Inlines.Clear();
-
                 var text = highlightText.Text;
-                var highlightData = highlightText.HighlightData;
 
                 var foreground = GetForeground(d);
                 var fontStretch = GetFontStretch(d);
                 var fontStyle = GetFontStyle(d);
                 var fontWeight = GetFontWeight(d);
 
-                for (var i = 0; i < text.Length; i++)
+                var i = 0;
+                foreach (var range in highlightText.GetHighlightRanges())
                 {
-                    var currentCharacter = text.Substring(i, 1);
-                    if (ShouldHighlight(highlightData, i))
+                    if (range.Start.Value > i)
+                        textBlock.Inlines.Add(new Run(text[i..range.Start]));
+
+                    textBlock.Inlines.Add(new Run(text[range])
                     {
-                        textBlock.Inlines.Add(new Run(currentCharacter)
-                        {
-                            Foreground = foreground,
-                            FontWeight = fontWeight,
-                            FontStyle = fontStyle,
-                            FontStretch = fontStretch
-                        });
-                    }
-                    else
-                    {
-                        textBlock.Inlines.Add(new Run(currentCharacter));
-                    }
+                        Foreground = foreground,
+                        FontWeight = fontWeight,
+                        FontStyle = fontStyle,
+                        FontStretch = fontStretch
+                    });
+                    i = range.End.Value;
                 }
+                if (i < text.Length)
+                    textBlock.Inlines.Add(new Run(text[i..]));
             }
-        }
-        private static bool ShouldHighlight(IList<int> highlightData, int index)
-        {
-            return highlightData.Contains(index);
         }
     }
 }

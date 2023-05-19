@@ -206,7 +206,7 @@ namespace Wox.Plugin.Program.Programs
 
         public static IEnumerable<UWP> Packages()
         {
-    
+
             var uwps = new PackageManager()
                 .FindPackagesForUser(WindowsIdentity.GetCurrent().User.Value)
                 .Where(package => !package.IsFramework)
@@ -293,7 +293,7 @@ namespace Wox.Plugin.Program.Programs
                 var result = new Result
                 {
                     SubTitle = "Windows Ó¦ÓÃ³ÌÐò",
-                    IcoPath= LogoPath,
+                    IcoPath = LogoPath,
                     ContextData = this,
                     Action = e =>
                     {
@@ -306,28 +306,16 @@ namespace Wox.Plugin.Program.Programs
                 if (Description.Length >= DisplayName.Length && Description.StartsWith(DisplayName))
                 {
                     title = Description;
-                    result.Title = title;
                     var match = StringMatcher.FuzzySearch(query, title);
+                    result.Title = new(title, match.MatchData);
                     result.Score = match.Score;
-                    result.TitleHighlightData = match.MatchData;
                 }
                 else if (!string.IsNullOrEmpty(Description))
                 {
                     title = $"{DisplayName}: {Description}";
                     var match1 = StringMatcher.FuzzySearch(query, DisplayName);
                     var match2 = StringMatcher.FuzzySearch(query, title);
-                    if (match1.Score > match2.Score)
-                    {
-                        result.Score = match1.Score;
-                        result.TitleHighlightData = match1.MatchData;
-                    }
-                    else
-                    {
-                        result.Score = match2.Score;
-                        result.TitleHighlightData = match2.MatchData;
-                    }
-                    result.Title = title;
-
+                    result.Title = new(title, match1.Score > match2.Score ? match1.MatchData : match2.MatchData);
                 }
                 else
                 {
@@ -335,7 +323,7 @@ namespace Wox.Plugin.Program.Programs
                     result.Title = title;
                     var match = StringMatcher.FuzzySearch(query, title);
                     result.Score = match.Score;
-                    result.TitleHighlightData = match.MatchData;
+                    result.Title = new(title, match.MatchData);
                 }
 
 

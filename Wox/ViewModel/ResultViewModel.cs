@@ -52,7 +52,7 @@ namespace Wox.ViewModel
             try
             {
                 // will get here either when icoPath has value\icon delegate is null\when had exception in delegate
-                return ImageLoader.Load(imagePath, UpdateImageCallback, result.Title, result.PluginID, pluginDirectory);
+                return ImageLoader.Load(imagePath, UpdateImageCallback, result.Title.Text, result.PluginID, pluginDirectory);
             }
             catch (Exception e)
             {

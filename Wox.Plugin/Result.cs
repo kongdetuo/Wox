@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -8,12 +9,9 @@ namespace Wox.Plugin
 {
     public class Result : BaseModel
     {
-        public HighlightText HighlightTitle { get; set; } = new HighlightText("");
-        public HighlightText HighlightSubTitle { get; set; } = new HighlightText("");
+        public HighlightText Title { get; set; } = HighlightText.Empty;
 
-        public string Title { get => HighlightTitle.Text; set => HighlightTitle.Text = value; }
-
-        public string SubTitle { get => HighlightSubTitle.Text; set => HighlightSubTitle.Text = value; }
+        public HighlightText SubTitle { get; set; } = HighlightText.Empty;
 
         /// <summary>
         /// This holds the action keyword that triggered the result.
@@ -30,15 +28,15 @@ namespace Wox.Plugin
 
         public int Score { get; set; }
 
-        /// <summary>
-        /// A list of indexes for the characters to be highlighted in Title
-        /// </summary>
-        public IList<int> TitleHighlightData { get => HighlightTitle.HighlightData; set => HighlightTitle.HighlightData = value; }
+        ///// <summary>
+        ///// A list of indexes for the characters to be highlighted in Title
+        ///// </summary>
+        //public IList<int> TitleHighlightData { get => HighlightTitle.HighlightData; set => HighlightTitle.HighlightData = value; }
 
-        /// <summary>
-        /// A list of indexes for the characters to be highlighted in SubTitle
-        /// </summary>
-        public IList<int> SubTitleHighlightData { get => HighlightSubTitle.HighlightData; set => HighlightSubTitle.HighlightData = value; }
+        ///// <summary>
+        ///// A list of indexes for the characters to be highlighted in SubTitle
+        ///// </summary>
+        //public IList<int> SubTitleHighlightData { get => HighlightSubTitle.HighlightData; set => HighlightSubTitle.HighlightData = value; }
 
         /// <summary>
         /// Only results that originQuery match with current query will be displayed in the panel
@@ -63,7 +61,7 @@ namespace Wox.Plugin
 
         public override string ToString()
         {
-            return Title + SubTitle;
+            return Title.Text + SubTitle.Text;
         }
 
         public Result()
@@ -82,20 +80,47 @@ namespace Wox.Plugin
 
     public class HighlightText
     {
-        public HighlightText(string text) : this(text, Empty)
+        private HighlightText() : this("", EmptyHighlightData)
+        {
+
+        }
+        public HighlightText(string text) : this(text, EmptyHighlightData)
         {
 
         }
         public HighlightText(string text, List<int> highlightData)
         {
             this.Text = text;
-            this.HighlightData = highlightData;
+            this.HighlightData = highlightData ?? EmptyHighlightData;
         }
-        public string Text { get; set; }
+        public string Text { get; private set; }
 
-        public IList<int> HighlightData { get; set; }
+        public IReadOnlyList<int> HighlightData { get; private set; }
 
-        private static readonly List<int> Empty = new List<int>();
+        public IEnumerable<Range> GetHighlightRanges()
+        {
+            if (HighlightData.Any())
+            {
+                if (HighlightData.Count == 1)
+                    yield return new Range(HighlightData[0], HighlightData[0]);
+
+                var s = 0;
+                for (int i = 1; i < HighlightData.Count; i++)
+                {
+                    if (HighlightData[i] != HighlightData[i - 1] + 1)
+                    {
+                        yield return new Range(HighlightData[s], HighlightData[i - 1] + 1);
+                        s = i;
+                    }
+                }
+                if(s != HighlightData.Count - 1)
+                    yield return new Range(HighlightData[s], HighlightData[HighlightData.Count - 1] + 1);
+            }
+        }
+
+        private static readonly List<int> EmptyHighlightData = new(0);
+
+        public static HighlightText Empty { get; } = new();
 
         public static implicit operator HighlightText(string text)
         {

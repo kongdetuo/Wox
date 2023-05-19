@@ -38,8 +38,7 @@ namespace Wox.Plugin.ControlPanel
                 {
                     var result = new Result
                     {
-                        Title = item.LocalizedString,
-                        TitleHighlightData = titleMatch.MatchData,
+                        Title = new( item.LocalizedString, titleMatch.MatchData),
                         SubTitle = item.InfoTip,
                         Score = item.Score,
                         IcoPath = item.IconPath,

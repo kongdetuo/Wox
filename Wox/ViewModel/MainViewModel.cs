@@ -218,9 +218,9 @@ namespace Wox.ViewModel
             this.AutoComplationCommand = new RelayCommand(_ =>
             {
                 var result = SelectedResults.Results.FirstOrDefault()?.Result;
-                if (result is not null && result.Title.StartsWith(QueryText, true, null))
+                if (result is not null && result.Title.Text.StartsWith(QueryText, true, null))
                 {
-                    ChangeQueryText(result.Title);
+                    ChangeQueryText(result.Title.Text);
                 }
             });
         }
@@ -353,8 +353,8 @@ namespace Wox.ViewModel
 
         private static bool MatchResult(Result result, string query)
         {
-            return StringMatcher.FuzzySearch(query, result.Title).IsSearchPrecisionScoreMet()
-                || StringMatcher.FuzzySearch(query, result.SubTitle).IsSearchPrecisionScoreMet();
+            return StringMatcher.FuzzySearch(query, result.Title.Text).IsSearchPrecisionScoreMet()
+                || StringMatcher.FuzzySearch(query, result.SubTitle.Text).IsSearchPrecisionScoreMet();
         }
 
         private void Refresh()

@@ -17,8 +17,8 @@ namespace Wox.Core.Storage
         public bool IsTopMost(Result result)
         {
             return RecordDic.TryGetValue(result.OriginQuery.RawQuery, out Record record)
-                && record.Title == result.Title
-                && record.SubTitle == result.SubTitle
+                && record.Title == result.Title.Text
+                && record.SubTitle == result.SubTitle.Text
                 && record.PluginID == result.PluginID;
         }
 
@@ -37,8 +37,8 @@ namespace Wox.Core.Storage
             var record = new Record
             {
                 PluginID = result.PluginID,
-                Title = result.Title,
-                SubTitle = result.SubTitle
+                Title = result.Title.Text,
+                SubTitle = result.SubTitle.Text
             };
             RecordDic[result.OriginQuery.RawQuery] = record;
 

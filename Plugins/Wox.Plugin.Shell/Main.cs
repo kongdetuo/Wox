@@ -80,8 +80,8 @@ namespace Wox.Plugin.Shell
                         var autocomplete = Directory.GetFileSystemEntries(basedir).
                             Select(o => dir + Path.GetFileName(o)).
                             Where(o => o.StartsWith(cmd, StringComparison.OrdinalIgnoreCase) &&
-                                       !results.Any(p => o.Equals(p.Title, StringComparison.OrdinalIgnoreCase)) &&
-                                       !results.Any(p => o.Equals(p.Title, StringComparison.OrdinalIgnoreCase))).ToList();
+                                       !results.Any(p => o.Equals(p.Title.Text, StringComparison.OrdinalIgnoreCase)) &&
+                                       !results.Any(p => o.Equals(p.Title.Text, StringComparison.OrdinalIgnoreCase))).ToList();
                         autocomplete.Sort();
                         results.AddRange(autocomplete.ConvertAll(m => new Result
                         {
@@ -351,7 +351,7 @@ namespace Wox.Plugin.Shell
                     Title = _context.API.GetTranslation("wox_plugin_cmd_run_as_different_user"),
                     Action = c =>
                     {
-                        Task.Run(() =>Execute(ShellCommand.RunAsDifferentUser, PrepareProcessStartInfo(selectedResult.Title)));
+                        Task.Run(() =>Execute(ShellCommand.RunAsDifferentUser, PrepareProcessStartInfo(selectedResult.Title.Text)));
                         return true;
                     },
                     IcoPath = "Images/app.png"
@@ -361,7 +361,7 @@ namespace Wox.Plugin.Shell
                     Title = _context.API.GetTranslation("wox_plugin_cmd_run_as_administrator"),
                     Action = c =>
                     {
-                        Execute(Process.Start, PrepareProcessStartInfo(selectedResult.Title, true));
+                        Execute(Process.Start, PrepareProcessStartInfo(selectedResult.Title.Text, true));
                         return true;
                     },
                     IcoPath = Image

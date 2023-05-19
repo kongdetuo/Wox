@@ -142,11 +142,9 @@ namespace Wox.Plugin.PluginManagement
                 WoxPluginResult r1 = r;
                 results.Add(new Result
                 {
-                    Title = r.name,
-                    SubTitle = r.description,
+                    Title = new(r.name, StringMatcher.FuzzySearch(query.SecondSearch, r.name).MatchData),
+                    SubTitle = new(r.description, StringMatcher.FuzzySearch(query.SecondSearch, r.description).MatchData),
                     IcoPath = "Images\\plugin.png",
-                    TitleHighlightData = StringMatcher.FuzzySearch(query.SecondSearch, r.name).MatchData,
-                    SubTitleHighlightData = StringMatcher.FuzzySearch(query.SecondSearch, r.description).MatchData,
                     Action = c =>
                     {
                         string folder = Path.Combine(Path.GetTempPath(), "WoxPluginDownload");
@@ -187,11 +185,9 @@ namespace Wox.Plugin.PluginManagement
             {
                 results.Add(new Result
                 {
-                    Title = plugin.Name,
-                    SubTitle = plugin.Description,
+                    Title = new(plugin.Name, StringMatcher.FuzzySearch(query.SecondSearch, plugin.Name).MatchData),
+                    SubTitle = new(plugin.Description, StringMatcher.FuzzySearch(query.SecondSearch, plugin.Description).MatchData),
                     IcoPath = plugin.IcoPath,
-                    TitleHighlightData = StringMatcher.FuzzySearch(query.SecondSearch, plugin.Name).MatchData,
-                    SubTitleHighlightData = StringMatcher.FuzzySearch(query.SecondSearch, plugin.Description).MatchData,
                     Action = e =>
                     {
                         UnInstallPlugin(plugin);

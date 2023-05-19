@@ -60,11 +60,11 @@ namespace Wox.Plugin.Sys
             var results = new List<Result>();
             foreach (var c in commands)
             {
-                var titleMatch = StringMatcher.FuzzySearch(query.Search, c.Title);
+                var titleMatch = StringMatcher.FuzzySearch(query.Search, c.Title.Text);
                 if (titleMatch.Score > 0)
                 {
                     c.Score = titleMatch.Score;
-                    c.TitleHighlightData = titleMatch.MatchData;
+                    c.Title = new(c.Title.Text, titleMatch.MatchData);
                     results.Add(c);
                 }
             }

@@ -47,13 +47,13 @@
                             <TextBlock Style="{DynamicResource ItemTitleStyle}" DockPanel.Dock="Left"
                                        VerticalAlignment="Center" ToolTip="{Binding Result.Title}" x:Name="Title"
                                        local:HighLightTextBlock.Foreground="{DynamicResource ItemHighlightColor}"
-                                       local:HighLightTextBlock.HighlightText="{Binding Result.HighlightTitle}">
+                                       local:HighLightTextBlock.HighlightText="{Binding Result.Title}">
             
                             </TextBlock>
                             <TextBlock Style="{DynamicResource ItemSubTitleStyle}" ToolTip="{Binding Result.SubTitle}"
                                        Grid.Row="1" x:Name="SubTitle"
                                        local:HighLightTextBlock.Foreground="{DynamicResource ItemHighlightColor}"
-                                       local:HighLightTextBlock.HighlightText="{Binding Result.HighlightSubTitle}">
+                                       local:HighLightTextBlock.HighlightText="{Binding Result.SubTitle}">
 
                             </TextBlock>
                         </Grid>

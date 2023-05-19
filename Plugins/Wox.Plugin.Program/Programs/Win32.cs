@@ -35,9 +35,8 @@ namespace Wox.Plugin.Program.Programs
             var match = StringMatcher.FuzzySearch(query, Name);
             var result = new Result
             {
-                Title = Name,
+                Title = new(Name, match.MatchData),
                 SubTitle = "Win32 ”¶”√≥Ã–Ú",
-                TitleHighlightData = match.MatchData,
                 Score = match.Score,
                 IcoPath = IcoPath,
                 ContextData = this,

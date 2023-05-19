@@ -95,10 +95,8 @@ namespace Wox.Plugin.Everything
             var r = new Result
             {
                 Score = _settings.MaxSearchCount - index,
-                Title = searchResult.FileName,
-                TitleHighlightData = searchResult.FileNameHightData,
-                SubTitle = searchResult.FullPath,
-                SubTitleHighlightData = searchResult.FullPathHightData,
+                Title = new(searchResult.FileName, searchResult.FileNameHightData),
+                SubTitle = new(searchResult.FullPath, searchResult.FullPathHightData),
                 IcoPath = searchResult.FullPath,
                 Action = File.Exists(path) ? Actions.OpenFile(path, workingDir) : Actions.OpenDirectory(path),
                 ContextData = searchResult,

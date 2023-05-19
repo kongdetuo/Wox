@@ -92,11 +92,10 @@ namespace Wox.Plugin.Folder
         {
             return new Result
             {
-                Title = title,
+                Title = new(title, StringMatcher.FuzzySearch(query.Search, title).MatchData),
                 IcoPath = path,
                 SubTitle = subtitle,
                 Score = 100,
-                TitleHighlightData = StringMatcher.FuzzySearch(query.Search, title).MatchData,
                 Action = c =>
                 {
                     if (c.SpecialKeyState.CtrlPressed)
@@ -115,7 +114,7 @@ namespace Wox.Plugin.Folder
 
                     string changeTo = path.EndsWith("\\") ? path : path + "\\";
                     _context.API.ChangeQuery(query.ActionKeyword is null
-                        ? changeTo 
+                        ? changeTo
                         : query.ActionKeyword + " " + changeTo);
                     return false;
                 },
@@ -214,7 +213,7 @@ namespace Wox.Plugin.Folder
                 {
                     if ((fileSystemInfo.Attributes & FileAttributes.Hidden) == FileAttributes.Hidden) continue;
 
-                    if(fileSystemInfo is DirectoryInfo)
+                    if (fileSystemInfo is DirectoryInfo)
                     {
                         if (searchOption == SearchOption.AllDirectories)
                             folderSubtitleString = fileSystemInfo.FullName;
@@ -247,12 +246,11 @@ namespace Wox.Plugin.Folder
         {
             var result = new Result
             {
-                Title = Path.GetFileName(filePath),
+                Title = new(Path.GetFileName(filePath), StringMatcher.FuzzySearch(query.Search, Path.GetFileName(filePath)).MatchData),
                 SubTitle = filePath,
                 IcoPath = filePath,
-                TitleHighlightData = StringMatcher.FuzzySearch(query.Search, Path.GetFileName(filePath)).MatchData,
                 Action = Actions.OpenFile(filePath),
-                ContextData = new SearchResult { Type = ResultType.File, FullPath = filePath}
+                ContextData = new SearchResult { Type = ResultType.File, FullPath = filePath }
             };
             return result;
         }

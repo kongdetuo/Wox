@@ -56,11 +56,11 @@ namespace Wox.Plugin.Program
                 {
                     if (entry.IsRegex)
                     {
-                        return Regex.Match(r.Title, entry.EntryString).Success || Regex.Match(r.SubTitle, entry.EntryString).Success;
+                        return Regex.Match(r.Title.Text, entry.EntryString).Success || Regex.Match(r.SubTitle.Text, entry.EntryString).Success;
                     }
                     else
                     {
-                        return r.Title.ToLower().Contains(entry.EntryString) || r.SubTitle.ToLower().Contains(entry.EntryString);
+                        return r.Title.Text.ToLower().Contains(entry.EntryString) || r.SubTitle.Text.ToLower().Contains(entry.EntryString);
                     }
                 });
                 return ignored;
