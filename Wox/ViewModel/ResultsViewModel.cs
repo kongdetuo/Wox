@@ -42,8 +42,6 @@ namespace Wox.ViewModel
             SelectNextPageCommand = new RelayCommand(_ => SelectNextPage());
             SelectPrevPageCommand = new RelayCommand(_ => SelectPrevPage());
             SelectFirstResultCommand = new RelayCommand(_ => SelectFirstResult());
-
-
         }
 
         public ResultsViewModel(Settings settings) : this()
@@ -55,28 +53,14 @@ namespace Wox.ViewModel
                 {
                     OnPropertyChanged(nameof(MaxHeight));
                 }
-
             };
-            this.PropertyChanged += ResultsViewModel_PropertyChanged;
-        }
-
-        private void ResultsViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(SelectedItem))
-            {
-
-            }
-            if (e.PropertyName == nameof(SelectedIndex))
-            {
-
-            }
         }
 
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         #endregion Private Fields
 
-        public ICommand SelectNextItemCommand { get; set; }
+        public ICommand SelectNextItemCommand { get; set; } 
         public ICommand SelectPrevItemCommand { get; set; }
         public ICommand SelectNextPageCommand { get; set; }
         public ICommand SelectPrevPageCommand { get; set; }
@@ -262,30 +246,7 @@ namespace Wox.ViewModel
     {
         public HistoryViewModel(Settings settings) : base(settings)
         {
-            var api = App.API;
 
-            this.OpenResultCommand = new RelayCommand(index =>
-            {
-                if (index != null)
-                {
-                    SelectedIndex = int.Parse(index.ToString());
-                }
-
-                var result = SelectedItem?.Result;
-                if (result != null)
-                {
-                    bool hideWindow = result.Action != null && result.Action(new ActionContext
-                    {
-                        SpecialKeyState = GlobalHotkey.Instance.CheckModifiers(),
-                        API = App.API
-                    });
-
-                    if (hideWindow)
-                    {
-                        api.HideWindow();
-                    }
-                }
-            });
         }
     }
 
@@ -293,33 +254,7 @@ namespace Wox.ViewModel
     {
         public QueryResultViewModel(Settings settings, UserSelectedRecord record, History history) : base(settings)
         {
-            var api = App.API;
 
-            this.OpenResultCommand = new RelayCommand(index =>
-            {
-                if (index != null)
-                {
-                    SelectedIndex = int.Parse(index.ToString());
-                }
-
-                var result = SelectedItem?.Result;
-                if (result != null)
-                {
-                    bool hideWindow = result.Action != null && result.Action(new ActionContext
-                    {
-                        SpecialKeyState = GlobalHotkey.Instance.CheckModifiers(),
-                        API = App.API
-                    });
-
-                    if (hideWindow)
-                    {
-                        api.HideWindow();
-                    }
-
-                    record.Add(result);
-                    history.Add(result.OriginQuery.RawQuery);
-                }
-            });
         }
     }
 
@@ -327,30 +262,7 @@ namespace Wox.ViewModel
     {
         public ContextViewModel(Settings settings) : base(settings)
         {
-            var api = App.API;
 
-            this.OpenResultCommand = new RelayCommand(index =>
-            {
-                if (index != null)
-                {
-                    SelectedIndex = int.Parse(index.ToString());
-                }
-
-                var result = SelectedItem?.Result;
-                if (result != null)
-                {
-                    bool hideWindow = result.Action != null && result.Action(new ActionContext
-                    {
-                        SpecialKeyState = GlobalHotkey.Instance.CheckModifiers(),
-                        API = App.API
-                    });
-
-                    if (hideWindow)
-                    {
-                        api.HideWindow();
-                    }
-                }
-            });
         }
     }
 }
