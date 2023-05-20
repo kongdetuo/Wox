@@ -18,7 +18,7 @@ namespace Wox.Core.Plugin
     /// Represent the plugin that using JsonPRC
     /// every JsonRPC plugin should has its own plugin instance
     /// </summary>
-    internal abstract class JsonRPCPlugin : IPlugin, IContextMenu
+    internal abstract class JsonRPCPlugin : IAsyncPlugin, IAsyncContextMenu
     {
         protected PluginInitContext context;
         public const string JsonRPC = "JsonRPC";
@@ -28,15 +28,15 @@ namespace Wox.Core.Plugin
         /// </summary>
         public abstract string SupportedLanguage { get; set; }
 
-        protected abstract string ExecuteQuery(Query query);
-        protected abstract string ExecuteCallback(JsonRPCRequestModel rpcRequest);
-        protected abstract string ExecuteContextMenu(Result selectedResult);
+        protected abstract Task<string> ExecuteQuery(Query query);
+        protected abstract Task<string> ExecuteCallback(JsonRPCRequestModel rpcRequest);
+        protected abstract Task<string> ExecuteContextMenu(Result selectedResult);
 
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        public List<Result> Query(Query query)
+        public async Task<List<Result>> QueryAsync(Query query, CancellationToken token)
         {
-            string output = ExecuteQuery(query);
+            string output = await ExecuteQuery(query);
             try
             {
                 return DeserializedResult(output);
@@ -48,9 +48,9 @@ namespace Wox.Core.Plugin
             }
         }
 
-        public List<Result> LoadContextMenus(Result selectedResult)
+        public async Task<List<Result>> LoadContextMenusAsync(Result selectedResult)
         {
-            string output = ExecuteContextMenu(selectedResult);
+            string output = await ExecuteContextMenu(selectedResult);
             try
             {
                 return DeserializedResult(output);
@@ -74,7 +74,7 @@ namespace Wox.Core.Plugin
                 foreach (JsonRPCResult result in queryResponseModel.Result)
                 {
                     JsonRPCResult result1 = result;
-                    result.Action = c =>
+                    result.AsyncAction = async c =>
                     {
                         if (result1.JsonRPCAction == null) return false;
 
@@ -86,7 +86,7 @@ namespace Wox.Core.Plugin
                             }
                             else
                             {
-                                string actionReponse = ExecuteCallback(result1.JsonRPCAction);
+                                string actionReponse = await ExecuteCallback(result1.JsonRPCAction);
                                 JsonRPCRequestModel jsonRpcRequestModel = JsonConvert.DeserializeObject<JsonRPCRequestModel>(actionReponse);
                                 if (jsonRpcRequestModel != null
                                     && !String.IsNullOrEmpty(jsonRpcRequestModel.Method)
@@ -134,7 +134,7 @@ namespace Wox.Core.Plugin
         /// <param name="fileName"></param>
         /// <param name="arguments"></param>
         /// <returns></returns>
-        protected string Execute(string fileName, string arguments)
+        protected async Task<string> Execute(string fileName, string arguments)
         {
             ProcessStartInfo start = new ProcessStartInfo();
             start.FileName = fileName;
@@ -143,53 +143,42 @@ namespace Wox.Core.Plugin
             start.CreateNoWindow = true;
             start.RedirectStandardOutput = true;
             start.RedirectStandardError = true;
-            return Execute(start);
+            return await Execute(start);
         }
 
-        protected string Execute(ProcessStartInfo startInfo)
+        protected async Task<string> Execute(ProcessStartInfo startInfo)
         {
             try
             {
-                using (var process = Process.Start(startInfo))
+                using var process = Process.Start(startInfo);
+                if (process == null)
                 {
-                    if (process != null)
-                    {
-                        using (var standardOutput = process.StandardOutput)
-                        {
-                            var result = standardOutput.ReadToEnd();
-                            if (string.IsNullOrEmpty(result))
-                            {
-                                using (var standardError = process.StandardError)
-                                {
-                                    var error = standardError.ReadToEnd();
-                                    if (!string.IsNullOrEmpty(error))
-                                    {
-                                        Logger.WoxError($"{error}");
-                                        return string.Empty;
-                                    }
-                                    else
-                                    {
-                                        Logger.WoxError("Empty standard output and standard error.");
-                                        return string.Empty;
-                                    }
-                                }
-                            }
-                            else if (result.StartsWith("DEBUG:"))
-                            {
-                                MessageBox.Show(new Form { TopMost = true }, result.Substring(6));
-                                return string.Empty;
-                            }
-                            else
-                            {
-                                return result;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        Logger.WoxError("Can't start new process");
-                        return string.Empty;
-                    }
+                    Logger.WoxError("Can't start new process");
+                    return string.Empty;
+                }
+
+                using var standardOutput = process.StandardOutput;
+                var result = await standardOutput.ReadToEndAsync();
+                if (!string.IsNullOrEmpty(result))
+                {
+                    if (!result.StartsWith("DEBUG:"))
+                        return result;
+
+                    MessageBox.Show(new Form { TopMost = true }, result.Substring(6));
+                    return string.Empty;
+                }
+
+                using var standardError = process.StandardError;
+                var error = await standardError.ReadToEndAsync();
+                if (!string.IsNullOrEmpty(error))
+                {
+                    Logger.WoxError($"{error}");
+                    return string.Empty;
+                }
+                else
+                {
+                    Logger.WoxError("Empty standard output and standard error.");
+                    return string.Empty;
                 }
             }
             catch (Exception e)
@@ -199,9 +188,10 @@ namespace Wox.Core.Plugin
             }
         }
 
-        public void Init(PluginInitContext ctx)
+        public Task InitAsync(PluginInitContext ctx)
         {
             context = ctx;
+            return Task.CompletedTask;
         }
     }
 }

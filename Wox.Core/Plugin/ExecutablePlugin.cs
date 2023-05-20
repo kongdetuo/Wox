@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using Wox.Plugin;
 
 namespace Wox.Core.Plugin
@@ -21,7 +22,7 @@ namespace Wox.Core.Plugin
             };
         }
 
-        protected override string ExecuteQuery(Query query)
+        protected override async Task<string> ExecuteQuery(Query query)
         {
             JsonRPCServerRequestModel request = new JsonRPCServerRequestModel
             {
@@ -31,16 +32,16 @@ namespace Wox.Core.Plugin
 
             _startInfo.Arguments = $"\"{request}\"";
 
-            return Execute(_startInfo);
+            return await Execute(_startInfo);
         }
 
-        protected override string ExecuteCallback(JsonRPCRequestModel rpcRequest)
+        protected override async Task<string> ExecuteCallback(JsonRPCRequestModel rpcRequest)
         {
             _startInfo.Arguments = $"\"{rpcRequest}\"";
-            return Execute(_startInfo);
+            return await Execute(_startInfo);
         }
 
-        protected override string ExecuteContextMenu(Result selectedResult) {
+        protected override async Task< string> ExecuteContextMenu(Result selectedResult) {
             JsonRPCServerRequestModel request = new JsonRPCServerRequestModel {
                 Method = "contextmenu",
                 Parameters = new object[] { selectedResult.ContextData },
@@ -48,7 +49,7 @@ namespace Wox.Core.Plugin
 
             _startInfo.Arguments = $"\"{request}\"";
 
-            return Execute(_startInfo);
+            return await Execute(_startInfo);
         }
     }
 }
