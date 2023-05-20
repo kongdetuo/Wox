@@ -100,20 +100,22 @@ namespace Wox.Plugin
         {
             if (HighlightData.Any())
             {
-                if (HighlightData.Count == 1)
-                    yield return new Range(HighlightData[0], HighlightData[0]);
 
-                var s = 0;
+                var range = new Range(HighlightData[0], HighlightData[0] + 1);
                 for (int i = 1; i < HighlightData.Count; i++)
                 {
                     if (HighlightData[i] != HighlightData[i - 1] + 1)
                     {
-                        yield return new Range(HighlightData[s], HighlightData[i - 1] + 1);
-                        s = i;
+                        yield return range;
+                        range = new Range(HighlightData[i], HighlightData[i] + 1);
+                    }
+                    else
+                    {
+                        range = new Range(range.Start, HighlightData[i] + 1);
                     }
                 }
-                if (s != HighlightData.Count - 1)
-                    yield return new Range(HighlightData[s], HighlightData[HighlightData.Count - 1] + 1);
+                if (range.End.Value > range.Start.Value)
+                    yield return range;
             }
         }
 
