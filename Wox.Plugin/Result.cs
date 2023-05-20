@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -25,6 +26,8 @@ namespace Wox.Plugin
         /// return true to hide wox after select result
         /// </summary>
         public Func<ActionContext, bool> Action { get; set; }
+
+        public Func<ActionContext, ValueTask<bool>> AsyncAction { get; set; }
 
         public int Score { get; set; }
 

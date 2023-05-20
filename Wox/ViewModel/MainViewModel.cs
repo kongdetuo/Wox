@@ -70,7 +70,7 @@ namespace Wox.ViewModel
             _history = _historyItemsStorage.Load();
             _userSelectedRecord = _userSelectedRecordStorage.Load();
             _topMostRecord = _topMostRecordStorage.Load();
-            this.QueryService= new QueryService(_topMostRecord,_userSelectedRecord);
+            this.QueryService = new QueryService(_topMostRecord, _userSelectedRecord);
 
 
             ContextMenu = new ContextViewModel(_settings);
@@ -98,7 +98,7 @@ namespace Wox.ViewModel
                 .Throttle(TimeSpan.FromMilliseconds(20))
                 .Publish();
 
-            
+
             querys
                 .Select(p => QueryService.Query(QueryBuilder.Build(p)))
                 .Switch()
@@ -114,7 +114,8 @@ namespace Wox.ViewModel
 
 
             _ = queryTextChangeds.Where(p => ContextMenuSelected())
-                .Subscribe(queryText => QueryContextMenu());
+                .Select(queryText => Observable.FromAsync(token => QueryContextMenuAsync(token)))
+                .Switch().Subscribe();
 
             _ = queryTextChangeds.Where(p => HistorySelected())
                 .Subscribe(queryText => QueryHistory());
@@ -157,30 +158,39 @@ namespace Wox.ViewModel
 
             OpenResultCommand = new RelayCommand(obj =>
             {
-                var result = (obj as ResultViewModel).Result;
-                if ( result != null)
+                Task.Run(async () =>
                 {
-                    bool hideWindow = result.Action != null && result.Action(new ActionContext
+                    var result = (obj as ResultViewModel).Result;
+                    if (result != null)
                     {
-                        SpecialKeyState = GlobalHotkey.Instance.CheckModifiers(),
-                        API = App.API
-                    });
+                        var context = new ActionContext
+                        {
+                            SpecialKeyState = GlobalHotkey.Instance.CheckModifiers(),
+                            API = App.API
+                        };
 
-                    if (hideWindow)
-                    {
-                        MainWindowVisibility = Visibility.Collapsed;
-                    }
+                        bool hideWindow = false;
+                        if (result.AsyncAction is not null)
+                            hideWindow = await result.AsyncAction(context);
+                        else if(result.Action is not null)
+                            hideWindow = result.Action(context);
 
-                    if (SelectedIsFromQueryResults())
-                    {
-                        _userSelectedRecord.Add(result);
-                        _history.Add(result.OriginQuery.RawQuery);
+                        if (hideWindow)
+                        {
+                            MainWindowVisibility = Visibility.Collapsed;
+                        }
+
+                        if (SelectedIsFromQueryResults())
+                        {
+                            _userSelectedRecord.Add(result);
+                            _history.Add(result.OriginQuery.RawQuery);
+                        }
+                        else
+                        {
+                            SelectedResults = Results;
+                        }
                     }
-                    else
-                    {
-                        SelectedResults = Results;
-                    }
-                }
+                });
             });
 
             LoadContextMenuCommand = new RelayCommand(_ =>
@@ -288,7 +298,7 @@ namespace Wox.ViewModel
 
         #endregion ViewModel Properties
 
-        private void QueryContextMenu()
+        private async Task<Unit> QueryContextMenuAsync(CancellationToken token)
         {
             const string id = "Context Menu ID";
             var query = QueryText.ToLower().Trim();
@@ -298,16 +308,19 @@ namespace Wox.ViewModel
 
             if (selected != null) // SelectedItem returns null if selection is empty.
             {
-                var results = PluginManager.GetContextMenusForPlugin(selected);
+                var results = await PluginManager.GetContextMenusForPlugin(selected);
                 results.Add(ContextMenuTopMost(selected));
                 results.Add(ContextMenuPluginInfo(selected.PluginID));
 
                 if (!string.IsNullOrEmpty(query))
                     results = results.Where(r => MatchResult(r, query)).ToList();
-
-                ContextMenu.AddResults(results, id);
-                UpdateResultVisible();
+                if (token.IsCancellationRequested == false)
+                {
+                    ContextMenu.AddResults(results, id);
+                    UpdateResultVisible();
+                }
             }
+            return Unit.Default;
         }
 
         private void QueryHistory()

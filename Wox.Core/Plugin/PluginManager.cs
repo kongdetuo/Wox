@@ -19,8 +19,6 @@ namespace Wox.Core.Plugin
     /// </summary>
     public static class PluginManager
     {
-        private static IEnumerable<PluginProxy> _contextMenuPlugins;
-
         public static Dictionary<string, PluginProxy> PluginDic;
         public static List<PluginProxy> AllPlugins { get; private set; }
         public static readonly List<PluginProxy> GlobalPlugins = new List<PluginProxy>();
@@ -126,7 +124,6 @@ namespace Wox.Core.Plugin
                 }
             }));
 
-            _contextMenuPlugins = GetPluginsForInterface<IContextMenu>();
             foreach (var plugin in AllPlugins)
             {
                 if (IsGlobalPlugin(plugin.Metadata))
@@ -176,17 +173,25 @@ namespace Wox.Core.Plugin
             return AllPlugins.Where(p => p.Plugin is T);
         }
 
-        public static List<Result> GetContextMenusForPlugin(Result result)
+        public static async Task<List<Result>> GetContextMenusForPlugin(Result result)
         {
-            var pluginPair = _contextMenuPlugins.FirstOrDefault(o => o.Metadata.ID == result.PluginID);
+            var pluginPair = GetPluginForId(result.PluginID);
             if (pluginPair != null)
             {
                 var metadata = pluginPair.Metadata;
-                var plugin = (IContextMenu)pluginPair.Plugin;
 
                 try
                 {
-                    var results = plugin.LoadContextMenus(result);
+                    List<Result> results = new();
+                    if (pluginPair.Plugin is IAsyncContextMenu asyncContext)
+                    {
+                        results = await asyncContext.LoadContextMenusAsync(result);
+                    }
+                    else if (pluginPair.Plugin is IContextMenu context)
+                    {
+                        results = context.LoadContextMenus(result);
+                    }
+
                     foreach (var r in results)
                     {
                         r.PluginID = metadata.ID;
