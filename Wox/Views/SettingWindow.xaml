@@ -7,6 +7,7 @@
         xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
         xmlns:userSettings="clr-namespace:Wox.Infrastructure.UserSettings;assembly=Wox.Infrastructure"
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        xmlns:converters="clr-namespace:Wox.Converters"
         x:Class="Wox.SettingWindow"
         mc:Ignorable="d"
         Icon="../app.png"
@@ -24,17 +25,8 @@
         <CommandBinding Command="Close" Executed="OnCloseExecuted"/>
     </Window.CommandBindings>
     <Window.Resources>
+        <converters:LocalizationFontNameConverter x:Key="fontNameConverter"/>
 
-        <CollectionViewSource Source="{Binding Source={x:Static Fonts.SystemFontFamilies}}" x:Key="SortedFontsQuery">
-            <CollectionViewSource.SortDescriptions>
-                <scm:SortDescription PropertyName="Source"/>
-            </CollectionViewSource.SortDescriptions>
-        </CollectionViewSource>
-        <CollectionViewSource Source="{Binding Source={x:Static Fonts.SystemFontFamilies}}" x:Key="SortedFontsResult">
-            <CollectionViewSource.SortDescriptions>
-                <scm:SortDescription PropertyName="Source"/>
-            </CollectionViewSource.SortDescriptions>
-        </CollectionViewSource>
         <SolidColorBrush x:Key="panelBorder.OnMouseOver" Color="#f4f7f9"/>
         <Style TargetType="Border" x:Key="panelBorder">
             <Setter Property="BorderBrush" Value="#e3e3e3" />
@@ -344,9 +336,15 @@
                     </Grid.RowDefinitions>
                     <TextBlock Text="{DynamicResource queryBoxFont}"
                                    Grid.Column="0" Grid.Row="0" HorizontalAlignment="Left" />
-                    <ComboBox ItemsSource="{Binding Source={StaticResource SortedFontsQuery}}" Margin="4"
+                    <ComboBox ItemsSource="{Binding SortedFonts}" Margin="4"
                                   SelectedItem="{Binding SelectedQueryBoxFont}"
-                                  Grid.Column="1" Grid.Row="0"/>
+                                  Grid.Column="1" Grid.Row="0">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Converter={StaticResource fontNameConverter}}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
                     <ComboBox ItemsSource="{Binding SelectedQueryBoxFont.FamilyTypefaces}" Margin="4"
                                   SelectedItem="{Binding SelectedQueryBoxFontFaces}"
                                   Grid.Column="2" Grid.Row="0">
@@ -365,9 +363,15 @@
 
                     <TextBlock Text="{DynamicResource resultItemFont}"
                                    Grid.Column="0" Grid.Row="1" HorizontalAlignment="Left" />
-                    <ComboBox ItemsSource="{Binding Source={StaticResource SortedFontsResult}}" Margin="4"
+                    <ComboBox ItemsSource="{Binding SortedFonts}" Margin="4"
                                   SelectedItem="{Binding SelectedResultFont}"
-                                  Grid.Column="1" Grid.Row="1"/>
+                                  Grid.Column="1" Grid.Row="1">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Converter={StaticResource fontNameConverter}}"/>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
                     <ComboBox ItemsSource="{Binding SelectedResultFont.FamilyTypefaces}"
                                   SelectedItem="{Binding SelectedResultFontFaces}"
                                   Grid.Column="2" Grid.Row="1">

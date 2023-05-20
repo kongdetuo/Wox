@@ -290,6 +290,11 @@ namespace Wox.ViewModel
             }
         }
 
+        public FontFamily[] SortedFonts { get; } = Fonts.SystemFontFamilies
+            .OrderByDescending(FontHelper.HasCurrentCultureName)
+            .ThenBy(p=>p.FamilyNames.Values.First())
+            .ToArray();
+
         public FontFamily SelectedQueryBoxFont
         {
             get

@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Globalization;
 using System.Linq;
 using System.Windows;
+using System.Windows.Markup;
 using System.Windows.Media;
 
 namespace Wox.Themes
@@ -14,9 +16,10 @@ namespace Wox.Themes
 
             try
             {
-                return (FontWeight) fontWeightConverter.ConvertFromInvariantString(value);
+                return (FontWeight)fontWeightConverter.ConvertFromInvariantString(value);
             }
-            catch {
+            catch
+            {
                 return FontWeights.Normal;
             }
         }
@@ -67,6 +70,14 @@ namespace Wox.Themes
             var stretchObj = GetFontStretchFromInvariantStringOrNormal(stretch);
             return family.FamilyTypefaces.FirstOrDefault(o => o.Style == styleObj && o.Weight == weightObj && o.Stretch == stretchObj)
                 ?? family.ChooseRegularFamilyTypeface();
+        }
+
+        private static XmlLanguageConverter languageConverter = new XmlLanguageConverter();
+
+        public static bool HasCurrentCultureName(this FontFamily family)
+        {
+            var language = XmlLanguage.GetLanguage(CultureInfo.CurrentCulture.Name);
+            return family.FamilyNames.ContainsKey(language);
         }
 
     }
