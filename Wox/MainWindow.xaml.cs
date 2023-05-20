@@ -75,6 +75,7 @@ namespace Wox
                     {
                         UpdatePosition();
                         Show();
+                        Activate();
                         QueryTextBox.Focus();
                         _settings.ActivateTimes++;
                         if (!_viewModel.LastQuerySelected)
