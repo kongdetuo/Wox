@@ -191,7 +191,6 @@ namespace Wox.ViewModel
                 if (token.IsCancellationRequested)
                     return;
                 Results.Update(newResults);
-                this.Visbility = Results.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
 
                 if (Results.Count > 0)
                 {
