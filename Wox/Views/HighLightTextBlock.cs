@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Media;
 using Wox.Plugin;
+using Wox.Themes;
 
 namespace Wox
 {
@@ -26,7 +28,7 @@ namespace Wox
 
         // Using a DependencyProperty as the backing store for FontWeight.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty FontWeightProperty =
-            DependencyProperty.RegisterAttached("FontWeight", typeof(FontWeight), typeof(HighLightTextBlock), new PropertyMetadata(FontWeights.Normal, Refresh));
+            DependencyProperty.RegisterAttached("FontWeight", typeof(FontWeight), typeof(HighLightTextBlock), new PropertyMetadata(FontWeights.Normal));
 
 
         #endregion
@@ -46,7 +48,7 @@ namespace Wox
 
         // Using a DependencyProperty as the backing store for FontStyle.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty FontStyleProperty =
-            DependencyProperty.RegisterAttached("FontStyle", typeof(FontStyle), typeof(HighLightTextBlock), new PropertyMetadata(FontStyles.Normal, Refresh));
+            DependencyProperty.RegisterAttached("FontStyle", typeof(FontStyle), typeof(HighLightTextBlock), new PropertyMetadata(FontStyles.Normal));
 
 
         #endregion
@@ -66,7 +68,7 @@ namespace Wox
 
         // Using a DependencyProperty as the backing store for FontStretch.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty FontStretchProperty =
-            DependencyProperty.RegisterAttached("FontStretch", typeof(FontStretch), typeof(HighLightTextBlock), new PropertyMetadata(FontStretches.Normal, Refresh));
+            DependencyProperty.RegisterAttached("FontStretch", typeof(FontStretch), typeof(HighLightTextBlock), new PropertyMetadata(FontStretches.Normal));
 
 
         #endregion
@@ -86,7 +88,7 @@ namespace Wox
 
         // Using a DependencyProperty as the backing store for Foreground.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty ForegroundProperty =
-            DependencyProperty.RegisterAttached("Foreground", typeof(Brush), typeof(HighLightTextBlock), new PropertyMetadata(Brushes.Black, Refresh));
+            DependencyProperty.RegisterAttached("Foreground", typeof(Brush), typeof(HighLightTextBlock), new PropertyMetadata(Brushes.Black));
 
 
         #endregion
@@ -119,24 +121,21 @@ namespace Wox
             {
                 var text = highlightText.Text;
 
-                var foreground = GetForeground(d);
-                var fontStretch = GetFontStretch(d);
-                var fontStyle = GetFontStyle(d);
-                var fontWeight = GetFontWeight(d);
-
                 var i = 0;
                 foreach (var range in highlightText.GetHighlightRanges())
                 {
                     if (range.Start.Value > i)
                         textBlock.Inlines.Add(new Run(text[i..range.Start]));
 
-                    textBlock.Inlines.Add(new Run(text[range])
+                    var run = new Run(text[range]);
+                    BindingOperations.SetBinding(run, TextElement.ForegroundProperty, new Binding()
                     {
-                        Foreground = foreground,
-                        FontWeight = fontWeight,
-                        FontStyle = fontStyle,
-                        FontStretch = fontStretch
+                        Source = textBlock,
+                        Path = new PropertyPath(ForegroundProperty),
+                        Mode = BindingMode.OneWay,
                     });
+                    textBlock.Inlines.Add(run);
+
                     i = range.End.Value;
                 }
                 if (i < text.Length)
