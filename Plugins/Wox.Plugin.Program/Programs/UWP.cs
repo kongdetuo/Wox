@@ -316,6 +316,7 @@ namespace Wox.Plugin.Program.Programs
                     var match1 = StringMatcher.FuzzySearch(query, DisplayName);
                     var match2 = StringMatcher.FuzzySearch(query, title);
                     result.Title = new(title, match1.Score > match2.Score ? match1.MatchData : match2.MatchData);
+                    result.Score = Math.Max(match1.Score, match2.Score);
                 }
                 else
                 {
