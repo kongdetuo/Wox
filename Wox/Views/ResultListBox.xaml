@@ -6,6 +6,7 @@
          xmlns:vm="clr-namespace:Wox.ViewModel"
          xmlns:local="clr-namespace:Wox"
          xmlns:converter="clr-namespace:Wox.Converters"
+         xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
          mc:Ignorable="d" d:DesignWidth="100" d:DesignHeight="100"
          d:DataContext="{d:DesignInstance vm:ResultsViewModel}"
          MaxHeight="{Binding MaxHeight}"
@@ -22,7 +23,14 @@
     <ListBox.ItemTemplate>
         <DataTemplate>
 
-            <Button MouseRightButtonDown="Button_MouseRightButtonDown" Command="{Binding RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}, Path=DataContext.OpenResultCommand}">
+            <Button Command="{Binding Path=DataContext.OpenResultCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}"
+                    CommandParameter="{Binding}">
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="MouseRightButtonDown">
+                        <i:InvokeCommandAction Command="{Binding Path=DataContext.LoadContextMenuCommand, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Window}}"
+                                               CommandParameter="{Binding}"/>
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
                 <Button.Template>
                     <ControlTemplate>
                         <ContentPresenter Content="{TemplateBinding Button.Content}" />

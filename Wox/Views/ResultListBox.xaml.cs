@@ -55,9 +55,5 @@ namespace Wox
                 curItem.IsSelected = true;
             }
         }
-
-        private void Button_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
-        {
-        }
     }
 }

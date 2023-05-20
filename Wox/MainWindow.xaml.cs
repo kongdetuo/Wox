@@ -177,29 +177,6 @@ namespace Wox
             }
         }
 
-        private void OnPreviewMouseButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (sender != null && e.OriginalSource != null)
-            {
-                var r = (ResultListBox)sender;
-                var d = (DependencyObject)e.OriginalSource;
-                var item = ItemsControl.ContainerFromElement(r, d) as ListBoxItem;
-                var result = (ResultViewModel)item?.DataContext;
-                if (result != null)
-                {
-                    //if (e.ChangedButton == MouseButton.Left)
-                    //{
-                    //    _viewModel.OpenResultCommand.Execute(null);
-                    //}
-                    //else
-                    if (e.ChangedButton == MouseButton.Right)
-                    {
-                        _viewModel.LoadContextMenuCommand.Execute(null);
-                    }
-                }
-            }
-        }
-
         private void OnDrop(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))

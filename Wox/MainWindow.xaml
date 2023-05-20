@@ -117,15 +117,15 @@
         </Border>
 
         <Border Style="{DynamicResource WindowBorderStyle}" Margin="0,4,0,0" Visibility="{Binding Results.Visbility}" CornerRadius="4">
-            <wox:ResultListBox x:Name="ResultListBox" DataContext="{Binding Results}" PreviewMouseDown="OnPreviewMouseButtonDown" />
+            <wox:ResultListBox x:Name="ResultListBox" DataContext="{Binding Results}"/>
         </Border>
 
         <Border Style="{DynamicResource WindowBorderStyle}" Margin="0,4,0,0"  Visibility="{Binding ContextMenu.Visbility}" CornerRadius="4">
-            <wox:ResultListBox DataContext="{Binding ContextMenu}" PreviewMouseDown="OnPreviewMouseButtonDown" />
+            <wox:ResultListBox DataContext="{Binding ContextMenu}" />
         </Border>
 
         <Border Style="{DynamicResource WindowBorderStyle}" Margin="0,4,0,0" Visibility="{Binding History.Visbility}" CornerRadius="4">
-            <wox:ResultListBox DataContext="{Binding History}" PreviewMouseDown="OnPreviewMouseButtonDown" />
+            <wox:ResultListBox DataContext="{Binding History}"/>
         </Border>
     </StackPanel>
 </Window>

@@ -155,17 +155,10 @@ namespace Wox.ViewModel
 
             RefreshCommand = new RelayCommand(_ => Refresh());
 
-            OpenResultCommand = new RelayCommand(index =>
+            OpenResultCommand = new RelayCommand(obj =>
             {
-                var results = SelectedResults;
-
-                if (index != null)
-                {
-                    results.SelectedIndex = int.Parse(index.ToString());
-                }
-
-                var result = results.SelectedItem?.Result;
-                if (result != null) // SelectedItem returns null if selection is empty.
+                var result = (obj as ResultViewModel).Result;
+                if ( result != null)
                 {
                     bool hideWindow = result.Action != null && result.Action(new ActionContext
                     {
@@ -592,10 +585,6 @@ namespace Wox.ViewModel
             UpdateResultVisible();
             SetPluginIcon();
         }
-
-
-
-
 
         private void UpdateResultVisible()
         {
