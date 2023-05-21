@@ -37,7 +37,7 @@ namespace Wox.Plugin.Program
 
         public List<Result> Query(Query query)
         {
-            return Query(query.RawQuery);
+            return Query(query.Search);
         }
 
         public static List<Result> Query(string query)
