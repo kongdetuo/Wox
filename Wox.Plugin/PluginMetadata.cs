@@ -14,7 +14,7 @@ namespace Wox.Plugin
         public required string Language { get; set; }
         public required string Description { get; set; }
         public required string Website { get; set; }
-        public required bool Disabled { get; set; }
+        public bool Disabled { get; set; }
         public required string ExecuteFilePath { get; set; }
 
         public required string PluginDirectory { get; set; }
