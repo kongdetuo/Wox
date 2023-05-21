@@ -130,5 +130,7 @@ namespace Wox.Plugin
         {
             return new HighlightText(text);
         }
+
+        public override string ToString() => this.Text;
     }
 }
