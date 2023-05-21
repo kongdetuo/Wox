@@ -11,6 +11,8 @@ using Wox.Infrastructure.Exception;
 using Wox.Infrastructure.Logger;
 using Wox.Infrastructure.UserSettings;
 using Wox.Plugin;
+using System.Xml.Linq;
+using Wox.Core.Resource;
 
 namespace Wox.Core.Plugin
 {
@@ -21,7 +23,7 @@ namespace Wox.Core.Plugin
         public const string PythonExecutable = "pythonw.exe";
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        public static List<PluginProxy> Plugins(List<PluginMetadata> metadatas, PluginsSettings settings)
+        public static List<PluginProxy> Plugins(List<PluginConfig> metadatas, PluginsSettings settings)
         {
             var csharpPlugins = CSharpPlugins(metadatas).ToList();
             var pythonPlugins = PythonPlugins(metadatas, settings.PythonDirectory);
@@ -32,7 +34,7 @@ namespace Wox.Core.Plugin
                 .ToList();
         }
 
-        public static IEnumerable<PluginProxy> CSharpPlugins(List<PluginMetadata> source)
+        public static IEnumerable<PluginProxy> CSharpPlugins(List<PluginConfig> source)
         {
             var metadatas = source
                 .Where(IsCSharpPlugin);
@@ -43,24 +45,24 @@ namespace Wox.Core.Plugin
                 .ToList();
         }
 
-        private static PluginProxy LoadCSharpPlugin(PluginMetadata metadata)
+        private static PluginProxy LoadCSharpPlugin(PluginConfig config)
         {
             PluginProxy pair = null;
-            var milliseconds = Logger.StopWatchDebug($"Constructor init cost for {metadata.Name}", () =>
+            var milliseconds = Logger.StopWatchDebug($"Constructor init cost for {config.Name}", () =>
             {
                 Assembly assembly;
                 try
                 {
-                    var context = new CsharpPluginAssemblyLoadContext(metadata.ExecuteFilePath);
-                    assembly = context.LoadFromAssemblyName(new AssemblyName(Path.GetFileNameWithoutExtension(metadata.ExecuteFilePath)));
+                    var context = new CsharpPluginAssemblyLoadContext(config.GetExecuteFilePath());
+                    assembly = context.LoadFromAssemblyName(new AssemblyName(Path.GetFileNameWithoutExtension(config.GetExecuteFilePath())));
                 }
                 catch (Exception e)
                 {
-                    e.Data.Add(nameof(metadata.ID), metadata.ID);
-                    e.Data.Add(nameof(metadata.Name), metadata.Name);
-                    e.Data.Add(nameof(metadata.PluginDirectory), metadata.PluginDirectory);
-                    e.Data.Add(nameof(metadata.Website), metadata.Website);
-                    Logger.WoxError($"Couldn't load assembly for {metadata.Name}", e);
+                    e.Data.Add(nameof(config.ID), config.ID);
+                    e.Data.Add(nameof(config.Name), config.Name);
+                    e.Data.Add(nameof(config.PluginDirectory), config.PluginDirectory);
+                    e.Data.Add(nameof(config.Website), config.Website);
+                    Logger.WoxError($"Couldn't load assembly for {config.Name}", e);
                     return;
                 }
                 Type type;
@@ -73,11 +75,11 @@ namespace Wox.Core.Plugin
                 }
                 catch (InvalidOperationException e)
                 {
-                    e.Data.Add(nameof(metadata.ID), metadata.ID);
-                    e.Data.Add(nameof(metadata.Name), metadata.Name);
-                    e.Data.Add(nameof(metadata.PluginDirectory), metadata.PluginDirectory);
-                    e.Data.Add(nameof(metadata.Website), metadata.Website);
-                    Logger.WoxError($"Can't find class implement IPlugin for <{metadata.Name}>", e);
+                    e.Data.Add(nameof(config.ID), config.ID);
+                    e.Data.Add(nameof(config.Name), config.Name);
+                    e.Data.Add(nameof(config.PluginDirectory), config.PluginDirectory);
+                    e.Data.Add(nameof(config.Website), config.Website);
+                    Logger.WoxError($"Can't find class implement IPlugin for <{config.Name}>", e);
                     return;
                 }
                 IAsyncPlugin plugin;
@@ -87,27 +89,29 @@ namespace Wox.Core.Plugin
                 }
                 catch (Exception e)
                 {
-                    e.Data.Add(nameof(metadata.ID), metadata.ID);
-                    e.Data.Add(nameof(metadata.Name), metadata.Name);
-                    e.Data.Add(nameof(metadata.PluginDirectory), metadata.PluginDirectory);
-                    e.Data.Add(nameof(metadata.Website), metadata.Website);
-                    Logger.WoxError($"Can't create instance for <{metadata.Name}>", e);
+                    e.Data.Add(nameof(config.ID), config.ID);
+                    e.Data.Add(nameof(config.Name), config.Name);
+                    e.Data.Add(nameof(config.PluginDirectory), config.PluginDirectory);
+                    e.Data.Add(nameof(config.Website), config.Website);
+                    Logger.WoxError($"Can't create instance for <{config.Name}>", e);
                     return;
                 }
 
                 pair = new PluginProxy
                 {
                     Plugin = plugin,
-                    Metadata = metadata
+                    Metadata = CreateMetadata(config)
                 };
             });
-            metadata.InitTime += milliseconds;
+            if (pair == null)
+                return null;
+            pair.Metadata.InitTime += milliseconds;
             return pair;
         }
 
-        public static IEnumerable<PluginProxy> PythonPlugins(List<PluginMetadata> source, string pythonDirecotry)
+        private static IEnumerable<PluginProxy> PythonPlugins(List<PluginConfig> source, string pythonDirecotry)
         {
-            var metadatas = source.Where(o => o.Language.ToUpper() == AllowedLanguage.Python);
+            var configs = source.Where(o => o.Language.ToUpper() == AllowedLanguage.Python);
             string filename;
 
             if (string.IsNullOrEmpty(pythonDirecotry))
@@ -146,30 +150,53 @@ namespace Wox.Core.Plugin
                 }
             }
             Constant.PythonPath = filename;
-            var plugins = metadatas.Select(metadata => new PluginProxy
+            var plugins = configs.Select(config => new PluginProxy
             {
                 Plugin = new PythonPlugin(filename),
-                Metadata = metadata
+                Metadata = CreateMetadata(config)
             });
             return plugins;
         }
 
-        public static IEnumerable<PluginProxy> ExecutablePlugins(IEnumerable<PluginMetadata> source)
+        private static IEnumerable<PluginProxy> ExecutablePlugins(IEnumerable<PluginConfig> source)
         {
-            var metadatas = source.Where(o => o.Language.ToUpper() == AllowedLanguage.Executable);
+            var configs = source.Where(o => o.Language.ToUpper() == AllowedLanguage.Executable);
 
-            var plugins = metadatas.Select(metadata => new PluginProxy
+            var plugins = configs.Select(config => new PluginProxy
             {
-                Plugin = new ExecutablePlugin(metadata.ExecuteFilePath),
-                Metadata = metadata
+                Plugin = new ExecutablePlugin(config.GetExecuteFilePath()),
+                Metadata = CreateMetadata(config)
             });
             return plugins;
         }
 
-        private static bool IsCSharpPlugin(PluginMetadata metadata)
+        private static bool IsCSharpPlugin(PluginConfig metadata)
             => string.Equals(metadata.Language, AllowedLanguage.CSharp, StringComparison.OrdinalIgnoreCase);
 
-        private static bool IsPythonPlugin(PluginMetadata metadata)
+        private static bool IsPythonPlugin(PluginConfig metadata)
             => string.Equals(metadata.Language, AllowedLanguage.Python, StringComparison.OrdinalIgnoreCase);
+
+        public static PluginMetadata CreateMetadata(PluginConfig config)
+        {
+            var m = new PluginMetadata()
+            {
+                ID = config.ID,
+                Language = config.Language ?? string.Empty,
+                PluginDirectory = config.PluginDirectory,
+                ExecuteFilePath = config.GetExecuteFilePath(),
+                ActionKeywords = (config.ActionKeywords ?? new()).Append(config.ActionKeyword).Distinct().Where(p => p.IsEmpty == false).ToList(),
+
+                Name = string.IsNullOrEmpty(config.Name) ? "无名插件" : config.Name,
+                Description = config.Description ?? string.Empty,
+                Author = config.Author ?? string.Empty,
+                Version = config.Version ?? string.Empty,
+                Website = config.Website ?? string.Empty,
+                IcoPath = string.IsNullOrEmpty(config.IcoPath) ? "" : Path.Join(config.PluginDirectory, config.IcoPath),
+
+                Disabled = config.Disabled,
+                KeepResultRawScore = config.KeepResultRawScore
+            };
+            return m;
+        }
     }
 }

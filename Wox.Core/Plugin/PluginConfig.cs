@@ -9,33 +9,64 @@ using Wox.Infrastructure.Exception;
 using Wox.Infrastructure.Logger;
 using Wox.Plugin;
 using Wox.Infrastructure.Storage;
+using System.Windows.Automation;
 
 namespace Wox.Core.Plugin
 {
 
-    internal abstract class PluginConfig
+    [JsonObject(MemberSerialization.OptOut)]
+    public class PluginConfig
     {
         internal const string PluginConfigName = "plugin.json";
-        private static readonly List<PluginMetadata> PluginMetadatas = new List<PluginMetadata>();
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        
+        public string ID { get; set; }
+        public string Name { get; set; }
+        public string Author { get; set; }
+        public string Version { get; set; }
+        public string Language { get; set; }
+        public string Description { get; set; }
+        public string Website { get; set; }
+        public bool Disabled { get; set; }
+
+        public string GetExecuteFilePath()
+        {
+            if (string.IsNullOrEmpty(ExecuteFileName))
+                return string.Empty;
+            if (File.Exists(ExecuteFileName))
+                return ExecuteFileName;
+
+            var path = Path.Join(PluginDirectory, ExecuteFileName);
+            if (File.Exists(path))
+                return path;
+            return string.Empty;
+        }
+
+        public string ExecuteFileName { get; set; }
+
+        public string PluginDirectory { get; set; }
+
+        public Keyword ActionKeyword { get; set; }
+
+        public List<Keyword> ActionKeywords { get; set; }
+
+        public string IcoPath { get; set; }
+        public bool KeepResultRawScore { get; set; }
 
         /// <summary>
         /// Parse plugin metadata in giving directories
         /// </summary>
         /// <param name="pluginDirectories"></param>
         /// <returns></returns>
-        public static List<PluginMetadata> Parse(string[] pluginDirectories)
+        public static List<PluginConfig> Parse(string[] pluginDirectories)
         {
-            PluginMetadatas.Clear();
             var directories = pluginDirectories.SelectMany(Directory.GetDirectories);
-            ParsePluginConfigs(directories);
-            return PluginMetadatas;
+            return ParsePluginConfigs(directories).Where(p => p != null).ToList();
         }
 
-        private static void ParsePluginConfigs(IEnumerable<string> directories)
+        private static List<PluginConfig> ParsePluginConfigs(IEnumerable<string> directories)
         {
+            var list = new List<PluginConfig>();
             // todo use linq when diable plugin is implmented since parallel.foreach + list is not thread saft
             foreach (var directory in directories)
             {
@@ -52,16 +83,17 @@ namespace Wox.Core.Plugin
                 }
                 else
                 {
-                    PluginMetadata metadata = GetPluginMetadata(directory);
+                    PluginConfig metadata = Load(directory);
                     if (metadata != null)
                     {
-                        PluginMetadatas.Add(metadata);
+                        list.Add(metadata);
                     }
                 }
             }
+            return list;
         }
 
-        private static PluginMetadata GetPluginMetadata(string pluginDirectory)
+        public static PluginConfig Load(string pluginDirectory)
         {
             string configPath = Path.Combine(pluginDirectory, PluginConfigName);
             if (!File.Exists(configPath))
@@ -70,18 +102,15 @@ namespace Wox.Core.Plugin
                 return null;
             }
 
-            PluginMetadata metadata;
+            PluginConfig config;
             try
             {
                 var settings = new JsonSerializerSettings();
                 settings.Converters.Add(new KeywordConvertor());
-                
-                metadata = JsonConvert.DeserializeObject<PluginMetadata>(File.ReadAllText(configPath), settings);
-                metadata.PluginDirectory = pluginDirectory;
-                // for plugins which doesn't has ActionKeywords key
-                metadata.ActionKeywords = metadata.ActionKeywords ?? new List<Keyword> { metadata.ActionKeyword };
-                // for plugin still use old ActionKeyword
-                metadata.ActionKeyword = metadata.ActionKeywords?[0] ?? Keyword.Global;
+
+                config = JsonConvert.DeserializeObject<PluginConfig>(File.ReadAllText(configPath), settings);
+                config.PluginDirectory = pluginDirectory;
+
             }
             catch (Exception e)
             {
@@ -92,20 +121,19 @@ namespace Wox.Core.Plugin
             }
 
 
-            if (!AllowedLanguage.IsAllowed(metadata.Language))
+            if (!AllowedLanguage.IsAllowed(config.Language))
             {
-                Logger.WoxError($"Invalid language <{metadata.Language}> for config <{configPath}>");
+                Logger.WoxError($"Invalid language <{config.Language}> for config <{configPath}>");
                 return null;
             }
 
-            if (!File.Exists(metadata.ExecuteFilePath))
+            if (!File.Exists(config.GetExecuteFilePath()))
             {
-                Logger.WoxError($"execute file path didn't exist <{metadata.ExecuteFilePath}> for conifg <{configPath}");
+                Logger.WoxError($"execute file path didn't exist <{config.GetExecuteFilePath()}> for conifg <{configPath}");
                 return null;
             }
 
-            return metadata;
+            return config;
         }
     }
-
 }

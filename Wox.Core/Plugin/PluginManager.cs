@@ -20,13 +20,12 @@ namespace Wox.Core.Plugin
     public static class PluginManager
     {
         private static Dictionary<string, PluginProxy> PluginDic;
-        public static List<PluginProxy> AllPlugins { get; private set; }
+        public static IReadOnlyList<PluginProxy> AllPlugins { get => allPlugins; }
 
         public static IPublicAPI API { private set; get; }
 
-        // todo this should not be public, the indicator function should be embeded
-        public static PluginsSettings Settings;
-        private static List<PluginMetadata> _metadatas;
+        private static PluginsSettings Settings { get; set; }
+        private static List<PluginProxy> allPlugins;
         private static readonly string[] Directories = { Constant.PreinstalledDirectory, DataLocation.PluginsDirectory };
 
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
@@ -85,10 +84,11 @@ namespace Wox.Core.Plugin
         /// <param name="settings"></param>
         public static void LoadPlugins(PluginsSettings settings)
         {
-            _metadatas = PluginConfig.Parse(Directories);
             Settings = settings;
-            Settings.UpdatePluginSettings(_metadatas);
-            AllPlugins = PluginsLoader.Plugins(_metadatas, Settings);
+
+            var configs = PluginConfig.Parse(Directories);
+            allPlugins = PluginsLoader.Plugins(configs, Settings);
+            Settings.UpdatePluginSettings(AllPlugins.Select(p=>p.Metadata).ToList());
             PluginDic = AllPlugins.ToDictionary(p => p.Metadata.ID);
         }
 
@@ -165,11 +165,11 @@ namespace Wox.Core.Plugin
                     List<Result> results = new();
                     if (pluginPair.Plugin is IAsyncContextMenu asyncContext)
                     {
-                        results = await asyncContext.LoadContextMenusAsync(result);
+                        results = await asyncContext.LoadContextMenusAsync(result) ?? new();
                     }
                     else if (pluginPair.Plugin is IContextMenu context)
                     {
-                        results = context.LoadContextMenus(result);
+                        results = context.LoadContextMenus(result) ?? new();
                     }
 
                     foreach (var r in results)

@@ -69,10 +69,13 @@ namespace Wox.Plugin
     public record struct Keyword(string Key)
     {
         public static readonly Keyword Global = new("*");
+        public static readonly Keyword Empty = new("");
 
-        public bool IsGlobal => Equals(Global);
+        public readonly bool IsGlobal => Equals(Global) || Equals(Empty);
 
-        public override string ToString()
+        public readonly bool IsEmpty => string.IsNullOrWhiteSpace(Key);
+
+        public override readonly string ToString()
         {
             return Key;
         }

@@ -26,13 +26,14 @@ namespace Wox.Core.Plugin
                     MessageBox.Show("Install failed: plugin config is missing");
                     return;
                 }
-
-                PluginMetadata plugin = GetMetadataFromJson(tempFoler);
-                if (plugin == null || plugin.Name == null)
+                var config = PluginConfig.Load(tempFoler);
+                if (config == null || config.Name == null)
                 {
                     MessageBox.Show("Install failed: plugin config is invalid");
                     return;
                 }
+
+                PluginMetadata plugin = PluginsLoader.CreateMetadata(config);
 
                 string pluginFolerPath = Infrastructure.UserSettings.DataLocation.PluginsDirectory;
 
@@ -91,56 +92,6 @@ namespace Wox.Core.Plugin
             }
         }
 
-        private static PluginMetadata GetMetadataFromJson(string pluginDirectory)
-        {
-            string configPath = Path.Combine(pluginDirectory, PluginConfig.PluginConfigName);
-            PluginMetadata metadata;
-
-            if (!File.Exists(configPath))
-            {
-                return null;
-            }
-
-            try
-            {
-                metadata = JsonConvert.DeserializeObject<PluginMetadata>(File.ReadAllText(configPath));
-                metadata.PluginDirectory = pluginDirectory;
-            }
-            catch (Exception)
-            {
-                string error = $"Parse plugin config {configPath} failed: json format is not valid";
-#if (DEBUG)
-                {
-                    throw new Exception(error);
-                }
-#endif
-                return null;
-            }
-
-
-            if (!AllowedLanguage.IsAllowed(metadata.Language))
-            {
-                string error = $"Parse plugin config {configPath} failed: invalid language {metadata.Language}";
-#if (DEBUG)
-                {
-                    throw new Exception(error);
-                }
-#endif
-                return null;
-            }
-            if (!File.Exists(metadata.ExecuteFilePath))
-            {
-                string error = $"Parse plugin config {configPath} failed: ExecuteFile {metadata.ExecuteFilePath} didn't exist";
-#if (DEBUG)
-                {
-                    throw new Exception(error);
-                }
-#endif
-                return null;
-            }
-
-            return metadata;
-        }
 
         /// <summary>
         /// unzip 
