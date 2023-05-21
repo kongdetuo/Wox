@@ -193,7 +193,6 @@ namespace Wox.Core.Plugin
                 Website = config.Website ?? string.Empty,
                 IcoPath = string.IsNullOrEmpty(config.IcoPath) ? "" : Path.Join(config.PluginDirectory, config.IcoPath),
 
-                Disabled = config.Disabled,
                 KeepResultRawScore = config.KeepResultRawScore
             };
             return m;
