@@ -18,7 +18,6 @@ namespace Wox.Infrastructure.UserSettings
                     if (settings.ActionKeywords?.Count > 0)
                     {
                         metadata.ActionKeywords = settings.ActionKeywords;
-                        metadata.ActionKeyword = settings.ActionKeywords[0];
                     }
                     metadata.Disabled = settings.Disabled;
                 }

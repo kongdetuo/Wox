@@ -22,8 +22,7 @@ namespace Wox.Core.Plugin
             var possibleActionKeyword = new Keyword(terms[0]);
 
             if ((terms.Length > 1 || text.EndsWith(Query.TermSeperater))
-                && PluginManager.NonGlobalPlugins.TryGetValue(possibleActionKeyword, out var pluginPair)
-                && !pluginPair.Metadata.Disabled)
+                && PluginManager.AllPlugins.Where(p => !p.Metadata.Disabled).Any(p => p.MatchKeyWord(terms[0])))
             { // use non global plugin for query
                 actionKeyword = possibleActionKeyword.Key;
 

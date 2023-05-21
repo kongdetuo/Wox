@@ -9,6 +9,15 @@ namespace Wox.Plugin
     {
         public IAsyncPlugin Plugin { get;  set; }
         public PluginMetadata Metadata { get;  set; }
+        public bool MatchKeyWord(string word)
+        {
+            return this.Metadata.ActionKeywords.Any(p => p.Key == word);
+        }
+
+        public bool MatchKeyWord(Keyword keyword)
+        {
+            return this.Metadata.ActionKeywords.Contains(keyword);
+        }
         
         public async Task<List<Result>> QueryAsync(Query query, CancellationToken token)
         {

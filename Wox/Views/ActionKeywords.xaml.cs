@@ -43,18 +43,12 @@ namespace Wox
                 ? new Keyword(tbAction.Text.Trim())
                 : Keyword.Global;
 
-            if (!PluginManager.ActionKeywordRegistered(newActionKeyword))
-            {
-                var id = _plugin.Metadata.ID;
-                PluginManager.ReplaceActionKeyword(id, oldActionKeyword, newActionKeyword);
-                MessageBox.Show(_translater.GetTranslation("success"));
-                Close();
-            }
-            else
-            {
-                string msg = _translater.GetTranslation("newActionKeywordsHasBeenAssigned");
-                MessageBox.Show(msg);
-            }
+
+            var id = _plugin.Metadata.ID;
+            PluginManager.ReplaceActionKeyword(id, oldActionKeyword, newActionKeyword);
+            MessageBox.Show(_translater.GetTranslation("success"));
+            Close();
+
         }
     }
 }

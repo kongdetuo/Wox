@@ -10,16 +10,16 @@ namespace Wox.Plugin.PluginIndicator
 
         public List<Result> Query(Query query)
         {
-            var results = from keyword in PluginManager.NonGlobalPlugins.Keys
+            var results = from plugin in PluginManager.AllPlugins
+                          where plugin.Metadata.Disabled == false
+                          from keyword in plugin.Metadata.ActionKeywords
                           where keyword.Key.StartsWith(query.Terms[0])
-                          let metadata = PluginManager.NonGlobalPlugins[keyword].Metadata
-                          where !metadata.Disabled
                           select new Result
                           {
                               Title = keyword.Key,
-                              SubTitle = $"Activate {metadata.Name} plugin",
+                              SubTitle = $"Activate {plugin.Metadata.Name} plugin",
                               Score = 100,
-                              IcoPath = metadata.IcoPath,
+                              IcoPath = plugin.Metadata.IcoPath,
                               Action = c =>
                               {
                                   context.API.ChangeQuery($"{keyword}{Plugin.Query.TermSeperater}");

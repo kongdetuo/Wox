@@ -19,10 +19,8 @@ namespace Wox.Core.Plugin
     /// </summary>
     public static class PluginManager
     {
-        public static Dictionary<string, PluginProxy> PluginDic;
+        private static Dictionary<string, PluginProxy> PluginDic;
         public static List<PluginProxy> AllPlugins { get; private set; }
-        public static readonly List<PluginProxy> GlobalPlugins = new List<PluginProxy>();
-        public static readonly Dictionary<Keyword, PluginProxy> NonGlobalPlugins = new();
 
         public static IPublicAPI API { private set; get; }
 
@@ -124,19 +122,6 @@ namespace Wox.Core.Plugin
                 }
             }));
 
-            foreach (var plugin in AllPlugins)
-            {
-                if (IsGlobalPlugin(plugin.Metadata))
-                    GlobalPlugins.Add(plugin);
-
-                // Plugins may have multiple ActionKeywords, eg. WebSearch
-                foreach (var key in plugin.Metadata.ActionKeywords.Where(key => !key.IsGlobal))
-                {
-                    NonGlobalPlugins[key] = plugin;
-                };
-
-            }
-
             if (failedPlugins.Any())
             {
                 var failed = string.Join(",", failedPlugins.Select(x => x.Metadata.Name));
@@ -147,11 +132,6 @@ namespace Wox.Core.Plugin
         public static void InstallPlugin(string path)
         {
             PluginInstaller.Install(path);
-        }
-
-        private static bool IsGlobalPlugin(PluginMetadata metadata)
-        {
-            return metadata.ActionKeywords.Contains(Keyword.Global);
         }
 
         /// <summary>
@@ -212,16 +192,6 @@ namespace Wox.Core.Plugin
 
         }
 
-        public static bool ActionKeywordRegistered(string actionKeyword)
-        {
-            return ActionKeywordRegistered(new Keyword(actionKeyword));
-        }
-
-        public static bool ActionKeywordRegistered(Keyword actionKeyword)
-        {
-            return !actionKeyword.IsGlobal && NonGlobalPlugins.ContainsKey(actionKeyword);
-        }
-
         /// <summary>
         /// used to add action keyword for multiple action keyword plugin
         /// e.g. web search
@@ -238,14 +208,6 @@ namespace Wox.Core.Plugin
         public static void AddActionKeyword(string id, Keyword newActionKeyword)
         {
             var plugin = GetPluginForId(id);
-            if (newActionKeyword == Keyword.Global)
-            {
-                GlobalPlugins.Add(plugin);
-            }
-            else
-            {
-                NonGlobalPlugins[newActionKeyword] = plugin;
-            }
             plugin.Metadata.ActionKeywords.Add(newActionKeyword);
         }
         /// <summary>
@@ -266,13 +228,6 @@ namespace Wox.Core.Plugin
             var plugin = GetPluginForId(id);
 
             plugin.Metadata.ActionKeywords.Remove(oldActionkeyword);
-
-            NonGlobalPlugins.Remove(oldActionkeyword);
-
-            if (!plugin.Metadata.ActionKeywords.Any(x => x.IsGlobal)) // Plugins may have multiple ActionKeywords that are global, eg. WebSearch
-            {
-                GlobalPlugins.Remove(plugin);
-            }
         }
 
         public static void ReplaceActionKeyword(string id, string oldActionKeyword, string newActionKeyword)
@@ -292,8 +247,6 @@ namespace Wox.Core.Plugin
                 AddActionKeyword(id, newActionKeyword);
             }
         }
-
-
     }
 
     public class HistoryPlugin : IPlugin

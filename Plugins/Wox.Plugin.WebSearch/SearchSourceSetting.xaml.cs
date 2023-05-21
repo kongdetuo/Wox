@@ -20,13 +20,13 @@ namespace Wox.Plugin.WebSearch
         public SearchSourceSettingWindow(IList<SearchSource> sources, PluginInitContext context, SearchSource old)
         {
             _oldSearchSource = old;
-            _viewModel = new SearchSourceViewModel {SearchSource = old.DeepCopy()};
+            _viewModel = new SearchSourceViewModel { SearchSource = old.DeepCopy() };
             Initilize(sources, context, Action.Edit);
         }
 
         public SearchSourceSettingWindow(IList<SearchSource> sources, PluginInitContext context)
         {
-            _viewModel = new SearchSourceViewModel {SearchSource = new SearchSource()};
+            _viewModel = new SearchSourceViewModel { SearchSource = new SearchSource() };
             Initilize(sources, context, Action.Add);
         }
 
@@ -76,52 +76,38 @@ namespace Wox.Plugin.WebSearch
         private void AddSearchSource()
         {
             var keyword = _searchSource.ActionKeyword;
-            if (!PluginManager.ActionKeywordRegistered(keyword))
-            {
-                var id = _context.CurrentPluginMetadata.ID;
-                PluginManager.AddActionKeyword(id, keyword);
 
-                _searchSources.Add(_searchSource);
+            var id = _context.CurrentPluginMetadata.ID;
+            PluginManager.AddActionKeyword(id, keyword);
 
-                var info = _api.GetTranslation("success");
-                MessageBox.Show(info);
-                Close();
-            }
-            else
-            {
-                var warning = _api.GetTranslation("newActionKeywordsHasBeenAssigned");
-                MessageBox.Show(warning);
-            }
+            _searchSources.Add(_searchSource);
+
+            var info = _api.GetTranslation("success");
+            MessageBox.Show(info);
+            Close();
         }
 
         private void EditSearchSource()
         {
             var newKeyword = _searchSource.ActionKeyword;
             var oldKeyword = _oldSearchSource.ActionKeyword;
-            if (!PluginManager.ActionKeywordRegistered(newKeyword) || oldKeyword == newKeyword)
-            {
-                var id = _context.CurrentPluginMetadata.ID;
-                PluginManager.ReplaceActionKeyword(id, oldKeyword, newKeyword);
 
-                var index = _searchSources.IndexOf(_oldSearchSource);
-                _searchSources[index] = _searchSource;
+            var id = _context.CurrentPluginMetadata.ID;
+            PluginManager.ReplaceActionKeyword(id, oldKeyword, newKeyword);
 
-                var info = _api.GetTranslation("success");
-                MessageBox.Show(info);
-                Close();
-            }
-            else
-            {
-                var warning = _api.GetTranslation("newActionKeywordsHasBeenAssigned");
-                MessageBox.Show(warning);
-            }
+            var index = _searchSources.IndexOf(_oldSearchSource);
+            _searchSources[index] = _searchSource;
+
+            var info = _api.GetTranslation("success");
+            MessageBox.Show(info);
+            Close();
         }
 
         private void OnSelectIconClick(object sender, RoutedEventArgs e)
         {
             var directory = Main.ImagesDirectory;
             const string filter = "Image files (*.jpg, *.jpeg, *.gif, *.png, *.bmp) |*.jpg; *.jpeg; *.gif; *.png; *.bmp";
-            var dialog = new OpenFileDialog {InitialDirectory = directory, Filter = filter};
+            var dialog = new OpenFileDialog { InitialDirectory = directory, Filter = filter };
 
             var result = dialog.ShowDialog();
             if (result == true)

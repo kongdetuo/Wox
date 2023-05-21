@@ -149,9 +149,8 @@ namespace Wox.Core.Services
             if (pair.Metadata.Disabled)
                 return false;
 
-            bool validGlobalQuery = query.ActionKeyword is null && pair.Metadata.ActionKeywords[0].IsGlobal;
-            bool validNonGlobalQuery = query.ActionKeyword is not null && pair.Metadata.ActionKeywords.Contains(query.ActionKeyword.Value);
-            return validGlobalQuery || validNonGlobalQuery;
+            var keyword = query.ActionKeyword ?? Keyword.Global;
+            return pair.MatchKeyWord(keyword);
         }
         public static void UpdatePluginMetadata(List<Result> results, PluginMetadata metadata, Query query)
         {

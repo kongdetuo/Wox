@@ -455,9 +455,11 @@ namespace Wox.ViewModel
                     if (plugin == null && queryText.Contains(' '))
                     {
                         var key = queryText[..queryText.IndexOf(' ')].ToString();
-                        plugin = PluginManager.AllPlugins
-                           .Where(p => !p.Metadata.Disabled)
-                           .SingleOrDefault(p => key == p.Metadata.ActionKeyword.Key);
+                        var plugins = PluginManager.AllPlugins
+                            .Where(p => !p.Metadata.Disabled && p.MatchKeyWord(key))
+                            .Take(2).ToArray();
+                        if (plugins.Length == 1)
+                            plugin = plugins[0];
                     }
 
                     if (plugin != null)
