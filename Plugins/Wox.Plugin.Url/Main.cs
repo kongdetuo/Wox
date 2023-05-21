@@ -110,6 +110,7 @@ namespace Wox.Plugin.Url
 
         public bool IsURL(string raw)
         {
+            if (string.IsNullOrEmpty(raw)) return false;
             raw = raw.ToLower();
 
             if (reg.Match(raw).Value == raw) return true;
