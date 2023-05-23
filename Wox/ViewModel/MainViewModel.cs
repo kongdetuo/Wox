@@ -160,7 +160,13 @@ namespace Wox.ViewModel
             {
                 Task.Run(async () =>
                 {
-                    var result = (obj as ResultViewModel).Result;
+                    var result = obj switch
+                    {
+                        ResultViewModel r => r.Result,
+                        string ss when int.TryParse(ss, out var index) && index < SelectedResults.Count => SelectedResults.Results[index].Result,
+                        _ => null
+                    };
+
                     if (result != null)
                     {
                         var context = new ActionContext
@@ -172,7 +178,7 @@ namespace Wox.ViewModel
                         bool hideWindow = false;
                         if (result.AsyncAction is not null)
                             hideWindow = await result.AsyncAction(context);
-                        else if(result.Action is not null)
+                        else if (result.Action is not null)
                             hideWindow = result.Action(context);
 
                         if (hideWindow)
