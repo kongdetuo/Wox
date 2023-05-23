@@ -5,6 +5,7 @@
 		<RootNamespace>Wox.Plugin.Caculator</RootNamespace>
 		<AssemblyName>Wox.Plugin.Caculator</AssemblyName>
 		<SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
+		<Nullable>enable</Nullable>
 		<UseWPF>true</UseWPF>
 		<ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>

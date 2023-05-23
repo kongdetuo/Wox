@@ -20,7 +20,8 @@
         <UseApplicationTrust>false</UseApplicationTrust>
         <BootstrapperEnabled>true</BootstrapperEnabled>
         <UseWindowsForms>true</UseWindowsForms>
-        <UseWPF>true</UseWPF>
+		<Nullable>enable</Nullable>
+		<UseWPF>true</UseWPF>
         <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
         <Platforms>AnyCPU;x64</Platforms>
     </PropertyGroup>
