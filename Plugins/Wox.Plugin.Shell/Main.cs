@@ -323,8 +323,8 @@ namespace Wox.Plugin.Shell
         private void OnWinRPressed()
         {
             string query = $"{_context.CurrentPluginMetadata.ActionKeywords[0]}{Plugin.Query.TermSeperater}";
+            _context.API.ShowWox();
             _context.API.ChangeQuery(query, true);
-            Application.Current.MainWindow.Visibility = Visibility.Visible;
         }
 
         public Control CreateSettingPanel()

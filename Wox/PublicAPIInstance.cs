@@ -108,6 +108,11 @@ namespace Wox
             return PluginManager.AllPlugins.ToList();
         }
 
+        public void ShowWox()
+        {
+            _mainVM.MainWindowVisibility = Visibility.Visible;
+        }
+
         public event WoxGlobalKeyboardEventHandler GlobalKeyboardEvent;
 
         #endregion Public API
@@ -127,6 +132,8 @@ namespace Wox
         {
             _mainVM.MainWindowVisibility = Visibility.Collapsed;
         }
+
+
 
         #endregion Private Methods
     }

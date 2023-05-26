@@ -77,6 +77,8 @@ namespace Wox.Plugin
         /// <returns></returns>
         string GetTranslation(string key);
 
+        void ShowWox();
+
         /// <summary>
         /// Get all loaded plugins 
         /// </summary>
