@@ -28,23 +28,6 @@ namespace Wox.Plugin.Caculator
         }
 
         /// <summary>
-        /// Create a new <see cref="NumberTranslator"/> - returns null if no number conversion
-        /// is required between the cultures.
-        /// </summary>
-        /// <param name="sourceCulture">source culture</param>
-        /// <param name="targetCulture">target culture</param>
-        /// <returns></returns>
-        public static NumberTranslator Create(CultureInfo sourceCulture, CultureInfo targetCulture)
-        {
-            bool conversionRequired = sourceCulture.NumberFormat.NumberDecimalSeparator != targetCulture.NumberFormat.NumberDecimalSeparator
-                                      || sourceCulture.NumberFormat.PercentGroupSeparator != targetCulture.NumberFormat.PercentGroupSeparator
-                                      || sourceCulture.NumberFormat.NumberGroupSizes != targetCulture.NumberFormat.NumberGroupSizes;
-            return conversionRequired
-                ? new NumberTranslator(sourceCulture, targetCulture)
-                : null;
-        }
-
-        /// <summary>
         /// Translate from source to target culture.
         /// </summary>
         /// <param name="input"></param>

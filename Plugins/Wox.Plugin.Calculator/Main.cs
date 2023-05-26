@@ -25,10 +25,10 @@ namespace Wox.Plugin.Caculator
                         @")+$", RegexOptions.Compiled);
         private static readonly Regex RegBrackets = new Regex(@"[\(\)\[\]]", RegexOptions.Compiled);
         private static readonly Engine MagesEngine;
-        private PluginInitContext Context { get; set; }
+        private PluginInitContext Context { get; set; } = null!;
 
-        private static Settings _settings;
-        private static SettingsViewModel _viewModel;
+        private static SettingsViewModel _viewModel = null!;
+        private static Settings _settings=>_viewModel.Settings;
 
         static Main()
         {
@@ -40,7 +40,6 @@ namespace Wox.Plugin.Caculator
             Context = context;
 
             _viewModel = new SettingsViewModel();
-            _settings = _viewModel.Settings;
         }
 
         public List<Result> Query(Query query)
