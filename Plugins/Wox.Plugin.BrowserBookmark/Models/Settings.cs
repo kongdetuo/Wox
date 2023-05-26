@@ -4,6 +4,6 @@
     {
         public bool OpenInNewBrowserWindow { get; set; } = true;
 
-        public string BrowserPath { get; set; }
+        public string BrowserPath { get; set; } = string.Empty;
     }
 }

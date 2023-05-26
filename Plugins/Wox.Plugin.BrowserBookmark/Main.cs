@@ -12,10 +12,10 @@ namespace Wox.Plugin.BrowserBookmark
 {
     public class Main : ISettingProvider, IPlugin, IReloadable, IPluginI18n, ISavable
     {
-        private PluginInitContext context;
+        private PluginInitContext context = null!;
 
-        private List<Bookmark> cachedBookmarks = new List<Bookmark>();
-        private object _updateLock = new object();
+        private List<Bookmark> cachedBookmarks = new();
+        private object _updateLock = new();
 
         private readonly Settings _settings;
         private readonly PluginJsonStorage<Settings> _storage;
@@ -70,7 +70,6 @@ namespace Wox.Plugin.BrowserBookmark
                 {
                     // Since we mixed chrome and firefox bookmarks, we should order them again
                     returnList = cachedBookmarks.Where(o => Bookmarks.MatchProgram(o, param)).ToList();
-                    returnList = returnList.OrderByDescending(o => o.Score).ToList();
                 }
 
                 var results = returnList.Select(c => new Result()
