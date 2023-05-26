@@ -54,33 +54,26 @@ namespace Wox
 
         public static void SetStartup()
         {
-            using (var key = Registry.CurrentUser.OpenSubKey(StartupPath, true))
-            {
-                key?.SetValue(Infrastructure.Constant.Wox, Infrastructure.Constant.ExecutablePath);
-            }
+            using var key = Registry.CurrentUser.OpenSubKey(StartupPath, true);
+            key?.SetValue(Infrastructure.Constant.Wox, Infrastructure.Constant.ExecutablePath);
         }
 
         private void RemoveStartup()
         {
-            using (var key = Registry.CurrentUser.OpenSubKey(StartupPath, true))
-            {
-                key?.DeleteValue(Infrastructure.Constant.Wox, false);
-            }
+            using var key = Registry.CurrentUser.OpenSubKey(StartupPath, true);
+            key?.DeleteValue(Infrastructure.Constant.Wox, false);
         }
 
         public static bool StartupSet()
         {
-            using (var key = Registry.CurrentUser.OpenSubKey(StartupPath, true))
+            using var key = Registry.CurrentUser.OpenSubKey(StartupPath, true);
+            if (key?.GetValue(Infrastructure.Constant.Wox) is string path)
             {
-                var path = key?.GetValue(Infrastructure.Constant.Wox) as string;
-                if (path != null)
-                {
-                    return path == Infrastructure.Constant.ExecutablePath;
-                }
-                else
-                {
-                    return false;
-                }
+                return path == Infrastructure.Constant.ExecutablePath;
+            }
+            else
+            {
+                return false;
             }
         }
 
@@ -189,7 +182,7 @@ namespace Wox
             var item = _viewModel.SelectedCustomPluginHotkey;
             if (item != null)
             {
-                CustomQueryHotkeySetting window = new CustomQueryHotkeySetting(this, _settings);
+                CustomQueryHotkeySetting window = new(this, _settings);
                 window.UpdateItem(item);
                 window.ShowDialog();
             }
@@ -212,9 +205,12 @@ namespace Wox
         {
             if (e.ChangedButton == MouseButton.Left)
             {
-                var id = _viewModel.SelectedPlugin.PluginPair.Metadata.ID;
-                ActionKeywords changeKeywordsWindow = new ActionKeywords(id, _settings);
-                changeKeywordsWindow.ShowDialog();
+                var id = _viewModel.SelectedPlugin?.PluginPair.Metadata.ID;
+                if (id != null)
+                {
+                    ActionKeywords changeKeywordsWindow = new(id, _settings);
+                    changeKeywordsWindow.ShowDialog();
+                }
             }
         }
 
@@ -222,7 +218,7 @@ namespace Wox
         {
             if (e.ChangedButton == MouseButton.Left)
             {
-                var website = _viewModel.SelectedPlugin.PluginPair.Metadata.Website;
+                var website = _viewModel.SelectedPlugin?.PluginPair.Metadata.Website;
                 if (!string.IsNullOrEmpty(website))
                 {
                     var uri = new Uri(website);
@@ -238,7 +234,7 @@ namespace Wox
         {
             if (e.ChangedButton == MouseButton.Left)
             {
-                var directory = _viewModel.SelectedPlugin.PluginPair.Metadata.PluginDirectory;
+                var directory = _viewModel.SelectedPlugin?.PluginPair.Metadata.PluginDirectory;
                 if (!string.IsNullOrEmpty(directory) && Directory.Exists(directory))
                 {
                     Process.Start(directory);

@@ -28,10 +28,10 @@ namespace Wox
 {
     public partial class MainWindow
     {
-        private readonly Storyboard _progressBarStoryboard = new Storyboard();
-        private Settings _settings;
-        private NotifyIcon _notifyIcon;
-        private MainViewModel _viewModel;
+        private readonly Storyboard _progressBarStoryboard = new();
+        private Settings _settings = null!;
+        private NotifyIcon _notifyIcon = null!;
+        private MainViewModel _viewModel = null!;
         private static readonly NLog.Logger Logger = LogManager.GetCurrentClassLogger();
 
         public MainWindow(MainViewModel mainVM)

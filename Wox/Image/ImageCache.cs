@@ -70,10 +70,13 @@ namespace Wox.Image
                     int currentCount = _cache.Count;
                     if (currentCount > _cacheLimit)
                     {
-                        CacheEntry min = _cacheSorted.Min;
-                        _cacheSorted.Remove(min);
-                        bool removeResult = _cache.TryRemove(min.Key, out _);
-                        Logger.WoxDebug($"remove exceed: <{removeResult}> entry: <{min.Key}>");
+                        CacheEntry? min = _cacheSorted.Min;
+                        if (min != null)
+                        {
+                            _cacheSorted.Remove(min);
+                            bool removeResult = _cache.TryRemove(min.Key, out _);
+                            Logger.WoxDebug($"remove exceed: <{removeResult}> entry: <{min.Key}>");
+                        }
                     }
                     else
                     {
@@ -93,7 +96,7 @@ namespace Wox.Image
             }).ContinueWith(ErrorReporting.UnhandledExceptionHandleTask, TaskContinuationOptions.OnlyOnFaulted);
         }
 
-        private void ExpirationCheck(object state)
+        private void ExpirationCheck(object? state)
         {
             try
             {
@@ -103,7 +106,7 @@ namespace Wox.Image
 
                 foreach (KeyValuePair<string, CacheEntry> pair in pairs)
                 {
-                    bool success = _cache.TryRemove(pair.Key, out CacheEntry entry);
+                    bool success = _cache.TryRemove(pair.Key, out CacheEntry? entry);
                     Logger.WoxDebug($"remove expired: <{success}> entry: <{pair.Key}>");
                 }
             }
@@ -121,33 +124,29 @@ namespace Wox.Image
         /// <returns></returns>
         public ImageSource GetOrAdd(string key, Func<string, ImageSource> imageFactory)
         {
-            CacheEntry entry;
-            bool getResult = _cache.TryGetValue(key, out entry);
-            if (!getResult)
+            if (_cache.TryGetValue(key, out CacheEntry? entry))
             {
-                entry = Add(key, imageFactory);
+                UpdateDate(entry);
                 return entry.Image;
             }
             else
             {
-                UpdateDate(entry);
+                entry = Add(key, imageFactory);
                 return entry.Image;
             }
         }
 
         public ImageSource GetOrAdd(string key, ImageSource defaultImage, Func<string, ImageSource> imageFactory, Action<ImageSource> updateImageCallback)
         {
-            CacheEntry getEntry;
-            bool getResult = _cache.TryGetValue(key, out getEntry);
-            if (!getResult)
-            {
-                _updateQueue.Add(new UpdateCallbackEntry(key, imageFactory, updateImageCallback));
-                return defaultImage;
-            }
-            else
+            if (_cache.TryGetValue(key, out CacheEntry? getEntry))
             {
                 UpdateDate(getEntry);
                 return getEntry.Image;
+            }
+            else
+            {
+                _updateQueue.Add(new UpdateCallbackEntry(key, imageFactory, updateImageCallback));
+                return defaultImage;
             }
         }
 
@@ -170,8 +169,14 @@ namespace Wox.Image
 
     internal class CacheEntryComparer : IComparer<CacheEntry>
     {
-        public int Compare(CacheEntry x, CacheEntry y)
+        public int Compare(CacheEntry? x, CacheEntry? y)
         {
+            if (x == null && y == null)
+                return 0;
+            if (x == null)
+                return -1;
+            if (y == null)
+                return 1;
             return x.ExpiredDate.CompareTo(y.ExpiredDate);
         }
     }

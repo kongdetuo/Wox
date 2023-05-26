@@ -23,11 +23,11 @@ namespace Wox.Image
             ".ico"
         };
 
-        private static ImageCache _cache;
+        private static ImageCache _cache=null!;
 
         private static readonly NLog.Logger Logger = LogManager.GetCurrentClassLogger();
-        private static ImageSource _defaultFileImage;
-        private static ImageSource _errorImage;
+        private static ImageSource _defaultFileImage = null!;
+        private static ImageSource _errorImage = null!;
 
         public static void Initialize()
         {
@@ -47,7 +47,7 @@ namespace Wox.Image
             _cache = new ImageCache();
         }
 
-        private static ImageSource LoadInternal(string path, string pluginDirectory)
+        private static ImageSource LoadInternal(string? path, string? pluginDirectory)
         {
             Logger.WoxDebug($"load from disk {path}");
             if (string.IsNullOrEmpty(path))
@@ -67,7 +67,7 @@ namespace Wox.Image
             return image;
         }
 
-        private static ImageSource LoadFileThumbnail(string path)
+        private static ImageSource? LoadFileThumbnail(string path)
         {
             if (File.Exists(path))
             {
@@ -86,14 +86,15 @@ namespace Wox.Image
                 }
                 catch (ShellException e)
                 {
+                    _ = e;
                 }
             }
             return null;
         }
 
-        private static ImageSource LoadDirectoryThumbnail(string path)
+        private static ImageSource? LoadDirectoryThumbnail(string? path)
         {
-            if (Directory.Exists(path))
+            if (string.IsNullOrEmpty(path) == false && Directory.Exists(path))
             {
 
                 try
@@ -119,8 +120,11 @@ namespace Wox.Image
             return null;
         }
 
-        private static ImageSource LoadNormalImage(string path, string pluginDirectory)
+        private static ImageSource? LoadNormalImage(string? path, string? pluginDirectory)
         {
+            if (string.IsNullOrEmpty(path))
+                return null;
+
             bool normalImage = ImageExtensions.Any(e => path.EndsWith(e));
 
             if (normalImage)
@@ -132,7 +136,7 @@ namespace Wox.Image
             return null;
         }
 
-        private static ImageSource LoadEmbededImage(string path)
+        private static ImageSource? LoadEmbededImage(string path)
         {
             try
             {
@@ -149,13 +153,13 @@ namespace Wox.Image
             return null;
         }
 
-        private static ImageSource LoadDataImage(string path)
+        private static ImageSource? LoadDataImage(string path)
         {
             if (path.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
             {
                 try
                 {
-                    BitmapImage image = new BitmapImage();
+                    BitmapImage image = new();
                     image.BeginInit();
                     image.CacheOption = BitmapCacheOption.OnLoad;
                     image.UriSource = new Uri(path);
@@ -165,18 +169,19 @@ namespace Wox.Image
                 }
                 catch (Exception e)
                 {
+                    _ = e;
                 }
             }
             return null;
         }
 
-        private static ImageSource TryLoadFromPath(string path)
+        private static ImageSource? TryLoadFromPath(string path)
         {
             try
             {
                 if (Path.IsPathRooted(path) && File.Exists(path))
                 {
-                    BitmapImage image = new BitmapImage();
+                    BitmapImage image = new();
                     image.BeginInit();
                     image.CacheOption = BitmapCacheOption.OnLoad;
                     image.UriSource = new Uri(path);
@@ -191,7 +196,7 @@ namespace Wox.Image
             return null;
         }
 
-        private static ImageSource TryLoadFromPluginDirectory(string path, string pluginDirectory)
+        private static ImageSource? TryLoadFromPluginDirectory(string path, string? pluginDirectory)
         {
             if (!string.IsNullOrWhiteSpace(pluginDirectory))
                 return TryLoadFromPath(Path.Combine(pluginDirectory, path))
@@ -199,7 +204,7 @@ namespace Wox.Image
             return null;
         }
 
-        private static ImageSource TryLoadFromWoxDirectory(string path)
+        private static ImageSource? TryLoadFromWoxDirectory(string path)
         {
             return TryLoadFromPath(Path.Combine(Constant.ProgramDirectory, path))
                 ?? TryLoadFromPath(Path.Combine(Constant.ProgramDirectory, "Images", Path.GetFileName(path)));
@@ -225,7 +230,7 @@ namespace Wox.Image
         /// <param name="path"></param>
         /// <param name="updateImageCallback"></param>
         /// <returns></returns>
-        internal static ImageSource Load(string path, Action<ImageSource> updateImageCallback, string title, string pluginID, string pluginDirectory)
+        internal static ImageSource Load(string? path, Action<ImageSource> updateImageCallback, string title, string? pluginID, string? pluginDirectory)
         {
             Logger.WoxDebug($"load begin {path}");
             var img = _cache.GetOrAdd(pluginDirectory + path, _defaultFileImage, (string p) =>

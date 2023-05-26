@@ -11,36 +11,38 @@ namespace Wox.Core.Storage
     {
         [JsonProperty]
         private Dictionary<string, Record> records = new();
-        private ConcurrentDictionary<string, Record> recordDic;
+        private ConcurrentDictionary<string, Record> recordDic=null!;
 
         public ConcurrentDictionary<string, Record> RecordDic => recordDic ??= new ConcurrentDictionary<string, Record>(this.records);
-        public bool IsTopMost(Result result)
+
+        public bool IsTopMost(Query query, string pluginid,Result result)
         {
-            return RecordDic.TryGetValue(result.OriginQuery.RawQuery, out Record record)
+            return RecordDic.TryGetValue(query.RawQuery, out Record? record)
                 && record.Title == result.Title.Text
                 && record.SubTitle == result.SubTitle.Text
-                && record.PluginID == result.PluginID;
+                && record.PluginID == pluginid;
         }
+
 
         public bool HasTopMost(Query query)
         {
             return query != null && RecordDic.ContainsKey(query.RawQuery);
         }
 
-        public void Remove(Result result)
+        public void Remove(Query query)
         {
-            RecordDic.Remove(result.OriginQuery.RawQuery, out _);
+            RecordDic.Remove(query.RawQuery, out _);
         }
 
-        public void AddOrUpdate(Result result)
+        public void AddOrUpdate(Query query, string pluginid, Result result)
         {
             var record = new Record
             {
-                PluginID = result.PluginID,
+                PluginID = pluginid,
                 Title = result.Title.Text,
                 SubTitle = result.SubTitle.Text
             };
-            RecordDic[result.OriginQuery.RawQuery] = record;
+            RecordDic[query.RawQuery] = record;
 
         }
     }
@@ -48,8 +50,8 @@ namespace Wox.Core.Storage
 
     public class Record
     {
-        public string Title { get; set; }
-        public string SubTitle { get; set; }
-        public string PluginID { get; set; }
+        public required string Title { get; set; }
+        public required string SubTitle { get; set; }
+        public required string PluginID { get; set; }
     }
 }

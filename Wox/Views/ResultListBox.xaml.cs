@@ -8,7 +8,7 @@ namespace Wox
     public partial class ResultListBox
     {
         private Point _lastpos;
-        private ListBoxItem curItem = null;
+        private ListBoxItem? curItem = null;
 
         public ResultListBox()
         {
@@ -28,7 +28,7 @@ namespace Wox
             }
             catch (System.Exception e1)
             {
-
+                _ = e1;
             }
         }
 

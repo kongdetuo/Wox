@@ -20,13 +20,13 @@ namespace Wox
 {
     public partial class App : IDisposable, ISingleInstanceApp
     {
-        public static PublicAPIInstance API { get; private set; }
+        public static PublicAPIInstance API { get; private set; } = null!;
         private const string Unique = "Wox_Unique_Application_Mutex";
         private static bool _disposed;
-        private MainViewModel _mainVM;
-        private SettingWindowViewModel _settingsVM;
-        private StringMatcher _stringMatcher;
-        private static string _systemLanguage;
+        private MainViewModel _mainVM = null!;
+        private SettingWindowViewModel _settingsVM = null!;
+        private StringMatcher _stringMatcher = null!;
+        private static string _systemLanguage = null!;
 
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 

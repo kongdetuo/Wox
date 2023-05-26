@@ -13,8 +13,8 @@ namespace Wox.Infrastructure.Exception
 {
     public class ExceptionFormatter
     {
-        private static string _systemLanguage;
-        private static string _woxLanguage;
+        private static string _systemLanguage = string.Empty;
+        private static string _woxLanguage = string.Empty;
         public static void Initialize(string systemLanguage, string woxLanguage)
         {
             _systemLanguage = systemLanguage;
@@ -32,16 +32,15 @@ namespace Wox.Infrastructure.Exception
             sb.AppendLine("Exception begin --------------------");
             int index = 1;
             FormattedSingleException(ex, sb, 1);
-            ex = ex.InnerException;
-            while (ex != null)
+            while (ex.InnerException != null)
             {
+                ex = ex.InnerException;
                 sb.Append(Indent(index));
                 sb.Append("InnerException ");
                 sb.Append(index);
                 sb.AppendLine(": ------------------------------------------------------------");
-                index = index + 1;
+                index++;
                 FormattedSingleException(ex, sb, index);
-                ex = ex.InnerException;
             }
 
             sb.AppendLine("Exception end ------------------------------------------------------------");
@@ -65,7 +64,7 @@ namespace Wox.Infrastructure.Exception
             sb.AppendLine(ex.HResult.ToString());
             foreach(object key in ex.Data.Keys)
             {
-                object value = ex.Data[key];
+                object value = ex.Data[key]!;
                 sb.Append(Indent(indentLevel));
                 sb.Append("Data: <");
                 sb.Append(key);
@@ -151,12 +150,6 @@ namespace Wox.Infrastructure.Exception
             sb.AppendLine($"* System Language: {_systemLanguage}");
             sb.AppendLine($"* Wox Language: {_woxLanguage}");
             sb.AppendLine($"* CLR Version: {Environment.Version}");
-            sb.AppendLine($"* Installed .NET Framework: ");
-            foreach (var result in GetFrameworkVersionFromRegistry())
-            {
-                sb.Append("   * ");
-                sb.AppendLine(result);
-            }
 
             return sb.ToString();
         }
@@ -181,90 +174,6 @@ namespace Wox.Infrastructure.Exception
             sb.Append(info);
 
             return sb.ToString();
-        }
-
-
-
-        // http://msdn.microsoft.com/en-us/library/hh925568%28v=vs.110%29.aspx
-        private static List<string> GetFrameworkVersionFromRegistry()
-        {
-            try
-            {
-                var result = new List<string>();
-                using (RegistryKey ndpKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\NET Framework Setup\NDP\"))
-                {
-                    foreach (string versionKeyName in ndpKey.GetSubKeyNames())
-                    {
-                        if (versionKeyName.StartsWith("v"))
-                        {
-                            RegistryKey versionKey = ndpKey.OpenSubKey(versionKeyName);
-                            string name = (string)versionKey.GetValue("Version", "");
-                            string sp = versionKey.GetValue("SP", "").ToString();
-                            string install = versionKey.GetValue("Install", "").ToString();
-                            if (install != "")
-                                if (sp != "" && install == "1")
-                                    result.Add(string.Format("{0} {1} SP{2}", versionKeyName, name, sp));
-                                else
-                                    result.Add(string.Format("{0} {1}", versionKeyName, name));
-
-                            if (name != "")
-                            {
-                                continue;
-                            }
-                            foreach (string subKeyName in versionKey.GetSubKeyNames())
-                            {
-                                RegistryKey subKey = versionKey.OpenSubKey(subKeyName);
-                                name = (string)subKey.GetValue("Version", "");
-                                if (name != "")
-                                    sp = subKey.GetValue("SP", "").ToString();
-                                install = subKey.GetValue("Install", "").ToString();
-                                if (install != "")
-                                {
-                                    if (sp != "" && install == "1")
-                                        result.Add(string.Format("{0} {1} {2} SP{3}", versionKeyName, subKeyName, name, sp));
-                                    else if (install == "1")
-                                        result.Add(string.Format("{0} {1} {2}", versionKeyName, subKeyName, name));
-                                }
-
-                            }
-
-                        }
-                    }
-                }
-                using (RegistryKey ndpKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full\"))
-                {
-                    int releaseKey = (int)ndpKey.GetValue("Release");
-                    {
-                        if (releaseKey == 394806 || releaseKey == 394806)
-                        {
-                            result.Add("v4.6.2");
-                        }
-                        if (releaseKey == 460798 || releaseKey == 460805)
-                        {
-                            result.Add("v4.7");
-                        }
-                        if (releaseKey == 461308 || releaseKey == 461310)
-                        {
-                            result.Add("v4.7.1");
-                        }
-                        if (releaseKey == 461808 || releaseKey == 461814)
-                        {
-                            result.Add("v4.7.2");
-                        }
-                        if (releaseKey == 528040 || releaseKey == 528209 || releaseKey == 528049)
-                        {
-                            result.Add("v4.8");
-                        }
-
-                    }
-                }
-                return result;
-            }
-            catch (System.Exception)
-            {
-                return new List<string>();
-            }
-
         }
     }
 }

@@ -39,15 +39,6 @@ namespace Wox.ViewModel
 
         public Settings Settings { get; set; }
 
-
-
-        // This is only required to set at startup. When portable mode enabled/disabled a restart is always required
-        private bool _portableMode = DataLocation.PortableDataLocationInUse();
-
-
-
-
-
         public void Save()
         {
             Settings.Save();
@@ -58,14 +49,14 @@ namespace Wox.ViewModel
         // todo a better name?
         public class LastQueryMode
         {
-            public string Display { get; set; }
-            public Infrastructure.UserSettings.LastQueryMode Value { get; set; }
+            public required string Display { get; set; }
+            public required Infrastructure.UserSettings.LastQueryMode Value { get; set; }
         }
         public List<LastQueryMode> LastQueryModes
         {
             get
             {
-                List<LastQueryMode> modes = new List<LastQueryMode>();
+                List<LastQueryMode> modes = new();
                 var enums = Enum.GetValues<Infrastructure.UserSettings.LastQueryMode>();
                 foreach (var e in enums)
                 {
@@ -162,7 +153,7 @@ namespace Wox.ViewModel
         #region plugin
 
         public static string Plugin => "http://www.wox.one/plugin";
-        public PluginViewModel SelectedPlugin { get; set; }
+        public PluginViewModel? SelectedPlugin { get; set; }
 
         public IList<PluginViewModel> PluginViewModels
         {
@@ -177,12 +168,11 @@ namespace Wox.ViewModel
             }
         }
 
-        public Control SettingProvider
+        public Control? SettingProvider
         {
             get
             {
-                var settingProvider = SelectedPlugin.PluginPair.Plugin as ISettingProvider;
-                if (settingProvider != null)
+                if (SelectedPlugin?.PluginPair.Plugin is ISettingProvider settingProvider)
                 {
                     var control = settingProvider.CreateSettingPanel();
                     control.HorizontalAlignment = HorizontalAlignment.Stretch;
@@ -215,7 +205,7 @@ namespace Wox.ViewModel
         }
 
         public List<string> Themes
-            => ThemeManager.Instance.LoadAvailableThemes().Select(Path.GetFileNameWithoutExtension).ToList();
+            => ThemeManager.Instance.LoadAvailableThemes().Select(Path.GetFileNameWithoutExtension).Where(p=>p!=null).OfType<string>().ToList();
 
         public Brush PreviewBackground
         {
@@ -299,9 +289,9 @@ namespace Wox.ViewModel
         {
             get
             {
-                if (Fonts.SystemFontFamilies.Count(o =>
+                if (Fonts.SystemFontFamilies.Any(o =>
                     o.FamilyNames.Values != null &&
-                    o.FamilyNames.Values.Contains(Settings.QueryBoxFont)) > 0)
+                    o.FamilyNames.Values.Contains(Settings.QueryBoxFont)))
                 {
                     var font = new FontFamily(Settings.QueryBoxFont);
                     return font;
@@ -344,9 +334,9 @@ namespace Wox.ViewModel
         {
             get
             {
-                if (Fonts.SystemFontFamilies.Count(o =>
+                if (Fonts.SystemFontFamilies.Any(o =>
                     o.FamilyNames.Values != null &&
-                    o.FamilyNames.Values.Contains(Settings.ResultFont)) > 0)
+                    o.FamilyNames.Values.Contains(Settings.ResultFont)))
                 {
                     var font = new FontFamily(Settings.ResultFont);
                     return font;
@@ -410,7 +400,7 @@ namespace Wox.ViewModel
 
         #region hotkey
 
-        public CustomPluginHotkey SelectedCustomPluginHotkey { get; set; }
+        public CustomPluginHotkey? SelectedCustomPluginHotkey { get; set; }
 
         #endregion
 

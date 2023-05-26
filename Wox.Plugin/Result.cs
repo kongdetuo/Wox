@@ -20,24 +20,18 @@ namespace Wox.Plugin
         /// </summary>
         public Keyword? ActionKeywordAssigned { get; set; }
 
-        public string IcoPath { get; set; }
+        public string? IcoPath { get; set; }
 
         /// <summary>
         /// return true to hide wox after select result
         /// </summary>
-        public Func<ActionContext, bool> Action { get; set; }
+        public Func<ActionContext, bool>? Action { get; set; }
 
-        public Func<ActionContext, ValueTask<bool>> AsyncAction { get; set; }
+        public Func<ActionContext, ValueTask<bool>>? AsyncAction { get; set; }
 
         public int Score { get; set; }
 
-
-        /// <summary>
-        /// Only results that originQuery match with current query will be displayed in the panel
-        /// </summary>
-        public Query OriginQuery { get; set; }
-
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is Result && Equals((Result)obj);
 
@@ -45,10 +39,9 @@ namespace Wox.Plugin
 
         public override int GetHashCode()
         {
-            int hash1 = PluginID?.GetHashCode() ?? 0;
             int hash2 = Title?.Text?.GetHashCode() ?? 0;
             int hash3 = SubTitle?.Text?.GetHashCode() ?? 0;
-            int hashcode = hash1 ^ hash2 ^ hash3;
+            int hashcode = hash2 ^ hash3;
             return hashcode;
         }
 
@@ -57,10 +50,9 @@ namespace Wox.Plugin
             return Title.Text + SubTitle.Text;
         }
 
-        public bool Equals(Result other)
+        public bool Equals(Result? other)
         {
             var equality = other is not null
-                && other.PluginID == PluginID
                 && other.Title.Text == Title.Text
                 && other.SubTitle.Text == SubTitle.Text;
             return equality;
@@ -72,12 +64,7 @@ namespace Wox.Plugin
         /// <summary>
         /// Additional data associate with this result
         /// </summary>
-        public object ContextData { get; set; }
-
-        /// <summary>
-        /// Plugin ID that generated this result
-        /// </summary>
-        public string PluginID { get; set; }
+        public object? ContextData { get; set; }
     }
 
     public class HighlightText

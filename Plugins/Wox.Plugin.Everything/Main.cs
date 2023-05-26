@@ -20,13 +20,12 @@ namespace Wox.Plugin.Everything
     public class Main : IAsyncPlugin, ISettingProvider, IPluginI18n, IContextMenu, ISavable
     {
         public const string DLL = "Everything.dll";
-        private readonly EverythingApi _api = new EverythingApi();
+        private readonly EverythingApi _api = new();
 
-        private PluginInitContext _context;
+        private PluginInitContext _context = null!;
 
-        private Settings _settings;
-        private PluginJsonStorage<Settings> _storage;
-        private CancellationTokenSource _updateSource;
+        private Settings _settings = null!;
+        private PluginJsonStorage<Settings> _storage = null!;
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         public void Save()
@@ -52,7 +51,10 @@ namespace Wox.Plugin.Everything
                         if (token.IsCancellationRequested) { return results; }
                         SearchResult searchResult = searchList[i];
                         var r = CreateResult(keyword, searchResult, i);
-                        results.Add(r);
+                        if (r != null)
+                        {
+                            results.Add(r);
+                        }
                     }
                 }
                 catch (IPCErrorException)
@@ -73,7 +75,7 @@ namespace Wox.Plugin.Everything
                         Action = _ =>
                         {
                             Clipboard.SetText(e.Message + "\r\n" + e.StackTrace);
-                            _context.API.ShowMsg(_context.API.GetTranslation("wox_plugin_everything_copied"), null, string.Empty);
+                            _context.API.ShowMsg(_context.API.GetTranslation("wox_plugin_everything_copied"), "", string.Empty);
                             return false;
                         },
                         IcoPath = "Images\\error.png"
@@ -84,13 +86,15 @@ namespace Wox.Plugin.Everything
             return results;
         }
 
-        private Result CreateResult(string keyword, SearchResult searchResult, int index)
+        private Result? CreateResult(string keyword, SearchResult searchResult, int index)
         {
             var path = searchResult.FullPath;
 
-            string workingDir = null;
+            string? workingDir = null;
             if (_settings.UseLocationAsWorkingDir)
                 workingDir = Path.GetDirectoryName(path);
+            if (workingDir == null)
+                return null;
 
             var r = new Result
             {
@@ -106,8 +110,8 @@ namespace Wox.Plugin.Everything
 
         private List<ContextMenu> GetDefaultContextMenu()
         {
-            List<ContextMenu> defaultContextMenus = new List<ContextMenu>();
-            ContextMenu openFolderContextMenu = new ContextMenu
+            List<ContextMenu> defaultContextMenus = new();
+            ContextMenu openFolderContextMenu = new()
             {
                 Name = _context.API.GetTranslation("wox_plugin_everything_open_containing_folder"),
                 Command = "explorer.exe",
@@ -119,7 +123,7 @@ namespace Wox.Plugin.Everything
 
             string editorPath = string.IsNullOrEmpty(_settings.EditorPath) ? "notepad.exe" : _settings.EditorPath;
 
-            ContextMenu openWithEditorContextMenu = new ContextMenu
+            ContextMenu openWithEditorContextMenu = new()
             {
                 Name = string.Format(_context.API.GetTranslation("wox_plugin_everything_open_with_editor"), Path.GetFileNameWithoutExtension(editorPath)),
                 Command = editorPath,
@@ -132,7 +136,7 @@ namespace Wox.Plugin.Everything
             return defaultContextMenus;
         }
 
-        public async Task InitAsync(PluginInitContext context)
+        public Task InitAsync(PluginInitContext context)
         {
             _context = context;
             _storage = new PluginJsonStorage<Settings>();
@@ -149,6 +153,7 @@ namespace Wox.Plugin.Everything
             Logger.WoxDebug($"sdk path <{sdkPath}>");
             Constant.EverythingSDKPath = sdkPath;
             _api.Load(sdkPath);
+            return Task.CompletedTask;
         }
 
         private static string CpuType()
@@ -175,11 +180,10 @@ namespace Wox.Plugin.Everything
 
         public List<Result> LoadContextMenus(Result selectedResult)
         {
-            SearchResult record = selectedResult.ContextData as SearchResult;
-            List<Result> contextMenus = new List<Result>();
-            if (record == null) return contextMenus;
+            List<Result> contextMenus = new();
+            if (selectedResult.ContextData is not SearchResult record) return contextMenus;
 
-            List<ContextMenu> availableContextMenus = new List<ContextMenu>();
+            List<ContextMenu> availableContextMenus = new();
             availableContextMenus.AddRange(GetDefaultContextMenu());
             availableContextMenus.AddRange(_settings.ContextMenus);
 

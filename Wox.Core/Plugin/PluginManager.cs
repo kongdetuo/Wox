@@ -19,13 +19,13 @@ namespace Wox.Core.Plugin
     /// </summary>
     public static class PluginManager
     {
-        private static Dictionary<string, PluginProxy> PluginDic;
+        private static Dictionary<string, PluginProxy> PluginDic = null!;
         public static IReadOnlyList<PluginProxy> AllPlugins { get => allPlugins; }
 
-        public static IPublicAPI API { private set; get; }
+        public static IPublicAPI API { private set; get; } = null!;
 
-        private static PluginsSettings Settings { get; set; }
-        private static List<PluginProxy> allPlugins;
+        private static PluginsSettings Settings { get; set; } = null!;
+        private static List<PluginProxy> allPlugins = null!;
         private static readonly string[] Directories = { Constant.PreinstalledDirectory, DataLocation.PluginsDirectory };
 
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
@@ -88,7 +88,7 @@ namespace Wox.Core.Plugin
 
             var configs = PluginConfig.Parse(Directories);
             allPlugins = PluginsLoader.Plugins(configs, Settings);
-            Settings.UpdatePluginSettings(AllPlugins.Select(p=>p.Metadata).ToList());
+            Settings.UpdatePluginSettings(AllPlugins.Select(p => p.Metadata).ToList());
             PluginDic = AllPlugins.ToDictionary(p => p.Metadata.ID);
         }
 
@@ -139,7 +139,7 @@ namespace Wox.Core.Plugin
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public static PluginProxy GetPluginForId(string id)
+        public static PluginProxy? GetPluginForId(string? id)
         {
             if (id != null && PluginDic.TryGetValue(id, out var plugin))
             {
@@ -153,9 +153,9 @@ namespace Wox.Core.Plugin
             return AllPlugins.Where(p => p.Plugin is T);
         }
 
-        public static async Task<List<Result>> GetContextMenusForPlugin(Result result)
+        public static async Task<List<Result>> GetContextMenusForPlugin(string pluginid, Result result)
         {
-            var pluginPair = GetPluginForId(result.PluginID);
+            var pluginPair = GetPluginForId(pluginid);
             if (pluginPair != null)
             {
                 var metadata = pluginPair.Metadata;
@@ -172,11 +172,7 @@ namespace Wox.Core.Plugin
                         results = context.LoadContextMenus(result) ?? new();
                     }
 
-                    foreach (var r in results)
-                    {
-                        r.PluginID = metadata.ID;
-                        r.OriginQuery = result.OriginQuery;
-                    }
+
                     return results;
                 }
                 catch (Exception e)
@@ -208,7 +204,7 @@ namespace Wox.Core.Plugin
         public static void AddActionKeyword(string id, Keyword newActionKeyword)
         {
             var plugin = GetPluginForId(id);
-            plugin.Metadata.ActionKeywords.Add(newActionKeyword);
+            plugin?.Metadata.ActionKeywords.Add(newActionKeyword);
         }
         /// <summary>
         /// used to add action keyword for multiple action keyword plugin
@@ -227,7 +223,7 @@ namespace Wox.Core.Plugin
         {
             var plugin = GetPluginForId(id);
 
-            plugin.Metadata.ActionKeywords.Remove(oldActionkeyword);
+            plugin?.Metadata.ActionKeywords.Remove(oldActionkeyword);
         }
 
         public static void ReplaceActionKeyword(string id, string oldActionKeyword, string newActionKeyword)

@@ -25,14 +25,14 @@ namespace Wox.ViewModel
 
         #region Private Fields
 
-        private Dictionary<string, PluginQueryResult> pluginQueryResults = new();
+        private Dictionary<string, List<ResultViewModel>> pluginQueryResults = new();
         public ResultCollection Results { get; }
 
         private readonly Settings _settings;
         private int MaxResults => _settings?.MaxResultsToShow ?? 6;
-        private readonly object _collectionLock = new object();
+        private readonly object _collectionLock = new();
 
-        public ResultsViewModel()
+        public ResultsViewModel(Settings settings)
         {
             Results = new ResultCollection();
             BindingOperations.EnableCollectionSynchronization(Results, _collectionLock);
@@ -42,10 +42,7 @@ namespace Wox.ViewModel
             SelectNextPageCommand = new RelayCommand(_ => SelectNextPage());
             SelectPrevPageCommand = new RelayCommand(_ => SelectPrevPage());
             SelectFirstResultCommand = new RelayCommand(_ => SelectFirstResult());
-        }
 
-        public ResultsViewModel(Settings settings) : this()
-        {
             _settings = settings;
             _settings.PropertyChanged += (s, e) =>
             {
@@ -76,11 +73,11 @@ namespace Wox.ViewModel
 
         public int SelectedIndex { get; set; }
 
-        public ResultViewModel SelectedItem { get; set; }
+        public ResultViewModel? SelectedItem { get; set; }
         public Thickness Margin { get; set; }
         public Visibility Visbility { get; set; } = Visibility.Collapsed;
 
-        public string PluginID { get; set; }
+        public string? PluginID { get; set; }
 
         #endregion Properties
 
@@ -140,7 +137,7 @@ namespace Wox.ViewModel
 
         public void AddResults(List<Result> newRawResults, string resultId)
         {
-            List<PluginQueryResult> updates = new List<PluginQueryResult>()
+            List<PluginQueryResult> updates = new()
             {
                 new PluginQueryResult(newRawResults, resultId)
             };
@@ -155,6 +152,8 @@ namespace Wox.ViewModel
         {
             lock (_collectionLock)
             {
+                IEnumerable<ResultViewModel> Create(PluginQueryResult rs) => rs.Results.Select(p => new ResultViewModel(p, rs));
+
                 // https://stackoverflow.com/questions/14336750
                 // because IResultUpdated, updates maybe contains same plugin result
                 // we just need the last one
@@ -162,14 +161,13 @@ namespace Wox.ViewModel
 
                 foreach (var update in updates)
                 {
-                    this.pluginQueryResults[update.PluginID] = update;
+                    this.pluginQueryResults[update.PluginID] = Create(update).ToList();
                 }
 
                 var newResults = this.pluginQueryResults.Values
-                    .SelectMany(p => p.Results)
+                    .SelectMany(p=> p)
                     .OrderByDescending(r => r.Score)
                     .Take(MaxResults * 6)
-                    .Select(p => new ResultViewModel(p))
                     .ToList();
 
                 if (token.IsCancellationRequested)
@@ -180,8 +178,8 @@ namespace Wox.ViewModel
                 {
                     this.SelectedItem = Results[0];
                     this.SelectedIndex = 0;
-                    var id = Results[0].Result.PluginID;
-                    if (Results.All(p => p.Result.PluginID == id))
+                    var id = Results[0].PluginMetadata?.ID;
+                    if (id != null && Results.All(p => p.PluginMetadata?.ID == id))
                         this.PluginID = id;
                     else
                         this.PluginID = null;
@@ -193,39 +191,16 @@ namespace Wox.ViewModel
             }
         }
 
-        public void Add(PluginQueryResult update)
-        {
-            // https://stackoverflow.com/questions/14336750
-            lock (_collectionLock)
-            {
-                // because IResultUpdated, updates maybe contains same plugin result
-                // we just need the last one
-
-                var newResults = Results.ToList()
-                    .Where(p => p.Result.PluginID != update.PluginID) // remove previous result
-                    .Concat(update.Results.Select(r => new ResultViewModel(r)))
-                    .OrderByDescending(r => r.Result.Score)
-                    .Take(MaxResults * 4);
-
-                Results.Update(newResults);
-                if (Results.Count > 0)
-                    SelectedIndex = 0;
-            }
-        }
-
         #endregion Public Methods
 
         public class ResultCollection : List<ResultViewModel>, INotifyCollectionChanged
         {
-            public event NotifyCollectionChangedEventHandler CollectionChanged;
+            public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
             public void RemoveAll()
             {
                 this.Clear();
-                if (CollectionChanged != null)
-                {
-                    CollectionChanged.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
-                }
+                CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
             }
 
             public void Update(IEnumerable<ResultViewModel> newItems)
@@ -233,11 +208,8 @@ namespace Wox.ViewModel
                 this.Clear();
                 this.AddRange(newItems);
 
-                if (CollectionChanged != null)
-                {
-                    // wpf use directx / double buffered already, so just reset all won't cause ui flickering
-                    CollectionChanged.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
-                }
+                // wpf use directx / double buffered already, so just reset all won't cause ui flickering
+                CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
             }
         }
     }

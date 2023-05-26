@@ -6,7 +6,7 @@ namespace Wox.Plugin.PluginIndicator
 {
     public class Main : IPlugin, IPluginI18n
     {
-        private PluginInitContext context;
+        private PluginInitContext context = null!;
 
         public List<Result> Query(Query query)
         {

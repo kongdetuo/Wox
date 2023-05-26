@@ -17,47 +17,45 @@ namespace Wox.ViewModel
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        public ResultViewModel(Result result)
+        public ResultViewModel(Result result, Core.Services.PluginQueryResult? rs = null)
         {
-            if (result != null)
+            Result = result;
+            Image = new Lazy<ImageSource?>(() =>
             {
-                Result = result;
-                Image = new Lazy<ImageSource>(() =>
-                {
-                    return SetImage(result);
-                });
+                return SetImage(result);
+            });
+
+            if (rs != null)
+            {
+                this.Query = rs.Query;   
+                this.PluginMetadata = rs.Plugin?.Metadata;
             }
         }
 
-        private ImageSource SetImage(Result result)
+        public string? PluginId => this.PluginMetadata?.ID;
+
+        public int Score => this.Result.Score;
+
+        private ImageSource? SetImage(Result result)
         {
-            string imagePath = result.IcoPath;
-            string key = "EmbededIcon:";
-
-            var plugin = PluginManager.GetPluginForId(result.PluginID);
-            var pluginDirectory = plugin?.Metadata?.PluginDirectory;
-            //// todo, use icon path type enum in the future
-            //if (!string.IsNullOrEmpty(pluginDirectory)
-            //    && !string.IsNullOrEmpty(imagePath)
-            //    && !Path.IsPathRooted(imagePath)
-            //    && !imagePath.StartsWith(key))
-            //{
-            //    imagePath = Path.Combine(plugin.Metadata.PluginDirectory, result.IcoPath);
-            //}
-
-            if (!string.IsNullOrEmpty(imagePath))
+            if (result.IcoPath == null && this.PluginMetadata is null)
             {
+                return null;
             }
 
+            string? imagePath = result.IcoPath;
+
+            var plugin = PluginManager.GetPluginForId(PluginMetadata?.ID);
+            var pluginDirectory = plugin?.Metadata?.PluginDirectory;
             try
             {
                 // will get here either when icoPath has value\icon delegate is null\when had exception in delegate
-                return ImageLoader.Load(imagePath, UpdateImageCallback, result.Title.Text, result.PluginID, pluginDirectory);
+                return ImageLoader.Load(imagePath, UpdateImageCallback, result.Title.Text, PluginId, pluginDirectory);
             }
             catch (Exception e)
             {
                 e.Data.Add(nameof(result.Title), result.Title);
-                e.Data.Add(nameof(result.PluginID), result.PluginID);
+                e.Data.Add(nameof(PluginId), PluginId);
                 e.Data.Add(nameof(result.IcoPath), result.IcoPath);
                 Logger.WoxError($"Cannot read image {result.IcoPath}", e);
                 return ImageLoader.GetErrorImage();
@@ -66,21 +64,24 @@ namespace Wox.ViewModel
 
         public void UpdateImageCallback(ImageSource image)
         {
-            Image = new Lazy<ImageSource>(() => image);
+            Image = new Lazy<ImageSource?>(() => image);
             OnPropertyChanged(nameof(Image));
         }
 
         // directly binding will cause unnecessory image load
         // only binding get will cause load twice or more
         // so use lazy binding
-        public Lazy<ImageSource> Image { get; set; }
+        public Lazy<ImageSource?> Image { get; set; }
 
         public Result Result { get; set; }
 
-        public override bool Equals(object obj)
+        public PluginMetadata? PluginMetadata { get; set; }
+
+        public Query? Query { get; set; }
+
+        public override bool Equals(object? obj)
         {
-            var r = obj as ResultViewModel;
-            if (r != null)
+            if (obj is ResultViewModel r)
             {
                 return Result.Equals(r.Result);
             }

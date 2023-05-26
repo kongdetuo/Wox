@@ -32,7 +32,7 @@ namespace Wox.Converters
             {
                 return string.Empty;
             }
-            if (!(val is ResultViewModel))
+            if (val is not ResultViewModel)
             {
                 return System.Windows.Data.Binding.DoNothing;
             }
@@ -50,7 +50,7 @@ namespace Wox.Converters
 
                 // When user typed lower case and result title is uppercase, we still want to display suggestion
                 var textConverter = new MultilineTextConverter();
-                return textConverter.Convert(queryText + selectedResultPossibleSuggestion.Substring(queryText.Length), null, null, culture);
+                return textConverter.Convert(string.Concat(queryText, selectedResultPossibleSuggestion.AsSpan(queryText.Length)), targetType, parameter, culture);
             }
             catch (Exception e)
             {

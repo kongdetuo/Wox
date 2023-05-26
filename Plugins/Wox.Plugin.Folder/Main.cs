@@ -1,3 +1,4 @@
+using NLog.LayoutRenderers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,17 +20,16 @@ namespace Wox.Plugin.Folder
 
         private string DefaultFolderSubtitleString = "Ctrl + Enter to open the directory";
 
-        private static List<string> _driverNames;
-        private PluginInitContext _context;
+        private static List<string> _driverNames = null!;
+        private PluginInitContext _context=null!;
 
-        private readonly Settings _settings;
-        private readonly PluginJsonStorage<Settings> _storage;
-        private IContextMenu _contextMenuLoader;
+        private Settings _settings=null!;
+        private PluginJsonStorage<Settings> _storage=null!;
+        private IContextMenu _contextMenuLoader = null!;
 
         public Main()
         {
-            _storage = new PluginJsonStorage<Settings>();
-            _settings = _storage.Load();
+
         }
 
         public void Save()
@@ -44,6 +44,8 @@ namespace Wox.Plugin.Folder
 
         public void Init(PluginInitContext context)
         {
+            _storage = new PluginJsonStorage<Settings>();
+            _settings = _storage.Load();
             _context = context;
             _contextMenuLoader = new ContextMenuLoader(context);
             InitialDriverList();
@@ -163,8 +165,8 @@ namespace Wox.Plugin.Folder
                 int index = search.LastIndexOf('\\');
                 if (index > 0 && index < (search.Length - 1))
                 {
-                    incompleteName = search.Substring(index + 1).ToLower();
-                    search = search.Substring(0, index + 1);
+                    incompleteName = search[(index + 1)..].ToLower();
+                    search = search[..(index + 1)];
                     if (!Directory.Exists(search))
                     {
                         return results;
@@ -195,7 +197,7 @@ namespace Wox.Plugin.Folder
                 searchOption = SearchOption.AllDirectories;
 
                 // match everything before and after search term using supported wildcard '*', ie. *searchterm*
-                incompleteName = "*" + incompleteName.Substring(1);
+                incompleteName = string.Concat("*", incompleteName.AsSpan(1));
             }
 
             var folderList = new List<Result>();

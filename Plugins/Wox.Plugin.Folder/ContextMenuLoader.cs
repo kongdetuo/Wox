@@ -162,24 +162,18 @@ namespace Wox.Plugin.Folder
 
         private bool CanRunAsDifferentUser(string path)
         {
-            switch(Path.GetExtension(path))
+            return Path.GetExtension(path) switch
             {
-                case ".exe":
-                case ".bat":
-                case ".msi":
-                    return true;
-
-                default:
-                    return false;
-
-            }
+                ".exe" or ".bat" or ".msi" => true,
+                _ => false,
+            };
         }
     }
 
     public class SearchResult
     {
-        public string FullPath { get; set; }
-        public ResultType Type { get; set; }
+        public required string FullPath { get; set; }
+        public required ResultType Type { get; set; }
     }
 
     public enum ResultType

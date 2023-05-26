@@ -14,7 +14,7 @@ namespace Wox.Core.Plugin
             var terms = text.Split(new[] { Query.TermSeperater }, StringSplitOptions.RemoveEmptyEntries);
             if (terms.Length == 0)
             { // nothing was typed
-                return null;
+                return Query.Empty;
             }
 
             var rawQuery = string.Join(Query.TermSeperater, terms);

@@ -44,7 +44,7 @@ namespace Wox.Core.Services
                 {
                     try
                     {
-                        if (query is null || !TryMatch(plugin, query))
+                        if (query.IsEmpty || !TryMatch(plugin, query))
                         {
                             ob.OnNext(Empty(plugin, query));
                             return;
@@ -93,7 +93,7 @@ namespace Wox.Core.Services
             try
             {
                 var metadata = pair.Metadata;
-                List<Result> results = new List<Result>();
+                List<Result> results = new();
                 var milliseconds = await Logger.StopWatchDebugAsync($"Query <{query.RawQuery}> Cost for {metadata.Name}", async () =>
                 {
                     results = await pair.QueryAsync(query, token) ?? new List<Result>();
@@ -116,14 +116,14 @@ namespace Wox.Core.Services
 
         private void UpdateScore(PluginQueryResult update)
         {
-            var queryHasTopMoustRecord = topMostRecord.HasTopMost(update.Query);
+            var queryHasTopMoustRecord = topMostRecord.HasTopMost(update.Query!);
             foreach (var result in update.Results)
             {
-                if (queryHasTopMoustRecord && topMostRecord.IsTopMost(result))
+                if (queryHasTopMoustRecord && topMostRecord.IsTopMost(update.Query!, update.PluginID, result))
                 {
                     result.Score = int.MaxValue;
                 }
-                else if (!update.Plugin.Metadata.KeepResultRawScore)
+                else if (!update.Plugin!.Metadata.KeepResultRawScore)
                 {
                     result.Score += userSelectedRecord.GetSelectedCount(result) * 10;
                 }
@@ -135,9 +135,6 @@ namespace Wox.Core.Services
         }
         private static Result SetPluginMetadata(Result result, PluginMetadata plugin, Query query)
         {
-            result.PluginID = plugin.ID;
-            result.OriginQuery = query;
-
             // ActionKeywordAssigned is used for constructing MainViewModel's query text auto-complete suggestions
             // Plugins may have multi-actionkeywords eg. WebSearches. In this scenario it needs to be overriden on the plugin level
             if (plugin.ActionKeywords.Count == 1)
@@ -182,11 +179,11 @@ namespace Wox.Core.Services
             this.PluginID = resultId;
         }
 
-        public PluginProxy Plugin { get; private set; }
+        public PluginProxy? Plugin { get; private set; }
 
         public string PluginID { get; set; }
 
-        public Query Query { get; private set; }
+        public Query? Query { get; private set; }
 
         public List<Result> Results { get; set; }
     }
@@ -195,6 +192,7 @@ namespace Wox.Core.Services
     {
         public async static IAsyncEnumerable<T> Empty<T>()
         {
+            await ValueTask.CompletedTask;
             yield break;
         }
 

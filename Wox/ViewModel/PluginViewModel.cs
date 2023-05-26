@@ -50,8 +50,7 @@ namespace Wox.ViewModel
         {
             get
             {
-                var settingProvider = PluginPair.Plugin as ISettingProvider;
-                if (settingProvider != null)
+                if (PluginPair.Plugin is ISettingProvider settingProvider)
                 {
                     var control = settingProvider.CreateSettingPanel();
                     control.HorizontalAlignment = HorizontalAlignment.Stretch;
@@ -65,7 +64,7 @@ namespace Wox.ViewModel
             }
         }
 
-        private RelayCommand openDirectoryCommand;
+        private RelayCommand openDirectoryCommand = null!;
         public RelayCommand OpenDirectoryCommand => openDirectoryCommand ??= new RelayCommand(p =>
         {
             try
@@ -76,9 +75,8 @@ namespace Wox.ViewModel
                     UseShellExecute = true
                 });
             }
-            catch (Exception ex)
+            catch
             {
-
             }
         });
 
