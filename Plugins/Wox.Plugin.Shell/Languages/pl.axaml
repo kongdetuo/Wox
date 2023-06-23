@@ -1,0 +1,12 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <system:String x:Key="wox_plugin_cmd_relace_winr">Zast?p Win+R</system:String>
+    <system:String x:Key="wox_plugin_cmd_leave_cmd_open">Nie zamykaj wiersza polece¨½ po wykonaniu polecenia</system:String>
+    <system:String x:Key="wox_plugin_cmd_plugin_name">Wiersz polece¨½</system:String>
+    <system:String x:Key="wox_plugin_cmd_plugin_description">Pozwala wykonywa? komend wiersza polecania z Woxa. Polecania zaczynaj? si? od ></system:String>
+    <system:String x:Key="wox_plugin_cmd_cmd_has_been_executed_times">to polecenie zosta?o wykonane {0} razy</system:String>
+    <system:String x:Key="wox_plugin_cmd_execute_through_shell">wykonaj to polecenie w wierszu polece¨½</system:String>
+    <system:String x:Key="wox_plugin_cmd_run_as_administrator">Uruchom jako administrator</system:String>
+</ResourceDictionary>

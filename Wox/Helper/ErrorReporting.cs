@@ -37,10 +37,10 @@ namespace Wox.Helper
         {
             string id = SendException(e.ExceptionObject as Exception);
             //handle non-ui main thread exceptions
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                Report((Exception)e.ExceptionObject, id.ToString());
-            });
+            //Application.Current.Dispatcher.Invoke(() =>
+            //{
+            //    Report((Exception)e.ExceptionObject, id.ToString());
+            //});
         }
 
         public static void DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)

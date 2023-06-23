@@ -1,0 +1,33 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:system="clr-namespace:System;assembly=mscorlib">
+    <system:String x:Key="wox_plugin_sys_command">コマンド</system:String>
+    <system:String x:Key="wox_plugin_sys_desc">説明</system:String>
+
+    <system:String x:Key="wox_plugin_sys_shutdown_computer_command">シャットダウン</system:String>
+    <system:String x:Key="wox_plugin_sys_restart_computer_command">再起動</system:String>
+    <system:String x:Key="wox_plugin_sys_log_off_command">ログオフ</system:String>
+    <system:String x:Key="wox_plugin_sys_lock_command">ロック</system:String>
+    <system:String x:Key="wox_plugin_sys_exit_command">終了</system:String>
+    <system:String x:Key="wox_plugin_sys_restart_command">Woxを再起動</system:String>
+    <system:String x:Key="wox_plugin_sys_setting_command">設定</system:String>
+    <system:String x:Key="wox_plugin_sys_sleep_command">スリープ</system:String>
+    <system:String x:Key="wox_plugin_sys_hibernate_command">休止状態</system:String>
+    <system:String x:Key="wox_plugin_sys_emptyrecyclebin_command">ゴミ箱を空にする</system:String>
+
+    <system:String x:Key="wox_plugin_sys_shutdown_computer">コンピュータをシャットダウンする</system:String>
+    <system:String x:Key="wox_plugin_sys_restart_computer">コンピュータを再起動する</system:String>
+    <system:String x:Key="wox_plugin_sys_log_off">ログオフ</system:String>
+    <system:String x:Key="wox_plugin_sys_lock">このコンピュータをロックする</system:String>
+    <system:String x:Key="wox_plugin_sys_exit">Woxを終了する</system:String>
+    <system:String x:Key="wox_plugin_sys_restart">Woxを再起動する</system:String>
+    <system:String x:Key="wox_plugin_sys_setting">このアプリの設定</system:String>
+    <system:String x:Key="wox_plugin_sys_sleep">スリープ</system:String>
+    <system:String x:Key="wox_plugin_sys_hibernate">コンピュータを休止状態にする</system:String>
+    <system:String x:Key="wox_plugin_sys_emptyrecyclebin">ゴミ箱を空にする</system:String>
+
+    <system:String x:Key="wox_plugin_sys_confirm_shutdown">コンピュータをシャットダウンしますか？</system:String>
+    <system:String x:Key="wox_plugin_sys_confirm_restart">コンピュータを再起動しますか？</system:String>
+
+    <system:String x:Key="wox_plugin_sys_plugin_name">システムコマンド</system:String>
+    <system:String x:Key="wox_plugin_sys_plugin_description">システム関連のコマンドを提供します。例:シャットダウン、ロック、設定など</system:String>
+
+</ResourceDictionary>

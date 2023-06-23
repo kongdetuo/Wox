@@ -3,6 +3,7 @@ using System.IO;
 using System.Windows.Forms;
 using System.Windows.Media;
 using System.Windows.Threading;
+using Avalonia.Media.Imaging;
 using NLog;
 using Wox.Core.Plugin;
 using Wox.Image;
@@ -20,23 +21,25 @@ namespace Wox.ViewModel
         public ResultViewModel(Result result, Core.Services.PluginQueryResult? rs = null)
         {
             Result = result;
-            Image = new Lazy<ImageSource?>(() =>
+            Image = new Lazy<Bitmap?>(() =>
             {
                 return SetImage(result);
             });
 
             if (rs != null)
             {
-                this.Query = rs.Query;   
+                this.Query = rs.Query;
                 this.PluginMetadata = rs.Plugin?.Metadata;
             }
+
+            this.Score = result.Score;
         }
 
-        public string? PluginId => this.PluginMetadata?.ID;
+        public string PluginId => this.PluginMetadata?.ID ?? "";
 
-        public int Score => this.Result.Score;
+        public int Score { get; init; }
 
-        private ImageSource? SetImage(Result result)
+        private Bitmap? SetImage(Result result)
         {
             if (result.IcoPath == null && this.PluginMetadata is null)
             {
@@ -62,43 +65,21 @@ namespace Wox.ViewModel
             }
         }
 
-        public void UpdateImageCallback(ImageSource image)
+        public void UpdateImageCallback(Bitmap image)
         {
-            Image = new Lazy<ImageSource?>(() => image);
+            Image = new Lazy<Bitmap?>(() => image);
             OnPropertyChanged(nameof(Image));
         }
 
         // directly binding will cause unnecessory image load
         // only binding get will cause load twice or more
         // so use lazy binding
-        public Lazy<ImageSource?> Image { get; set; }
+        public Lazy<Bitmap?> Image { get; set; }
 
         public Result Result { get; set; }
 
         public PluginMetadata? PluginMetadata { get; set; }
 
         public Query? Query { get; set; }
-
-        public override bool Equals(object? obj)
-        {
-            if (obj is ResultViewModel r)
-            {
-                return Result.Equals(r.Result);
-            }
-            else
-            {
-                return false;
-            }
-        }
-
-        public override int GetHashCode()
-        {
-            return Result.GetHashCode();
-        }
-
-        public override string ToString()
-        {
-            return Result.ToString();
-        }
     }
 }

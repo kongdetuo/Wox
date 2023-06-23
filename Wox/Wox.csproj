@@ -1,244 +1,337 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-    <PropertyGroup>
-        <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
-        <OutputType>WinExe</OutputType>
+	<PropertyGroup>
+		<TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+		<OutputType>WinExe</OutputType>
 		<PublishSingleFile>true</PublishSingleFile>
 		<SelfContained>false</SelfContained>
-        <IsWebBootstrapper>false</IsWebBootstrapper>
-        <PublishUrl>发布\</PublishUrl>
-        <Install>true</Install>
-        <InstallFrom>Disk</InstallFrom>
-        <UpdateEnabled>false</UpdateEnabled>
-        <UpdateMode>Foreground</UpdateMode>
-        <UpdateInterval>7</UpdateInterval>
-        <UpdateIntervalUnits>Days</UpdateIntervalUnits>
-        <UpdatePeriodically>false</UpdatePeriodically>
-        <UpdateRequired>false</UpdateRequired>
-        <MapFileExtensions>true</MapFileExtensions>
-        <ApplicationRevision>0</ApplicationRevision>
-        <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-        <UseApplicationTrust>false</UseApplicationTrust>
-        <BootstrapperEnabled>true</BootstrapperEnabled>
-        <UseWindowsForms>true</UseWindowsForms>
+		<IsWebBootstrapper>false</IsWebBootstrapper>
+		<PublishUrl>发布\</PublishUrl>
+		<Install>true</Install>
+		<InstallFrom>Disk</InstallFrom>
+		<UpdateEnabled>false</UpdateEnabled>
+		<UpdateMode>Foreground</UpdateMode>
+		<UpdateInterval>7</UpdateInterval>
+		<UpdateIntervalUnits>Days</UpdateIntervalUnits>
+		<UpdatePeriodically>false</UpdatePeriodically>
+		<UpdateRequired>false</UpdateRequired>
+		<MapFileExtensions>true</MapFileExtensions>
+		<ApplicationRevision>0</ApplicationRevision>
+		<ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+		<UseApplicationTrust>false</UseApplicationTrust>
+		<BootstrapperEnabled>true</BootstrapperEnabled>
+		<UseWindowsForms>true</UseWindowsForms>
 		<Nullable>enable</Nullable>
-		<UseWPF>true</UseWPF>
-        <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
-        <Platforms>AnyCPU;x64</Platforms>
-    </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-        <OutputPath>..\Output\Debug\</OutputPath>
-        <UseVSHostingProcess>true</UseVSHostingProcess>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-      <OutputPath>..\Output\Debug\</OutputPath>
-      <UseVSHostingProcess>true</UseVSHostingProcess>
-      <PlatformTarget>AnyCPU</PlatformTarget>
-    </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-        <OutputPath>..\Output\Release\</OutputPath>
-        <DefineConstants>TRACE;RELEASE</DefineConstants>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-      <OutputPath>..\Output\Release\</OutputPath>
-      <DefineConstants>TRACE;RELEASE</DefineConstants>
-      <PlatformTarget>AnyCPU</PlatformTarget>
-    </PropertyGroup>
-    <PropertyGroup>
-        <ApplicationIcon>Resources\app.ico</ApplicationIcon>
-    </PropertyGroup>
-    <PropertyGroup>
-        <StartupObject>Wox.App</StartupObject>
-    </PropertyGroup>
-    <PropertyGroup>
-        <ApplicationManifest>app.manifest</ApplicationManifest>
-    </PropertyGroup>
+
+		<ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
+		<Platforms>AnyCPU;x64</Platforms>
+	</PropertyGroup>
+	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+		<OutputPath>..\Output\Debug\</OutputPath>
+		<UseVSHostingProcess>true</UseVSHostingProcess>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+		<OutputPath>..\Output\Debug\</OutputPath>
+		<UseVSHostingProcess>true</UseVSHostingProcess>
+		<PlatformTarget>AnyCPU</PlatformTarget>
+	</PropertyGroup>
+	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+		<OutputPath>..\Output\Release\</OutputPath>
+		<DefineConstants>TRACE;RELEASE</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+		<OutputPath>..\Output\Release\</OutputPath>
+		<DefineConstants>TRACE;RELEASE</DefineConstants>
+		<PlatformTarget>AnyCPU</PlatformTarget>
+	</PropertyGroup>
+	<PropertyGroup>
+		<ApplicationIcon>Resources\app.ico</ApplicationIcon>
+	</PropertyGroup>
+	<PropertyGroup>
+		<ApplicationManifest>app.manifest</ApplicationManifest>
+	</PropertyGroup>
 	<PropertyGroup>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
 		<AutoGenerateBindingRedirects>False</AutoGenerateBindingRedirects>
 		<ProduceReferenceAssembly>False</ProduceReferenceAssembly>
 	</PropertyGroup>
-    <ItemGroup>
-        <ApplicationDefinition Remove="App.xaml" />
-    </ItemGroup>
+	<ItemGroup>
+		<ApplicationDefinition Remove="App.xaml" />
+	</ItemGroup>
 	<ItemGroup>
 		<Page Remove="Themes\ThemeBuilder\Template.xaml" />
 	</ItemGroup>
-    <ItemGroup>
-        <None Update="Images\browser.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Images\calculator.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Images\cancel.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Images\close.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Images\cmd.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Images\color.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Images\copy.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Images\EXE.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Images\find.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Images\folder.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Images\image.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Images\lock.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Images\logoff.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Images\ok.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Images\plugin.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Images\recyclebin.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Images\restart.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Images\search.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Images\settings.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Images\shutdown.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Images\warning.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <Resource Include="app.png" />
-        <None Update="Images\update.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Images\up.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Images\down.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Images\history.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Images\app_error.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <Resource Include="FodyWeavers.xml" />
-    </ItemGroup>
-    <ItemGroup>
-        <AppDesigner Include="Properties\" />
-    </ItemGroup>
-    <ItemGroup>
-        <ProjectReference Include="..\Wox.Core\Wox.Core.csproj" />
-        <ProjectReference Include="..\Wox.Infrastructure\Wox.Infrastructure.csproj" />
-        <ProjectReference Include="..\Wox.Plugin\Wox.Plugin.csproj" />
-    </ItemGroup>
-    <ItemGroup>
-        <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
-    </ItemGroup>
-    <ItemGroup>
-        <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
-            <Visible>False</Visible>
-            <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
-            <Install>false</Install>
-        </BootstrapperPackage>
-        <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
-            <Visible>False</Visible>
-            <ProductName>.NET Framework 3.5 SP1</ProductName>
-            <Install>true</Install>
-        </BootstrapperPackage>
-    </ItemGroup>
-    <ItemGroup>
-        <None Update="Images\app.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-    </ItemGroup>
-    <ItemGroup>
-        <None Update="Images\file.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Images\open.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-    </ItemGroup>
-    <ItemGroup>
-        <None Update="Images\sleep.png">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-    </ItemGroup>
-    <ItemGroup>
-        <PackageReference Include="CommandLineParser">
-            <Version>2.9.1</Version>
-        </PackageReference>
-        <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
-        <PackageReference Include="NuGet.CommandLine">
-            <Version>6.5.0</Version>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-            <PrivateAssets>all</PrivateAssets>
-        </PackageReference>
-        <PackageReference Include="PropertyChanged.Fody">
-            <Version>4.1.0</Version>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-            <PrivateAssets>all</PrivateAssets>
-        </PackageReference>
-        <PackageReference Include="NHotkey.Wpf" Version="2.1.1" />
-        <PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
-        <PackageReference Include="ReactiveMarbles.PropertyChanged.SourceGenerator" Version="2.0.27">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
-        <PackageReference Include="System.Linq.Async" Version="6.0.1" />
-        <PackageReference Include="System.Reactive.Linq" Version="5.0.0" />
-    </ItemGroup>
-    <ItemGroup>
+	<ItemGroup>
+		<None Update="Images\browser.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Images\calculator.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Images\cancel.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Images\close.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Images\cmd.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Images\color.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Images\copy.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Images\EXE.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Images\find.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Images\folder.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Images\image.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Images\lock.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Images\logoff.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Images\ok.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Images\plugin.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Images\recyclebin.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Images\restart.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Images\search.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Images\settings.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Images\shutdown.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Images\warning.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<AvaloniaResource Include="app.png" />
+		<None Update="Images\update.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Images\up.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Images\down.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Images\history.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Images\app_error.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+	<ItemGroup>
+		<AppDesigner Include="Properties\" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Wox.Core\Wox.Core.csproj" />
+		<ProjectReference Include="..\Wox.Infrastructure\Wox.Infrastructure.csproj" />
+		<ProjectReference Include="..\Wox.Plugin\Wox.Plugin.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+		<Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+	</ItemGroup>
+	<ItemGroup>
+		<BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+			<Visible>False</Visible>
+			<ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+			<Install>false</Install>
+		</BootstrapperPackage>
+		<BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+			<Visible>False</Visible>
+			<ProductName>.NET Framework 3.5 SP1</ProductName>
+			<Install>true</Install>
+		</BootstrapperPackage>
+	</ItemGroup>
+	<ItemGroup>
+		<None Update="Images\app.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+	<ItemGroup>
+		<None Update="Images\file.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Images\open.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+	<ItemGroup>
+		<None Update="Images\sleep.png">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Avalonia.Controls.DataGrid" Version="11.0.0-rc1.1" />
+		<PackageReference Include="Avalonia.Desktop" Version="11.0.999-cibuild0036076-beta" />
+		<PackageReference Include="Avalonia.ReactiveUI" Version="11.0.999-cibuild0036076-beta" />
+		<PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.999-cibuild0036076-beta" />
+		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="11.0.0-rc1.1" />
+		<PackageReference Include="Avalonia.Xaml.Interactions" Version="11.0.0-rc1.1" />
+		<PackageReference Include="CommandLineParser">
+			<Version>2.9.1</Version>
+		</PackageReference>
+		<PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.39" />
+		<PackageReference Include="NuGet.CommandLine">
+			<Version>6.5.0</Version>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+		<PackageReference Include="NHotkey.Wpf" Version="2.1.1" />
+		<PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
+		<PackageReference Include="ReactiveUI.Fody" Version="19.2.1" />
+		<PackageReference Include="System.Linq.Async" Version="6.0.1" />
+		<PackageReference Include="System.Reactive.Linq" Version="6.0.0" />
+	</ItemGroup>
 
-        <Content Include="Languages\*.xaml">
-            <Generator>MSBuild:Compile</Generator>
-            <SubType>Designer</SubType>
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-    </ItemGroup>
-    <ItemGroup>
+	<ItemGroup>
 		<Content Include="Themes\*.xaml">
 			<Generator>MSBuild:Compile</Generator>
 			<SubType>Designer</SubType>
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
-    </ItemGroup>
-    <ItemGroup>
-        <Page Include="App.xaml">
-            <Generator>MSBuild:Compile</Generator>
-        </Page>
-    </ItemGroup>
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-      <PlatformTarget>AnyCPU</PlatformTarget>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-      <PlatformTarget>AnyCPU</PlatformTarget>
-    </PropertyGroup>
-    <Target Name="BeforeBuild">
-    </Target>
-    <Target Name="AfterBuild">
-    </Target>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <AvaloniaXaml Remove="Languages\**" />
+	  <Compile Remove="Languages\**" />
+	  <EmbeddedResource Remove="Languages\**" />
+	  <None Remove="Languages\**" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <AvaloniaXaml Remove="Themes\Atom Dark.axaml" />
+	  <AvaloniaXaml Remove="Themes\Base.axaml" />
+	  <AvaloniaXaml Remove="Themes\BlackAndWhite.axaml" />
+	  <AvaloniaXaml Remove="Themes\BlurBlack.axaml" />
+	  <AvaloniaXaml Remove="Themes\BlurWhite.axaml" />
+	  <AvaloniaXaml Remove="Themes\Gray Modded.axaml" />
+	  <AvaloniaXaml Remove="Themes\Gray.axaml" />
+	  <AvaloniaXaml Remove="Themes\Light.axaml" />
+	  <AvaloniaXaml Remove="Themes\Metro Server.axaml" />
+	  <AvaloniaXaml Remove="Themes\Pink.axaml" />
+	  <AvaloniaXaml Remove="Themes\System Dark.axaml" />
+	  <AvaloniaXaml Remove="Themes\System Light.axaml" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Include="Languages\da.axaml">
+	    <SubType>Designer</SubType>
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Languages\de.axaml">
+	    <SubType>Designer</SubType>
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Languages\fr.axaml">
+	    <SubType>Designer</SubType>
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Languages\he.axaml">
+	    <SubType>Designer</SubType>
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Languages\it.axaml">
+	    <SubType>Designer</SubType>
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Languages\ja.axaml">
+	    <SubType>Designer</SubType>
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Languages\ko.axaml">
+	    <SubType>Designer</SubType>
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Languages\nb-NO.axaml">
+	    <SubType>Designer</SubType>
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Languages\nl.axaml">
+	    <SubType>Designer</SubType>
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Languages\pl.axaml">
+	    <SubType>Designer</SubType>
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Languages\pt-br.axaml">
+	    <SubType>Designer</SubType>
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Languages\pt.axaml">
+	    <SubType>Designer</SubType>
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Languages\ru.axaml">
+	    <SubType>Designer</SubType>
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Languages\sk.axaml">
+	    <SubType>Designer</SubType>
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Languages\sr.axaml">
+	    <SubType>Designer</SubType>
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Languages\tr.axaml">
+	    <SubType>Designer</SubType>
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Languages\uk-UA.axaml">
+	    <SubType>Designer</SubType>
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Languages\zh-cn.axaml">
+	    <SubType>Designer</SubType>
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Languages\zh-tw.axaml">
+	    <SubType>Designer</SubType>
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <AvaloniaXaml Include="Languages\en.axaml">
+	    <SubType>Designer</SubType>
+	    <CopyToOutputDirectory></CopyToOutputDirectory>
+	  </AvaloniaXaml>
+	</ItemGroup>
+
+
+
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+		<PlatformTarget>AnyCPU</PlatformTarget>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+		<PlatformTarget>AnyCPU</PlatformTarget>
+	</PropertyGroup>
+	<Target Name="BeforeBuild">
+	</Target>
+	<Target Name="AfterBuild">
+	</Target>
 </Project>

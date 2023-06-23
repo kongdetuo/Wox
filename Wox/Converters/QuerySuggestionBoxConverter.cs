@@ -1,8 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
-using System.Windows.Data;
+using System.Linq;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.Documents;
+using Avalonia.Data.Converters;
+using Avalonia.Media;
 using NLog;
 using Wox.Infrastructure.Logger;
+using Wox.Plugin;
 using Wox.ViewModel;
 
 namespace Wox.Converters
@@ -11,51 +18,45 @@ namespace Wox.Converters
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
         {
-            if (values.Length != 2)
+            var inlines = HighlightText.Empty;
+            if (values.Count != 2 || values.All(p => p == null || p is UnsetValueType))
             {
-                return string.Empty;
+                return inlines;
             }
 
             // first prop is the current query string
-            var queryText = (string)values[0];
+            var queryText = (string)values[0]!;
+            var val = values[1] as ResultViewModel;
 
-            if (string.IsNullOrEmpty(queryText))
+            if (string.IsNullOrEmpty(queryText) || val is null)
             {
-                return string.Empty;
-            }
-
-            // second prop is the current selected item result
-            var val = values[1];
-            if (val == null)
-            {
-                return string.Empty;
-            }
-            if (val is not ResultViewModel)
-            {
-                return System.Windows.Data.Binding.DoNothing;
+                return inlines;
             }
 
             try
             {
-                var selectedItem = (ResultViewModel)val;
-
-                var selectedResult = selectedItem.Result;
+                var selectedResult = val.Result;
                 var selectedResultActionKeyword = selectedResult.ActionKeywordAssigned is null ? "" : selectedResult.ActionKeywordAssigned + " ";
                 var selectedResultPossibleSuggestion = selectedResultActionKeyword + selectedResult.Title;
 
                 if (!selectedResultPossibleSuggestion.StartsWith(queryText, StringComparison.CurrentCultureIgnoreCase))
-                    return string.Empty;
+                    return inlines;
 
                 // When user typed lower case and result title is uppercase, we still want to display suggestion
                 var textConverter = new MultilineTextConverter();
-                return textConverter.Convert(string.Concat(queryText, selectedResultPossibleSuggestion.AsSpan(queryText.Length)), targetType, parameter, culture);
+                var text = (string)textConverter.Convert(string.Concat(queryText, selectedResultPossibleSuggestion.AsSpan(queryText.Length)), targetType, parameter!, culture);
+
+                inlines = new HighlightText(text, new[] { new Range(0, queryText.Length) });
+
+
+                return inlines;
             }
             catch (Exception e)
             {
                 Logger.WoxError("fail to convert text for suggestion box", e);
-                return string.Empty;
+                return inlines;
             }
         }
 

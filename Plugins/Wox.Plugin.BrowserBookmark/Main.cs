@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Controls;
 using Wox.Infrastructure.Storage;
 using Wox.Plugin.BrowserBookmark.Commands;
 using Wox.Plugin.BrowserBookmark.Models;
 using Wox.Plugin.BrowserBookmark.Views;
 using Wox.Infrastructure;
 using System.Threading.Tasks;
+using Avalonia.Controls;
 
 namespace Wox.Plugin.BrowserBookmark
 {
@@ -113,6 +113,7 @@ namespace Wox.Plugin.BrowserBookmark
         {
             return context.API.GetTranslation("wox_plugin_browserbookmark_plugin_description");
         }
+
 
         public Control CreateSettingPanel()
         {

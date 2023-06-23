@@ -1,0 +1,32 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <system:String x:Key="wox_plugin_websearch_delete">Sil</system:String>
+    <system:String x:Key="wox_plugin_websearch_edit">D¨¹zenle</system:String>
+    <system:String x:Key="wox_plugin_websearch_add">Ekle</system:String>
+    <system:String x:Key="wox_plugin_websearch_confirm">Onayla</system:String>
+    <system:String x:Key="wox_plugin_websearch_action_keyword">Anahtar Kelime</system:String>
+    <system:String x:Key="wox_plugin_websearch_url">URL</system:String>
+    <system:String x:Key="wox_plugin_websearch_search">Ara:</system:String>
+    <system:String x:Key="wox_plugin_websearch_enable_suggestion">Arama ?nerilerini etkinle?tir</system:String>
+    <system:String x:Key="wox_plugin_websearch_pls_select_web_search">L¨¹tfen bir web aramas? se?in</system:String>
+    <system:String x:Key="wox_plugin_websearch_delete_warning">{0} aramas?n? silmek istedi?inize emin misiniz?</system:String>
+
+    <!--web search edit-->
+    <system:String x:Key="wox_plugin_websearch_title">Ba?l?k</system:String>
+    <system:String x:Key="wox_plugin_websearch_enable">Etkin</system:String>
+    <system:String x:Key="wox_plugin_websearch_select_icon">Simge Se?</system:String>
+    <system:String x:Key="wox_plugin_websearch_icon">Simge</system:String>
+    <system:String x:Key="wox_plugin_websearch_cancel">?ptal</system:String>
+    <system:String x:Key="wox_plugin_websearch_invalid_web_search">Ge?ersiz web aramas?</system:String>
+    <system:String x:Key="wox_plugin_websearch_input_title">L¨¹tfen bir ba?l?k giriniz</system:String>
+    <system:String x:Key="wox_plugin_websearch_input_action_keyword">L¨¹tfen anahtar kelime giriniz</system:String>
+    <system:String x:Key="wox_plugin_websearch_input_url">L¨¹tfen bir URL giriniz</system:String>
+    <system:String x:Key="wox_plugin_websearch_action_keyword_exist">Anahtar kelime zaten mevcut. L¨¹tfen yeni bir tane se?iniz.</system:String>
+    <system:String x:Key="wox_plugin_websearch_succeed">Ba?ar?l?</system:String>
+
+    <system:String x:Key="wox_plugin_websearch_plugin_name">Web Aramas?</system:String>
+    <system:String x:Key="wox_plugin_websearch_plugin_description">Web ¨¹zerinde arama yapman?z? sa?lar</system:String>
+
+</ResourceDictionary>

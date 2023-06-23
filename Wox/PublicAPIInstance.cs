@@ -44,7 +44,7 @@ namespace Wox
 
         public void RestarApp()
         {
-            _mainVM.MainWindowVisibility = Visibility.Hidden;
+            _mainVM.ShowMainWindow = false;
 
             // we must manually save
             // UpdateManager.RestartApp() will call Environment.Exit(0)
@@ -80,7 +80,7 @@ namespace Wox
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                var msg = useMainWindowAsOwner ? new Msg { Owner = Application.Current.MainWindow } : new Msg();
+                var msg = useMainWindowAsOwner ? new Msg() : new Msg();
                 msg.Show(title, subTitle, iconPath);
             });
         }
@@ -89,7 +89,7 @@ namespace Wox
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                SettingWindow sw = SingletonWindowOpener.Open<SettingWindow>(this, _settingsVM);
+                //SettingWindow sw = SingletonWindowOpener.Open<SettingWindow>(this, _settingsVM);
             });
         }
 
@@ -110,7 +110,7 @@ namespace Wox
 
         public void ShowWox()
         {
-            _mainVM.MainWindowVisibility = Visibility.Visible;
+            _mainVM.ShowMainWindow = false;
         }
 
         public event WoxGlobalKeyboardEventHandler GlobalKeyboardEvent;
@@ -130,7 +130,7 @@ namespace Wox
 
         internal void HideWindow()
         {
-            _mainVM.MainWindowVisibility = Visibility.Collapsed;
+            _mainVM.ShowMainWindow = false;
         }
 
 

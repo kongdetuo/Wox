@@ -1,0 +1,12 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <system:String x:Key="wox_plugin_cmd_relace_winr">取代 Win+R</system:String>
+    <system:String x:Key="wox_plugin_cmd_leave_cmd_open">執行後不關閉命令提示字元視窗</system:String>
+    <system:String x:Key="wox_plugin_cmd_plugin_name">命令提示字元</system:String>
+    <system:String x:Key="wox_plugin_cmd_plugin_description">提供從 Wox 中執行命令提示字元的功能，指令應該以>開頭</system:String>
+    <system:String x:Key="wox_plugin_cmd_cmd_has_been_executed_times">此指令已執行了 {0} 次</system:String>
+    <system:String x:Key="wox_plugin_cmd_execute_through_shell">執行指令</system:String>
+    <system:String x:Key="wox_plugin_cmd_run_as_administrator">以系統管理員身分執行</system:String>
+</ResourceDictionary>

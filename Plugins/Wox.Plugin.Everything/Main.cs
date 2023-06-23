@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
+using Avalonia.Controls;
 using NLog;
 using Wox.Infrastructure;
 using Wox.Infrastructure.Logger;

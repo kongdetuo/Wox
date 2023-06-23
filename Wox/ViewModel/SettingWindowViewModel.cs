@@ -1,22 +1,13 @@
-using Microsoft.WindowsAPICodePack.Shell.Interop;
+using Avalonia.Controls;
+using Avalonia.Layout;
+using Avalonia.Media;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using Wox.Core;
 using Wox.Core.Plugin;
 using Wox.Core.Resource;
-using Wox.Helper;
 using Wox.Infrastructure;
-using Wox.Infrastructure.Storage;
 using Wox.Infrastructure.UserSettings;
 using Wox.Plugin;
 using Wox.Themes;
@@ -47,38 +38,45 @@ namespace Wox.ViewModel
         #region general
 
         // todo a better name?
-        public class LastQueryMode
+        public class LastQueryModeVM
         {
             public required string Display { get; set; }
-            public required Infrastructure.UserSettings.LastQueryMode Value { get; set; }
+            public required LastQueryMode Value { get; set; }
         }
-        public List<LastQueryMode> LastQueryModes
+
+        private List<LastQueryModeVM> lastQueryModes;
+        public List<LastQueryModeVM> LastQueryModes
         {
-            get
-            {
-                List<LastQueryMode> modes = new();
-                var enums = Enum.GetValues<Infrastructure.UserSettings.LastQueryMode>();
-                foreach (var e in enums)
+            get => lastQueryModes ??= Enum.GetValues<LastQueryMode>()
+                .Select(p => new LastQueryModeVM()
                 {
-                    var key = $"LastQuery{e}";
-                    var display = _translater.GetTranslation(key);
-                    var m = new LastQueryMode { Display = display, Value = e, };
-                    modes.Add(m);
-                }
-                return modes;
+                    Display = _translater.GetTranslation("LastQuery" + p),
+                    Value = p
+                })
+                .ToList();
+        }
+
+        private LastQueryModeVM? lastQueryMode;
+        public LastQueryModeVM LastQueryMode
+        {
+            get => lastQueryMode ??= LastQueryModes.First(p => p.Value == Settings.LastQueryMode);
+            set
+            {
+                lastQueryMode = value;
+                this.OnPropertyChanged();
+                Settings.Instance.LastQueryMode = value.Value;
             }
         }
 
-        public string Language
+        private Language language;
+        public Language Language
         {
-            get
-            {
-                return Settings.Language;
-            }
+            get => language ?? InternationalizationManager.Instance.GetLanguageByLanguageCode(Settings.Language);
             set
             {
+                Settings.Language = value.LanguageCode;
                 InternationalizationManager.Instance.ChangeLanguage(value);
-                if (InternationalizationManager.Instance.PromptShouldUsePinyin(value))
+                if (InternationalizationManager.Instance.PromptShouldUsePinyin(value.LanguageCode))
                     ShouldUsePinyin = true;
             }
         }
@@ -162,7 +160,7 @@ namespace Wox.ViewModel
                 var metadatas = PluginManager.AllPlugins
                     .OrderBy(x => x.Metadata.Disabled)
                     .ThenBy(y => y.Metadata.Name)
-                    .Select(p => new PluginViewModel(p) )
+                    .Select(p => new PluginViewModel(p))
                     .ToList();
                 return metadatas;
             }
@@ -205,31 +203,31 @@ namespace Wox.ViewModel
         }
 
         public List<string> Themes
-            => ThemeManager.Instance.LoadAvailableThemes().Select(Path.GetFileNameWithoutExtension).Where(p=>p!=null).OfType<string>().ToList();
+            => ThemeManager.Instance.LoadAvailableThemes().Select(Path.GetFileNameWithoutExtension).Where(p => p != null).OfType<string>().ToList();
 
-        public Brush PreviewBackground
-        {
-            get
-            {
-                var wallpaper = WallpaperPathRetrieval.GetWallpaperPath();
-                if (wallpaper != null && File.Exists(wallpaper))
-                {
-                    var memStream = new MemoryStream(File.ReadAllBytes(wallpaper));
-                    var bitmap = new BitmapImage();
-                    bitmap.BeginInit();
-                    bitmap.StreamSource = memStream;
-                    bitmap.EndInit();
-                    var brush = new ImageBrush(bitmap) { Stretch = Stretch.UniformToFill };
-                    return brush;
-                }
-                else
-                {
-                    var wallpaperColor = WallpaperPathRetrieval.GetWallpaperColor();
-                    var brush = new SolidColorBrush(wallpaperColor);
-                    return brush;
-                }
-            }
-        }
+        //public Brush PreviewBackground
+        //{
+        //    get
+        //    {
+        //        var wallpaper = WallpaperPathRetrieval.GetWallpaperPath();
+        //        if (wallpaper != null && File.Exists(wallpaper))
+        //        {
+        //            var memStream = new MemoryStream(File.ReadAllBytes(wallpaper));
+        //            var bitmap = new BitmapImage();
+        //            bitmap.BeginInit();
+        //            bitmap.StreamSource = memStream;
+        //            bitmap.EndInit();
+        //            var brush = new ImageBrush(bitmap) { Stretch = Stretch.UniformToFill };
+        //            return brush;
+        //        }
+        //        else
+        //        {
+        //            var wallpaperColor = WallpaperPathRetrieval.GetWallpaperColor();
+        //            var brush = new SolidColorBrush(wallpaperColor);
+        //            return brush;
+        //        }
+        //    }
+        //}
 
         public ResultsViewModel PreviewResults
         {
@@ -274,24 +272,26 @@ namespace Wox.ViewModel
                     //    IcoPath = "Images/ok.png"
                     //}
                 };
-                var vm = new ResultsViewModel(Settings);
+                var vm = new ResultsViewModel(Settings, () => { });
                 vm.AddResults(results, "PREVIEW");
                 return vm;
             }
         }
 
-        public FontFamily[] SortedFonts { get; } = Fonts.SystemFontFamilies
-            .OrderByDescending(FontHelper.HasCurrentCultureName)
-            .ThenBy(p=>p.FamilyNames.Values.First())
+        public FontFamily[] SortedFonts { get; } = FontManager.Current.SystemFonts
+          //  .OrderByDescending(FontHelper.HasCurrentCultureName)
+            //.ThenBy(p => p.FamilyNames.Values.First())
             .ToArray();
 
         public FontFamily SelectedQueryBoxFont
         {
             get
             {
-                if (Fonts.SystemFontFamilies.Any(o =>
-                    o.FamilyNames.Values != null &&
-                    o.FamilyNames.Values.Contains(Settings.QueryBoxFont)))
+                
+
+                if (FontManager.Current.SystemFonts.Any(o =>
+                    o.FamilyNames != null &&
+                    o.FamilyNames.Contains(Settings.QueryBoxFont)))
                 {
                     var font = new FontFamily(Settings.QueryBoxFont);
                     return font;
@@ -309,92 +309,93 @@ namespace Wox.ViewModel
             }
         }
 
-        public FamilyTypeface SelectedQueryBoxFontFaces
-        {
-            get
-            {
-                var typeface = SyntaxSugars.CallOrRescueDefault(
-                    () => SelectedQueryBoxFont.ConvertFromInvariantStringsOrNormal(
-                        Settings.QueryBoxFontStyle,
-                        Settings.QueryBoxFontWeight,
-                        Settings.QueryBoxFontStretch
-                        ));
-                return typeface;
-            }
-            set
-            {
-                Settings.QueryBoxFontStretch = value.Stretch.ToString();
-                Settings.QueryBoxFontWeight = value.Weight.ToString();
-                Settings.QueryBoxFontStyle = value.Style.ToString();
-                ThemeManager.Instance.ChangeTheme(Settings.Theme);
-            }
-        }
+        //public FamilyTypeface SelectedQueryBoxFontFaces
+        //{
+        //    get
+        //    {
+        //        var typeface = SyntaxSugars.CallOrRescueDefault(
+        //            () => SelectedQueryBoxFont.ConvertFromInvariantStringsOrNormal(
+        //                Settings.QueryBoxFontStyle,
+        //                Settings.QueryBoxFontWeight,
+        //                Settings.QueryBoxFontStretch
+        //                ));
+        //        return typeface;
+        //    }
+        //    set
+        //    {
+        //        Settings.QueryBoxFontStretch = value.Stretch.ToString();
+        //        Settings.QueryBoxFontWeight = value.Weight.ToString();
+        //        Settings.QueryBoxFontStyle = value.Style.ToString();
+        //        ThemeManager.Instance.ChangeTheme(Settings.Theme);
+        //    }
+        //}
 
-        public FontFamily SelectedResultFont
-        {
-            get
-            {
-                if (Fonts.SystemFontFamilies.Any(o =>
-                    o.FamilyNames.Values != null &&
-                    o.FamilyNames.Values.Contains(Settings.ResultFont)))
-                {
-                    var font = new FontFamily(Settings.ResultFont);
-                    return font;
-                }
-                else
-                {
-                    var font = new FontFamily("Segoe UI");
-                    return font;
-                }
-            }
-            set
-            {
-                Settings.ResultFont = value.ToString();
-                ThemeManager.Instance.ChangeTheme(Settings.Theme);
-            }
-        }
+        //public FontFamily SelectedResultFont
+        //{
+        //    get
+        //    {FontManager.Current.TryGetGlyphTypeface
 
-        public FamilyTypeface SelectedResultFontFaces
-        {
-            get
-            {
-                var typeface = SyntaxSugars.CallOrRescueDefault(
-                    () => SelectedResultFont.ConvertFromInvariantStringsOrNormal(
-                        Settings.ResultFontStyle,
-                        Settings.ResultFontWeight,
-                        Settings.ResultFontStretch
-                        ));
-                return typeface;
-            }
-            set
-            {
-                Settings.ResultFontStretch = value.Stretch.ToString();
-                Settings.ResultFontWeight = value.Weight.ToString();
-                Settings.ResultFontStyle = value.Style.ToString();
-                ThemeManager.Instance.ChangeTheme(Settings.Theme);
-            }
-        }
+        //        if (FontManager.Current.SystemFonts.Any(o =>
+        //            o.FamilyNames != null &&
+        //            o.FamilyNames.Contains(Settings.ResultFont)))
+        //        {
+        //            var font = new FontFamily(Settings.ResultFont);
+        //            return font;
+        //        }
+        //        else
+        //        {
+        //            var font = new FontFamily("Segoe UI");
+        //            return font;
+        //        }
+        //    }
+        //    set
+        //    {
+        //        Settings.ResultFont = value.ToString();
+        //        ThemeManager.Instance.ChangeTheme(Settings.Theme);
+        //    }
+        //}
 
-        public FamilyTypeface SelectedResultHighlightFontFaces
-        {
-            get
-            {
-                var typeface = SyntaxSugars.CallOrRescueDefault(
-                    () => SelectedResultFont.ConvertFromInvariantStringsOrNormal(
-                        Settings.ResultHighlightFontStyle,
-                        Settings.ResultHighlightFontWeight,
-                        Settings.ResultHighlightFontStretch
-                        ));
-                return typeface;
-            }
-            set
-            {
-                Settings.ResultHighlightFontStretch = value.Stretch.ToString();
-                Settings.ResultHighlightFontWeight = value.Weight.ToString();
-                Settings.ResultHighlightFontStyle = value.Style.ToString();
-                ThemeManager.Instance.ChangeTheme(Settings.Theme);
-            }
-        }
+        //public FamilyTypeface SelectedResultFontFaces
+        //{
+        //    get
+        //    {
+        //        var typeface = SyntaxSugars.CallOrRescueDefault(
+        //            () => SelectedResultFont.ConvertFromInvariantStringsOrNormal(
+        //                Settings.ResultFontStyle,
+        //                Settings.ResultFontWeight,
+        //                Settings.ResultFontStretch
+        //                ));
+        //        return typeface;
+        //    }
+        //    set
+        //    {
+        //        Settings.ResultFontStretch = value.Stretch.ToString();
+        //        Settings.ResultFontWeight = value.Weight.ToString();
+        //        Settings.ResultFontStyle = value.Style.ToString();
+        //        ThemeManager.Instance.ChangeTheme(Settings.Theme);
+        //    }
+        //}
+
+        //public FamilyTypeface SelectedResultHighlightFontFaces
+        //{
+        //    get
+        //    {
+        //        var typeface = SyntaxSugars.CallOrRescueDefault(
+        //            () => SelectedResultFont.ConvertFromInvariantStringsOrNormal(
+        //                Settings.ResultHighlightFontStyle,
+        //                Settings.ResultHighlightFontWeight,
+        //                Settings.ResultHighlightFontStretch
+        //                ));
+        //        return typeface;
+        //    }
+        //    set
+        //    {
+        //        Settings.ResultHighlightFontStretch = value.Stretch.ToString();
+        //        Settings.ResultHighlightFontWeight = value.Weight.ToString();
+        //        Settings.ResultHighlightFontStyle = value.Style.ToString();
+        //        ThemeManager.Instance.ChangeTheme(Settings.Theme);
+        //    }
+        //}
 
         #endregion
 

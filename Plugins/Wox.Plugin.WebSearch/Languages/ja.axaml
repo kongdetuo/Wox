@@ -1,0 +1,32 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <system:String x:Key="wox_plugin_websearch_delete">削除</system:String>
+    <system:String x:Key="wox_plugin_websearch_edit">編集</system:String>
+    <system:String x:Key="wox_plugin_websearch_add">追加</system:String>
+    <system:String x:Key="wox_plugin_websearch_action_keyword">キーワード</system:String>
+    <system:String x:Key="wox_plugin_websearch_url">URL</system:String>
+    <system:String x:Key="wox_plugin_websearch_search">検索</system:String>
+    <system:String x:Key="wox_plugin_websearch_enable_suggestion">検索サジェスチョンを有効にする</system:String>
+    <system:String x:Key="wox_plugin_websearch_pls_select_web_search">web検索を選択してください</system:String>
+    <system:String x:Key="wox_plugin_websearch_delete_warning">本当に{0}を削除しますか?</system:String>
+
+    
+    <!--web search edit-->
+    <system:String x:Key="wox_plugin_websearch_title">タイトル</system:String>
+    <system:String x:Key="wox_plugin_websearch_enable">有効</system:String>
+    <system:String x:Key="wox_plugin_websearch_select_icon">アイコンを選択</system:String>
+    <system:String x:Key="wox_plugin_websearch_icon">アイコン</system:String>
+    <system:String x:Key="wox_plugin_websearch_cancel">キャンセル</system:String>
+    <system:String x:Key="wox_plugin_websearch_invalid_web_search">web検索を無効にする</system:String>
+    <system:String x:Key="wox_plugin_websearch_input_title">タイトルを入力してください</system:String>
+    <system:String x:Key="wox_plugin_websearch_input_action_keyword">キーワードを入力してください</system:String>
+    <system:String x:Key="wox_plugin_websearch_input_url">URLを入力してください</system:String>
+    <system:String x:Key="wox_plugin_websearch_action_keyword_exist">キーワードはすでに存在します。違うキーワードを入力してください</system:String>
+    <system:String x:Key="wox_plugin_websearch_succeed">成功</system:String>
+
+    <system:String x:Key="wox_plugin_websearch_plugin_name">Web検索</system:String>
+    <system:String x:Key="wox_plugin_websearch_plugin_description">Web検索を提供</system:String>
+
+</ResourceDictionary>

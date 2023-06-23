@@ -39,24 +39,27 @@ namespace Wox.Plugin.ControlPanel
 
 
 
-        static RegistryKey nameSpace = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ControlPanel\\NameSpace");
-        static RegistryKey clsid = Registry.ClassesRoot.OpenSubKey("CLSID");
+        static RegistryKey? nameSpace = Registry.LocalMachine.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Explorer\\ControlPanel\\NameSpace");
+        static RegistryKey? clsid = Registry.ClassesRoot.OpenSubKey("CLSID");
 
         public static List<ControlPanelItem> Create()
         {
-            RegistryKey currentKey;
             ProcessStartInfo executablePath;
             List<ControlPanelItem> controlPanelItems = new List<ControlPanelItem>();
             string localizedString;
             string infoTip;
 
-            foreach (string guid in nameSpace.GetSubKeyNames())
+            if (nameSpace != null && clsid != null)
             {
-                try
+
+                foreach (string guid in nameSpace.GetSubKeyNames())
                 {
-                    currentKey = clsid.OpenSubKey(guid);
-                    if (currentKey != null)
+                    try
                     {
+                        var currentKey = clsid.OpenSubKey(guid);
+                        if (currentKey == null)
+                            continue;
+
                         executablePath = getExecutablePath(currentKey);
 
                         if (!(executablePath == null)) //Cannot have item without executable path
@@ -66,26 +69,17 @@ namespace Wox.Plugin.ControlPanel
                             if (!string.IsNullOrEmpty(localizedString))//Cannot have item without Title
                             {
                                 infoTip = getInfoTip(currentKey);
-
-                                string iconPath;
-                                if (currentKey.OpenSubKey("DefaultIcon") != null && currentKey.OpenSubKey("DefaultIcon").GetValue(null) != null)
-                                {
-                                    iconPath = currentKey.OpenSubKey("DefaultIcon").GetValue(null).ToString();
-                                }
-                                else
-                                {
-                                    iconPath = Constant.ErrorIcon;
-                                }
+                                string iconPath = currentKey.OpenSubKey("DefaultIcon")?.GetValue(null)?.ToString() ?? Constant.ErrorIcon;
                                 controlPanelItems.Add(new ControlPanelItem(localizedString, infoTip, guid, executablePath, iconPath));
                             }
                         }
                     }
-                }
-                catch (Exception e)
-                {
-                    e.Data.Add(nameof(guid), guid);
-                    Logger.WoxError($"cannot parse control panel item {guid}", e);
-                    continue;
+                    catch (Exception e)
+                    {
+                        e.Data.Add(nameof(guid), guid);
+                        Logger.WoxError($"cannot parse control panel item {guid}", e);
+                        continue;
+                    }
                 }
             }
 

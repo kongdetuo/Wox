@@ -35,7 +35,7 @@
 	  </ProjectReference>
   </ItemGroup>
 	<ItemGroup>
-		<Content Include="Languages\*.xaml">
+		<Content Include="Languages\*.axaml">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 	</ItemGroup>

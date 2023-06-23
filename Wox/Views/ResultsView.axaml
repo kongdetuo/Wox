@@ -1,0 +1,83 @@
+﻿<UserControl x:Class="Wox.ResultsView"
+			 xmlns="https://github.com/avaloniaui"
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+			 xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
+			 xmlns:vm="using:Wox.ViewModel"
+			 xmlns:local="clr-namespace:Wox"
+			 xmlns:converter="clr-namespace:Wox.Converters"
+			 mc:Ignorable="d" d:DesignWidth="100" d:DesignHeight="100"
+			 x:DataType="vm:ResultsViewModel"
+			 Background="Transparent">
+
+	<ListBox Padding="0" Name="list" Margin="0"
+			 SelectionMode="Single"
+			 AutoScrollToSelectedItem="True"
+			 MaxHeight="{CompiledBinding Mode=OneWay,Path=MaxHeight}"
+			 ItemsSource="{CompiledBinding Mode=OneWay,Path=Results}"
+			 SelectedItem="{CompiledBinding Path=SelectedItem}"
+			 SelectedIndex="{CompiledBinding Path=SelectedIndex}"
+			 Background="Transparent"
+			 >
+
+		<ListBox.ItemContainerTheme>
+			<ControlTheme TargetType="{x:Type ListBoxItem}">
+				<Setter Property="Padding" Value="0"/>
+				<Setter Property="Margin" Value="0"/>
+				<Setter Property="Height" Value="50"/>
+				<Setter Property="Template">
+					<Setter.Value>
+						<ControlTemplate>
+							<ContentPresenter Content="{TemplateBinding	Content}"
+											  Background="{TemplateBinding Background}"
+											  ContentTemplate="{TemplateBinding	ContentTemplate}"></ContentPresenter>
+						</ControlTemplate>
+					</Setter.Value>
+				</Setter>
+				<Style Selector="^:selected">
+					<Setter Property="Background" Value="{DynamicResource ItemSelectedBackgroundColor}"/>
+					<Setter Property="local:HighLightTextBlock.Foreground" Value="Red"/>
+				</Style>
+			</ControlTheme>
+		</ListBox.ItemContainerTheme>
+
+		<ListBox.ItemTemplate>
+			<DataTemplate>
+				<Panel Cursor="Hand" Background="Transparent"
+					   Tapped="OpenResult" ContextRequested="OpenContext"
+					   PointerMoved="OnPointerMoved"
+					   HorizontalAlignment="Stretch" >
+					<Grid Margin="5" ColumnDefinitions="48,*">
+						<Image x:Name="imgIco" Width="32" Height="32"
+							   HorizontalAlignment="Center" VerticalAlignment="Center"
+							   Source="{Binding Image.Value}" />
+						<Grid Margin="0 0 5 0" Grid.Column="1"
+							  HorizontalAlignment="Stretch"
+							  RowDefinitions="*,auto">
+							<Grid.Styles>
+								<Style Selector="TextBlock">
+									<Setter Property="local:HighLightTextBlock.Foreground" Value="{DynamicResource ItemSelectedHighlightColor}"/>
+								</Style>
+								<Style Selector="TextBlock.selected">
+									<Setter Property="local:HighLightTextBlock.Foreground" Value="{DynamicResource ItemHighlightColor}"/>
+								</Style>
+							</Grid.Styles>
+
+							<TextBlock Grid.Row="0" x:Name="Title"
+									   VerticalAlignment="Center"
+									   Classes.selected="{Binding $parent[ListBoxItem].IsSelected}"
+									   ToolTip.Tip="{Binding Result.Title, Mode=OneTime}"
+									   local:HighLightTextBlock.HighlightText="{Binding Result.Title}"/>
+
+							<TextBlock ToolTip.Tip="{Binding Result.SubTitle}"
+									   Grid.Row="1" x:Name="SubTitle"
+									   Text="{Binding Result.SubTitle}"/>
+						</Grid>
+					</Grid>
+				</Panel>
+			</DataTemplate>
+		</ListBox.ItemTemplate>
+	</ListBox>
+</UserControl>

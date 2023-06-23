@@ -17,10 +17,21 @@ using Wox.Infrastructure.Logger;
 using Wox.Infrastructure.UserSettings;
 using Wox.Plugin;
 using Wox.Core.Storage;
+using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
+using MS.WindowsAPICodePack.Internal;
+using System.Threading.Tasks;
+using DynamicData;
+using DynamicData.Alias;
+using System.Reactive.Linq;
+using DynamicData.Binding;
+using System.Reactive.Concurrency;
+using System.Diagnostics;
+using Windows.ApplicationModel.Activation;
 
 namespace Wox.ViewModel
 {
-    public class ResultsViewModel : BaseModel
+    public class ResultsViewModel : ViewModelBase
     {
 
         #region Private Fields
@@ -32,36 +43,50 @@ namespace Wox.ViewModel
         private int MaxResults => _settings?.MaxResultsToShow ?? 6;
         private readonly object _collectionLock = new();
 
-        public ResultsViewModel(Settings settings)
+        public event EventHandler<List<PluginQueryResult>> resultchanged;
+
+        public ResultsViewModel(Settings settings, Action action)
         {
             Results = new ResultCollection();
-            BindingOperations.EnableCollectionSynchronization(Results, _collectionLock);
+            // BindingOperations.EnableCollectionSynchronization(Results, _collectionLock);
 
-            SelectNextItemCommand = new RelayCommand(_ => this.SelectNextResult());
-            SelectPrevItemCommand = new RelayCommand(_ => SelectPrevResult());
-            SelectNextPageCommand = new RelayCommand(_ => SelectNextPage());
-            SelectPrevPageCommand = new RelayCommand(_ => SelectPrevPage());
-            SelectFirstResultCommand = new RelayCommand(_ => SelectFirstResult());
 
             _settings = settings;
             _settings.PropertyChanged += (s, e) =>
             {
                 if (e.PropertyName == nameof(_settings.MaxResultsToShow))
                 {
-                    OnPropertyChanged(nameof(MaxHeight));
+                    this.RaisePropertyChanged(nameof(MaxHeight));
                 }
             };
+
+            Observable.FromEventPattern<List<PluginQueryResult>>(this, nameof(resultchanged))
+                .Select(p => p.EventArgs)
+                .ObserveOn(ThreadPoolScheduler.Instance)
+                .Select(createResults)
+                //.Throttle(TimeSpan.FromMilliseconds(20))
+                .ObserveOn(SynchronizationContext.Current!)
+                .Subscribe(list =>
+                {
+
+                    Results.Update(list);
+
+                    if (list.Count > 0)
+                    {
+                        SelectedItem = list[0];
+                        SelectedIndex = 0;
+                    }
+                    action();
+                });
+
+
+
         }
+
 
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         #endregion Private Fields
-
-        public ICommand SelectNextItemCommand { get; set; } 
-        public ICommand SelectPrevItemCommand { get; set; }
-        public ICommand SelectNextPageCommand { get; set; }
-        public ICommand SelectPrevPageCommand { get; set; }
-        public ICommand SelectFirstResultCommand { get; set; }
 
         public ICommand OpenResultCommand { get; set; } = new RelayCommand(obj => { });
 
@@ -71,12 +96,12 @@ namespace Wox.ViewModel
 
         public int MaxHeight => MaxResults * 50;
 
-        public int SelectedIndex { get; set; }
+        [Reactive] public int SelectedIndex { get; set; } = -1;
 
-        public ResultViewModel? SelectedItem { get; set; }
+        [Reactive] public ResultViewModel? SelectedItem { get; set; }
         public Thickness Margin { get; set; }
-        public Visibility Visbility { get; set; } = Visibility.Collapsed;
 
+        [Reactive] public bool IsVisible { get; set; }
         public string? PluginID { get; set; }
 
         #endregion Properties
@@ -102,12 +127,12 @@ namespace Wox.ViewModel
 
         #region Public Methods
 
-        public void SelectNextResult()
+        public void SelectNextItem()
         {
             SelectedIndex = NewIndex(SelectedIndex + 1);
         }
 
-        public void SelectPrevResult()
+        public void SelectPrevItem()
         {
             SelectedIndex = NewIndex(SelectedIndex - 1);
         }
@@ -122,15 +147,15 @@ namespace Wox.ViewModel
             SelectedIndex = NewIndex(SelectedIndex - MaxResults);
         }
 
-        public void SelectFirstResult()
+        public void SelectFirstItem()
         {
             SelectedIndex = NewIndex(0);
         }
 
         public void Clear()
         {
-            this.pluginQueryResults.Clear();
-            Results.RemoveAll();
+            //this.cache.Clear();
+            //Results.Clear();
         }
 
         public int Count => Results.Count;
@@ -145,11 +170,29 @@ namespace Wox.ViewModel
 
         }
 
+        private List<ResultViewModel> createResults(IEnumerable<PluginQueryResult> updates)
+        {
+
+            foreach (var item in updates)
+            {
+                pluginQueryResults[item.PluginID] = item.Results.Select(p => new ResultViewModel(p, item)).ToList();
+            }
+            var list = pluginQueryResults.Values
+                .SelectMany(p => p).OrderByDescending(p => p.Score)
+                .Take(MaxResults * 6)
+                .ToList();
+
+            return list;
+
+        }
+
         /// <summary>
         /// To avoid deadlock, this method should not called from main thread
         /// </summary>
         public void AddResults(IEnumerable<PluginQueryResult> updates, CancellationToken token)
         {
+            resultchanged?.Invoke(this, updates.ToList());
+            return;
             lock (_collectionLock)
             {
                 IEnumerable<ResultViewModel> Create(PluginQueryResult rs) => rs.Results.Select(p => new ResultViewModel(p, rs));
@@ -157,7 +200,7 @@ namespace Wox.ViewModel
                 // https://stackoverflow.com/questions/14336750
                 // because IResultUpdated, updates maybe contains same plugin result
                 // we just need the last one
-                this.SelectedItem = null;
+                // this.SelectedItem = null;
 
                 foreach (var update in updates)
                 {
@@ -165,7 +208,7 @@ namespace Wox.ViewModel
                 }
 
                 var newResults = this.pluginQueryResults.Values
-                    .SelectMany(p=> p)
+                    .SelectMany(p => p)
                     .OrderByDescending(r => r.Score)
                     .Take(MaxResults * 6)
                     .ToList();
@@ -174,21 +217,22 @@ namespace Wox.ViewModel
                     return;
                 Results.Update(newResults);
 
-                if (Results.Count > 0)
-                {
-                    this.SelectedItem = Results[0];
-                    this.SelectedIndex = 0;
-                    var id = Results[0].PluginMetadata?.ID;
-                    if (id != null && Results.All(p => p.PluginMetadata?.ID == id))
-                        this.PluginID = id;
-                    else
-                        this.PluginID = null;
-                }
-                else
-                {
-                    this.PluginID = null;
-                }
+
             }
+            //if (Results.Count > 0)
+            //{
+            //    this.SelectedItem = Results[0];
+            //    this.SelectedIndex = 0;
+            //    var id = Results[0].PluginMetadata?.ID;
+            //    if (id != null && Results.All(p => p.PluginMetadata?.ID == id))
+            //        this.PluginID = id;
+            //    else
+            //        this.PluginID = null;
+            //}
+            //else
+            //{
+            //    this.PluginID = null;
+            //}
         }
 
         #endregion Public Methods
@@ -203,38 +247,13 @@ namespace Wox.ViewModel
                 CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
             }
 
-            public void Update(IEnumerable<ResultViewModel> newItems)
+            public void Update(IList<ResultViewModel> newItems)
             {
                 this.Clear();
                 this.AddRange(newItems);
-
-                // wpf use directx / double buffered already, so just reset all won't cause ui flickering
                 CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+                // wpf use directx / double buffered already, so just reset all won't cause ui flickering
             }
-        }
-    }
-
-    public class HistoryViewModel : ResultsViewModel
-    {
-        public HistoryViewModel(Settings settings) : base(settings)
-        {
-
-        }
-    }
-
-    public class QueryResultViewModel : ResultsViewModel
-    {
-        public QueryResultViewModel(Settings settings, UserSelectedRecord record, History history) : base(settings)
-        {
-
-        }
-    }
-
-    public class ContextViewModel : ResultsViewModel
-    {
-        public ContextViewModel(Settings settings) : base(settings)
-        {
-
         }
     }
 }

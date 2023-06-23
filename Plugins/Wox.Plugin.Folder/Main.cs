@@ -1,11 +1,10 @@
+using Avalonia.Controls;
 using NLog.LayoutRenderers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Windows;
-using System.Windows.Controls;
 using Wox.Infrastructure;
 using Wox.Infrastructure.Storage;
 
@@ -109,7 +108,7 @@ namespace Wox.Plugin.Folder
                         }
                         catch (Exception ex)
                         {
-                            MessageBox.Show(ex.Message, "Could not start " + path);
+                            //MessageBox.Show(ex.Message, "Could not start " + path);
                             return false;
                         }
                     }

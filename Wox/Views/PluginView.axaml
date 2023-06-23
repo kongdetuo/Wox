@@ -1,0 +1,72 @@
+﻿<UserControl x:Class="Wox.PluginView"
+        
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:local="clr-namespace:Wox"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Expander x:Name="exp"  HorizontalAlignment="Stretch">
+            <Expander.Header>
+                <Grid HorizontalAlignment="Stretch">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Image Source="{Binding Image}" Width="32" Height="32" />
+                    <StackPanel Margin="3 0 3 0" Grid.Column="1">
+						
+                        <TextBlock Text="{Binding Metadata.Name}"
+                                   ToolTip.Tip="{Binding Metadata.Name}" />
+                        <TextBlock Text="{Binding Metadata.Description}"
+                                   ToolTip.Tip="{Binding Metadata.Description}"
+                                   Opacity="0.5" />
+                    </StackPanel>
+                    <CheckBox Grid.Column="3" VerticalContentAlignment="Center" IsChecked="{Binding Disabled}">
+                        <TextBlock Text="{DynamicResource disable}" />
+                    </CheckBox>
+                </Grid>
+            </Expander.Header>
+
+            <StackPanel Margin="10,0,0,0" Grid.Column="1" HorizontalAlignment="Stretch">
+                <ContentControl Content="{Binding SettingProvider}" Margin="4"
+                                            HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+                <StackPanel Orientation="Horizontal" Margin="4">
+                    <TextBlock Text="{DynamicResource actionKeywords}"
+                                               IsVisible="{Binding ActionKeywordsVisibility}"
+                                               Cursor="Hand" Foreground="Blue"
+                                               Margin="20,0,0,0"
+                                               Tapped="OnPluginActionKeywordsClick" Padding="0,0,5,0" />
+                    <TextBlock Text="{Binding ActionKeywordsText}"
+                                               IsVisible="{Binding ActionKeywordsVisibility}"
+                                               ToolTip.Tip="Change Action Keywords"
+                                               Margin="0 0 0 0" Cursor="Hand" Foreground="Blue"
+							                   Tapped="OnPluginActionKeywordsClick"/>
+                    <TextBlock Text="{Binding InitilizaTime}" Margin="10 0 0 0" />
+                    <TextBlock Text="{Binding QueryTime}" Margin="10 0 0 0" />
+                    <TextBlock Text="{DynamicResource pluginDirectory}"
+                                               HorizontalAlignment="Right" Cursor="Hand"
+                                               Foreground="Blue" >
+                        <!--<i:Interaction.Triggers>
+                            <i:EventTrigger EventName="MouseLeftButtonUp">
+                                <i:InvokeCommandAction Command="{Binding OpenDirectoryCommand}"/>
+                            </i:EventTrigger>
+                        </i:Interaction.Triggers>-->
+                    </TextBlock>
+                        
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right"
+                                                VerticalAlignment="Bottom" Opacity="0.5">
+                        <TextBlock Text="{DynamicResource author}" />
+                        <TextBlock Text=": " />
+                        <TextBlock Text="{Binding Metadata.Author}" ToolTip.Tip="{Binding Metadata.Author}" />
+                    </StackPanel>
+                </StackPanel>
+
+            </StackPanel>
+        </Expander>
+    </Grid>
+</UserControl>

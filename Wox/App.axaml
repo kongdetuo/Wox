@@ -1,0 +1,50 @@
+﻿<Application x:Class="Wox.App"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:local="using:Wox">
+	<Application.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.ThemeDictionaries>
+				<ResourceInclude x:Key="Dark" Source="avares://Wox/Themes/Dark.axaml"/>
+			</ResourceDictionary.ThemeDictionaries>
+			<ResourceDictionary.MergedDictionaries>
+				<ResourceInclude Source="avares://Wox/Languages/en.axaml"/>
+			</ResourceDictionary.MergedDictionaries>
+		</ResourceDictionary>
+
+	</Application.Resources>
+	<!--<Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.ThemeDictionaries>
+                <ResourceDictionary Source="/Themes/Dark.axaml" />
+                -->
+	<!--<ResourceDictionary Source="pack://application:,,,/Languages/en.xaml" />-->
+	<!--
+            </ResourceDictionary.ThemeDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>-->
+	<Application.DataTemplates>
+		<local:ViewLocator/>
+	</Application.DataTemplates>
+
+	<Application.Styles>
+		<FluentTheme/>
+		<StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
+	</Application.Styles>
+
+	<TrayIcon.Icons>
+		<TrayIcons>
+			<TrayIcon Icon="avares://Wox/app.png" ToolTipText="Wox"
+					  Command="{Binding Awake}">
+				<TrayIcon.Menu>
+					<NativeMenu>
+						<NativeMenuItem Header="{DynamicResource iconTrayOpen}" Command="{Binding Awake}"/>
+						<NativeMenuItem Header="{DynamicResource iconTraySettings}" Command="{Binding OpenSetting}"/>
+						<NativeMenuItemSeparator />
+						<NativeMenuItem Header="{DynamicResource iconTrayExit}" Command="{Binding Shutdown}"/>
+					</NativeMenu>
+				</TrayIcon.Menu>
+			</TrayIcon>
+		</TrayIcons>
+	</TrayIcon.Icons>
+</Application>

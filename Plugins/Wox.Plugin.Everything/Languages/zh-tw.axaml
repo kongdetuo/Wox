@@ -1,0 +1,17 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <system:String x:Key="wox_plugin_everything_is_not_running">Everything Client 尚未啟動</system:String>
+    <system:String x:Key="wox_plugin_everything_query_error">Everything 套件發生錯誤（Enter 複製具體錯誤訊息）</system:String>
+    <system:String x:Key="wox_plugin_everything_copied">複製成功</system:String>
+    <system:String x:Key="wox_plugin_everything_canot_start">無法啟動 {0}</system:String>
+    <system:String x:Key="wox_plugin_everything_open_containing_folder">開啟檔案位置</system:String>
+    <system:String x:Key="wox_plugin_everything_open_with_editor">利用{0}啟動</system:String>
+    <system:String x:Key="wox_plugin_everything_editor_path">編輯器路径</system:String>
+
+    <system:String x:Key="wox_plugin_everything_plugin_name">Everything</system:String>
+    <system:String x:Key="wox_plugin_everything_plugin_description">利用 Everything 搜尋磁碟上的檔案</system:String>
+
+    <system:String x:Key="wox_plugin_everything_use_location_as_working_dir">使用程式所在目錄作為工作目錄</system:String>
+</ResourceDictionary>

@@ -3,16 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.ServiceModel;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using Windows.Devices.Scanners;
 using Wox.Infrastructure.Logger;
 namespace Wox.Image
 {
@@ -36,7 +30,7 @@ namespace Wox.Image
 
         private static readonly NLog.Logger Logger = LogManager.GetCurrentClassLogger();
 
-        public static ImageSource GetImage(string key, string path, int iconSize)
+        public static Avalonia.Media.Imaging.Bitmap? GetImage(string key, string path, int iconSize)
         {
             // https://github.com/CoenraadS/Windows-Control-Panel-Items/
             // https://gist.github.com/jnm2/79ed8330ceb30dea44793e3aa6c03f5b
@@ -96,12 +90,11 @@ namespace Wox.Image
             }
 
             FreeLibrary(dataFilePointer);
-            BitmapSource image;
+            // BitmapSource image;
             if (iconPtr != IntPtr.Zero)
             {
-                image = Imaging.CreateBitmapSourceFromHIcon(iconPtr, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
-                image.CloneCurrentValue(); //Remove pointer dependancy.
-                image.Freeze();
+                var image = Imaging.CreateBitmapSourceFromHIcon(iconPtr, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions()).ToAvaloniaBitmap();
+
                 DestroyIcon(iconPtr);
                 return image;
             }
@@ -111,6 +104,7 @@ namespace Wox.Image
                 e.Data.Add(nameof(path), path);
                 throw e;
             }
+            return null;
         }
     }
 }

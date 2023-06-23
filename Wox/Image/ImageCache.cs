@@ -1,13 +1,12 @@
-﻿using NLog;
+﻿using Avalonia.Media.Imaging;
+using NLog;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Media;
 
 using Wox.Helper;
-using Wox.Infrastructure;
 using Wox.Infrastructure.Logger;
 
 namespace Wox.Image
@@ -15,10 +14,10 @@ namespace Wox.Image
     internal class CacheEntry
     {
         internal string Key;
-        internal ImageSource Image;
+        internal Bitmap Image;
         internal DateTime ExpiredDate;
 
-        public CacheEntry(string key, ImageSource image, DateTime expiredTime)
+        public CacheEntry(string key, Bitmap image, DateTime expiredTime)
         {
             Key = key;
             Image = image;
@@ -29,10 +28,10 @@ namespace Wox.Image
     internal class UpdateCallbackEntry
     {
         internal string Key;
-        internal Func<string, ImageSource> ImageFactory;
-        internal Action<ImageSource> UpdateImageCallback;
+        internal Func<string, Bitmap> ImageFactory;
+        internal Action<Bitmap> UpdateImageCallback;
 
-        public UpdateCallbackEntry(string key, Func<string, ImageSource> imageFactory, Action<ImageSource> updateImageCallback)
+        public UpdateCallbackEntry(string key, Func<string, Bitmap> imageFactory, Action<Bitmap> updateImageCallback)
         {
             Key = key;
             ImageFactory = imageFactory;
@@ -74,8 +73,12 @@ namespace Wox.Image
                         if (min != null)
                         {
                             _cacheSorted.Remove(min);
-                            bool removeResult = _cache.TryRemove(min.Key, out _);
-                            Logger.WoxDebug($"remove exceed: <{removeResult}> entry: <{min.Key}>");
+                            bool removeResult = _cache.TryRemove(min.Key, out var cacheEntry);
+                            if (removeResult)
+                            {
+                                cacheEntry!.Image?.Dispose();
+                                Logger.WoxDebug($"remove exceed: <{removeResult}> entry: <{min.Key}>");
+                            }
                         }
                     }
                     else
@@ -122,7 +125,7 @@ namespace Wox.Image
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public ImageSource GetOrAdd(string key, Func<string, ImageSource> imageFactory)
+        public Bitmap GetOrAdd(string key, Func<string, Bitmap> imageFactory)
         {
             if (_cache.TryGetValue(key, out CacheEntry? entry))
             {
@@ -136,7 +139,7 @@ namespace Wox.Image
             }
         }
 
-        public ImageSource GetOrAdd(string key, ImageSource defaultImage, Func<string, ImageSource> imageFactory, Action<ImageSource> updateImageCallback)
+        public Bitmap GetOrAdd(string key, Bitmap defaultImage, Func<string, Bitmap> imageFactory, Action<Bitmap> updateImageCallback)
         {
             if (_cache.TryGetValue(key, out CacheEntry? getEntry))
             {
@@ -150,10 +153,10 @@ namespace Wox.Image
             }
         }
 
-        private CacheEntry Add(string key, Func<string, ImageSource> imageFactory)
+        private CacheEntry Add(string key, Func<string, Bitmap> imageFactory)
         {
             CacheEntry entry;
-            ImageSource image = imageFactory(key);
+            Bitmap image = imageFactory(key);
             entry = new CacheEntry(key, image, DateTime.Now + _expiredTime);
             _cache[key] = entry;
             _cacheQueue.Add(entry);

@@ -82,12 +82,27 @@ namespace Wox.Plugin
             this.Text = text;
             this.HighlightData = highlightData ?? EmptyHighlightData;
         }
+
+        public HighlightText(string text, IReadOnlyList<Range> highlightRange)
+        {
+            this.Text = text;
+            this.HighlightRanges = highlightRange;
+        }
+
         public string Text { get; private set; }
 
         public IReadOnlyList<int> HighlightData { get; private set; }
 
+        IReadOnlyList<Range>? HighlightRanges { get; set; }
         public IEnumerable<Range> GetHighlightRanges()
         {
+            if (HighlightRanges != null)
+                return HighlightRanges;
+            return getHighlightRanges();
+        }
+        private IEnumerable<Range> getHighlightRanges()
+        {
+
             if (HighlightData.Any())
             {
 
@@ -108,6 +123,8 @@ namespace Wox.Plugin
                     yield return range;
             }
         }
+
+         
 
         private static readonly List<int> EmptyHighlightData = new(0);
 

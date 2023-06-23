@@ -5,8 +5,13 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using System.Windows;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Markup.Xaml;
+using Avalonia.Markup.Xaml.Styling;
+using Avalonia.Platform;
 using NLog;
+using SkiaSharp;
 using Wox.Core.Plugin;
 using Wox.Infrastructure;
 using Wox.Infrastructure.Logger;
@@ -19,19 +24,20 @@ namespace Wox.Core.Resource
     {
         public Settings Settings { get; set; }
         private const string Folder = "Languages";
-        private const string DefaultFile = "en.xaml";
-        private const string Extension = ".xaml";
+        private const string DefaultFile = "en.axaml";
+        private const string Extension = ".axaml";
         private readonly List<string> _languageDirectories = new List<string>();
-        private readonly List<ResourceDictionary> _oldResources = new List<ResourceDictionary>();
+        private readonly List<ResourceDictionary> _oldResources = new();
 
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         public Internationalization()
         {
+
             Settings = Settings.Instance;
             AddPluginLanguageDirectories();
             LoadDefaultLanguage();
-            // we don't want to load /Languages/en.xaml twice
+            // we don't want to load /Languages/en.axaml twice
             // so add wox language directory after load plugin language files
             AddWoxLanguageDirectory();
         }
@@ -76,7 +82,7 @@ namespace Wox.Core.Resource
             ChangeLanguage(language);
         }
 
-        private Language GetLanguageByLanguageCode(string languageCode)
+        public Language GetLanguageByLanguageCode(string languageCode)
         {
             var lowercase = languageCode.ToLower();
             var language = AvailableLanguages.GetAvailableLanguages().FirstOrDefault(o => o.LanguageCode.ToLower() == lowercase);
@@ -119,8 +125,8 @@ namespace Wox.Core.Resource
             if (languageToSet != AvailableLanguages.Chinese && languageToSet != AvailableLanguages.Chinese_TW)
                 return false;
 
-            if (MessageBox.Show("Do you want to turn on search with Pinyin?", string.Empty, MessageBoxButton.YesNo) == MessageBoxResult.No)
-                return false;
+            //if (MessageBox.Show("Do you want to turn on search with Pinyin?", string.Empty, MessageBoxButton.YesNo) == MessageBoxResult.No)
+            //    return false;
 
             return true;
         }
@@ -136,6 +142,7 @@ namespace Wox.Core.Resource
 
         private void LoadLanguage(Language language)
         {
+
             var dicts = Application.Current.Resources.MergedDictionaries;
             var filename = $"{language.LanguageCode}{Extension}";
             var files = _languageDirectories
@@ -143,18 +150,18 @@ namespace Wox.Core.Resource
                 .Where(f => !string.IsNullOrEmpty(f))
                 .ToArray();
 
-            if (files.Length > 0)
+
+            foreach (var f in files)
             {
-                foreach (var f in files)
-                {
-                    var r = new ResourceDictionary
-                    {
-                        Source = new Uri(f, UriKind.Absolute)
-                    };
-                    dicts.Add(r);
-                    _oldResources.Add(r);
-                }
+               // Application.Current.Resources.MergedDictionaries
+
+
+                var r = (ResourceDictionary)AvaloniaRuntimeXamlLoader.Load(File.ReadAllText(f));
+
+                dicts.Add(r);
+                _oldResources.Add(r);
             }
+
         }
 
         public List<Language> LoadAvailableLanguages()
@@ -164,10 +171,9 @@ namespace Wox.Core.Resource
 
         public string GetTranslation(string key)
         {
-            var translation = Application.Current.TryFindResource(key);
-            if (translation is string)
+            if (Application.Current.TryFindResource(key, out var val) && val is string s)
             {
-                return translation.ToString();
+                return s;
             }
             else
             {

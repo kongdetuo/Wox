@@ -136,7 +136,7 @@ namespace Wox.Plugin.Program
 
         }
 
-        public Control CreateSettingPanel()
+        public Avalonia.Controls.Control CreateSettingPanel()
         {
             return new ProgramSetting(_context, Settings);
         }

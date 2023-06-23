@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows;
 using WindowsInput;
 using WindowsInput.Native;
 using NLog;
@@ -14,8 +13,8 @@ using Wox.Infrastructure.Logger;
 using Wox.Infrastructure.Storage;
 using Wox.Infrastructure;
 using Application = System.Windows.Application;
-using Control = System.Windows.Controls.Control;
 using Keys = System.Windows.Forms.Keys;
+using Avalonia.Controls;
 
 namespace Wox.Plugin.Shell
 {

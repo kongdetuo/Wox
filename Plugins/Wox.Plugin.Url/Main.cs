@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Windows.Controls;
 using Wox.Infrastructure.Storage;
 using Wox.Infrastructure;
+using Avalonia.Controls;
 
 namespace Wox.Plugin.Url
 {

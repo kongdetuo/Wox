@@ -1,0 +1,33 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <system:String x:Key="wox_plugin_websearch_delete">刪除</system:String>
+    <system:String x:Key="wox_plugin_websearch_edit">編輯</system:String>
+    <system:String x:Key="wox_plugin_websearch_add">新增</system:String>
+    <system:String x:Key="wox_plugin_websearch_confirm">確定</system:String>
+    <system:String x:Key="wox_plugin_websearch_action_keyword">觸發關鍵字</system:String>
+    <system:String x:Key="wox_plugin_websearch_url">URL</system:String>
+    <system:String x:Key="wox_plugin_websearch_search">搜尋</system:String>
+    <system:String x:Key="wox_plugin_websearch_enable_suggestion">啟用搜尋建議</system:String>
+    <system:String x:Key="wox_plugin_websearch_pls_select_web_search">請選擇一項</system:String>
+    <system:String x:Key="wox_plugin_websearch_delete_warning">你確定要刪除 {0} 嗎？</system:String>
+
+
+    <!--web search edit-->
+    <system:String x:Key="wox_plugin_websearch_title">標題</system:String>
+    <system:String x:Key="wox_plugin_websearch_enable">啟用</system:String>
+    <system:String x:Key="wox_plugin_websearch_icon">圖示</system:String>
+    <system:String x:Key="wox_plugin_websearch_select_icon">選擇圖示</system:String>
+    <system:String x:Key="wox_plugin_websearch_cancel">取消</system:String>
+    <system:String x:Key="wox_plugin_websearch_invalid_web_search">無效的網頁搜尋</system:String>
+    <system:String x:Key="wox_plugin_websearch_input_title">請輸入標題</system:String>
+    <system:String x:Key="wox_plugin_websearch_input_action_keyword">請輸入觸發關鍵字</system:String>
+    <system:String x:Key="wox_plugin_websearch_input_url">請輸入 URL</system:String>
+    <system:String x:Key="wox_plugin_websearch_action_keyword_exist">觸發關鍵字已經存在，請選擇一個新的關鍵字</system:String>
+    <system:String x:Key="wox_plugin_websearch_succeed">操作成功</system:String>
+
+    <system:String x:Key="wox_plugin_websearch_plugin_name">網頁搜尋</system:String>
+    <system:String x:Key="wox_plugin_websearch_plugin_description">提供網頁搜尋功能</system:String>
+
+</ResourceDictionary>

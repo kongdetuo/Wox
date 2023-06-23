@@ -8,10 +8,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
 using NHotkey;
 using NHotkey.Wpf;
-using NLog;
 
 using Wox.Core.Plugin;
 using Wox.Core.Resource;
@@ -23,13 +21,14 @@ using Wox.Infrastructure.Storage;
 using Wox.Infrastructure.UserSettings;
 using Wox.Plugin;
 using Wox.Core.Storage;
-using System.Threading.Channels;
-using System.ComponentModel;
 using System.Reactive.Concurrency;
+using ReactiveUI;
+using ReactiveUI.Fody.Helpers;
+using Avalonia.Media;
 
 namespace Wox.ViewModel
 {
-    public class MainViewModel : BaseModel, ISavable
+    public class MainViewModel : ViewModelBase, ISavable
     {
         #region Private Fields
 
@@ -68,9 +67,9 @@ namespace Wox.ViewModel
             this.QueryService = new QueryService(_topMostRecord, _userSelectedRecord);
 
 
-            ContextMenu = new ContextViewModel(_settings);
-            Results = new QueryResultViewModel(_settings, _userSelectedRecord, _history);
-            History = new HistoryViewModel(_settings);
+            ContextMenu = new ResultsViewModel(_settings, UpdateResultVisible);
+            Results = new ResultsViewModel(_settings, UpdateResultVisible);
+            History = new ResultsViewModel(_settings, UpdateResultVisible);
             _selectedResults = Results;
 
             this.SynchronizationContext = SynchronizationContext.Current!;
@@ -85,13 +84,13 @@ namespace Wox.ViewModel
 
         #region ViewModel Properties
 
-        public ResultsViewModel Results { get; private set; }
-        public ResultsViewModel ContextMenu { get; private set; }
-        public ResultsViewModel History { get; private set; }
+        [Reactive] public ResultsViewModel Results { get; private set; }
+        [Reactive] public ResultsViewModel ContextMenu { get; private set; }
+        [Reactive] public ResultsViewModel History { get; private set; }
 
         public string? PluginID { get; set; }
 
-        public string QueryText { get; set; } = string.Empty;
+        [Reactive] public string QueryText { get; set; } = string.Empty;
 
         /// <summary>
         /// we need move cursor to end when we manually changed query
@@ -100,16 +99,18 @@ namespace Wox.ViewModel
         /// <param name="queryText"></param>
         public void ChangeQueryText(string queryText)
         {
-            QueryTextCursorMovedToEnd = true;
+            if(string.IsNullOrEmpty(queryText))
+                queryText = string.Empty;
             QueryText = queryText;
+            CaretIndex = queryText.Length;
         }
 
         public bool LastQuerySelected { get; set; }
-        public bool QueryTextCursorMovedToEnd { get; set; }
+        [Reactive] public int CaretIndex { get; set; }
 
         public bool ShowIcon => PluginIcon is null;
 
-        public ImageSource? PluginIcon { get; set; }
+        public IImage? PluginIcon { get; set; }
 
 
         private ResultsViewModel _selectedResults;
@@ -131,15 +132,15 @@ namespace Wox.ViewModel
                 {
                     _queryTextBeforeLeaveResults = QueryText;
                     if (string.IsNullOrEmpty(QueryText))
-                        OnPropertyChanged(nameof(QueryText));
+                        this.RaisePropertyChanged(nameof(QueryText));
                     QueryText = string.Empty;
                 }
-                OnPropertyChanged();
+                this.RaisePropertyChanged();
             }
         }
 
-        public Visibility ProgressBarVisibility { get; set; }
-        public Visibility MainWindowVisibility { get; set; }
+        [Reactive] public bool ShowProcessBar { get; set; }
+        [Reactive] public bool ShowMainWindow { get; set; }
 
 
         #endregion ViewModel Properties
@@ -152,6 +153,8 @@ namespace Wox.ViewModel
         private ICommand? startHelpCommand;
         private ICommand? refreshCommand;
         private ICommand? escCommand;
+        private ReactiveCommand<Unit, Unit> openSettingCommand;
+
         public ICommand EscCommand => escCommand ??= new RelayCommand(_ =>
         {
             if (!SelectedIsFromQueryResults)
@@ -160,7 +163,7 @@ namespace Wox.ViewModel
             }
             else
             {
-                MainWindowVisibility = Visibility.Collapsed;
+                ShowMainWindow = false;
             }
         });
 
@@ -224,7 +227,7 @@ namespace Wox.ViewModel
 
                     if (hideWindow)
                     {
-                        MainWindowVisibility = Visibility.Collapsed;
+                        ShowMainWindow = false;
                     }
 
                     if (SelectedIsFromQueryResults)
@@ -248,13 +251,26 @@ namespace Wox.ViewModel
                 ChangeQueryText(result.Title.Text);
             }
         });
+
+        public readonly Interaction<Unit, Unit> ShowSettingInteraction = new Interaction<Unit, Unit>();
+
+        public ICommand OpenSettingCommand => openSettingCommand ??= ReactiveCommand.Create(() =>
+        {
+           // new 
+        });
+
+        public async void OpenSetting()
+        {
+            await ShowSettingInteraction.Handle(Unit.Default);
+        }
+
         #endregion
 
         #region Query
         private void InitQuery()
         {
-            var queryTextChangeds = this.WhenChanged(p => p.QueryText).Skip(1)
-                .Where(p => MainWindowVisibility == Visibility.Visible)
+            var queryTextChangeds = this.WhenAnyValue(p => p.QueryText)
+                //.Where(p => MainWindowVisibility == Visibility.Visible)
                 .Publish();
 
             var querys = queryTextChangeds.Where(_ => SelectedIsFromQueryResults)
@@ -267,7 +283,7 @@ namespace Wox.ViewModel
 
             querys
                 .Switch()
-                .Buffer(TimeSpan.FromMilliseconds(20))
+                .Buffer(TimeSpan.FromMilliseconds(60))
                 .Where(p => p.Count > 0)
                 .ObserveOn(this.SynchronizationContext)
                 .Subscribe(p =>
@@ -278,7 +294,7 @@ namespace Wox.ViewModel
             querys.Select(CreateProgressBarVisibles)
                 .Switch().DistinctUntilChanged()
                 .ObserveOn(this.SynchronizationContext)
-                .Subscribe(p => ProgressBarVisibility = p ? Visibility.Visible : Visibility.Hidden);
+                .Subscribe(p => ShowProcessBar = p);
 
             querys.Connect();
 
@@ -449,7 +465,7 @@ namespace Wox.ViewModel
 
         #endregion
 
-        private bool SelectedIsFromQueryResults => SelectedResults is QueryResultViewModel;
+        private bool SelectedIsFromQueryResults => SelectedResults == Results;
 
         private bool ContextMenuSelected => SelectedResults == ContextMenu;
 
@@ -511,7 +527,7 @@ namespace Wox.ViewModel
                 SetHotkey(hotkey.Hotkey, (s, e) =>
                 {
                     if (ShouldIgnoreHotkeys()) return;
-                    MainWindowVisibility = Visibility.Visible;
+                    ShowMainWindow = true;
                     ChangeQueryText(hotkey.ActionKeyword);
                 });
             }
@@ -579,14 +595,7 @@ namespace Wox.ViewModel
 
         private void ToggleWox()
         {
-            if (MainWindowVisibility != Visibility.Visible)
-            {
-                MainWindowVisibility = Visibility.Visible;
-            }
-            else
-            {
-                MainWindowVisibility = Visibility.Collapsed;
-            }
+            ShowMainWindow = !ShowMainWindow;
         }
 
         #endregion Hotkey
@@ -618,15 +627,19 @@ namespace Wox.ViewModel
         private void UpdateResultVisible()
         {
             if (ContextMenu != SelectedResults)
-                ContextMenu.Visbility = Visibility.Collapsed;
+                ContextMenu.IsVisible = false;
             if (Results != SelectedResults)
-                Results.Visbility = Visibility.Collapsed;
+                Results.IsVisible = false;
             if (History != SelectedResults)
-                History.Visbility = Visibility.Collapsed;
+                History.IsVisible = false;
 
-            SelectedResults.Visbility = SelectedResults.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+            SelectedResults.IsVisible = SelectedResults.Count > 0;
         }
 
         #endregion Public Methods
+    }
+
+    public class ViewModelBase : ReactiveObject
+    {
     }
 }

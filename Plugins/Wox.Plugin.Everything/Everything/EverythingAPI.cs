@@ -163,11 +163,12 @@ namespace Wox.Plugin.Everything.Everything
                 {
                     if (token.IsCancellationRequested) { return new(); }
                     // https://www.voidtools.com/forum/viewtopic.php?t=8169
-                    string fileNameHighted = Marshal.PtrToStringUni(EverythingApiDllImport.Everything_GetResultHighlightedFileNameW(idx));
-                    string fullPathHighted = Marshal.PtrToStringUni(EverythingApiDllImport.Everything_GetResultHighlightedFullPathAndFileNameW(idx));
-                    if (fileNameHighted == null | fullPathHighted == null)
+                    string? fileNameHighted = Marshal.PtrToStringUni(EverythingApiDllImport.Everything_GetResultHighlightedFileNameW(idx));
+                    string? fullPathHighted = Marshal.PtrToStringUni(EverythingApiDllImport.Everything_GetResultHighlightedFullPathAndFileNameW(idx));
+                    if (fileNameHighted == null || fullPathHighted == null)
                     {
-                        CheckAndThrowExceptionOnError();
+                        return new();
+                        //CheckAndThrowExceptionOnError();
                     }
                     if (token.IsCancellationRequested) { return new(); }
                     ConvertHightlightFormat(fileNameHighted, out List<int> fileNameHightlightData, out string fileName);

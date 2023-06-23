@@ -26,38 +26,10 @@
 		<OutputPath>..\..\Output\Release\Plugins\Wox.Plugin.Caculator\</OutputPath>
 	</PropertyGroup>
 	<ItemGroup>
-		<Page Remove="Languages\de.xaml" />
-		<Page Remove="Languages\en.xaml" />
-		<Page Remove="Languages\he.xaml" />
-		<Page Remove="Languages\pl.xaml" />
-		<Page Remove="Languages\pt.xaml" />
-		<Page Remove="Languages\tr.xaml" />
-		<Page Remove="Languages\zh-cn.xaml" />
-		<Page Remove="Languages\zh-tw.xaml" />
+	  <AvaloniaXaml Remove="Languages\*.axaml" />
 	</ItemGroup>
 	<ItemGroup>
-		<Content Include="Languages\de.xaml">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Languages\en.xaml">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Languages\he.xaml">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Languages\pl.xaml">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Languages\pt.xaml">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Languages\tr.xaml">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Languages\zh-cn.xaml">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</Content>
-		<Content Include="Languages\zh-tw.xaml">
+		<Content Include="Languages\*.axaml">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 	</ItemGroup>

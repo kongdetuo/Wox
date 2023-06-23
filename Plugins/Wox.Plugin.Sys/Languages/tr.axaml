@@ -1,0 +1,32 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <!--Komut Listesi-->
+    <system:String x:Key="wox_plugin_sys_command">Komut</system:String>
+    <system:String x:Key="wox_plugin_sys_desc">A??klama</system:String>
+
+    <system:String x:Key="wox_plugin_sys_shutdown_computer">Bilgisayar? Kapat</system:String>
+    <system:String x:Key="wox_plugin_sys_restart_computer">Yeniden Ba?lat</system:String>
+    <system:String x:Key="wox_plugin_sys_log_off">Oturumu Kapat</system:String>
+    <system:String x:Key="wox_plugin_sys_lock">Bilgisayar? Kilitle</system:String>
+    <system:String x:Key="wox_plugin_sys_exit">Wox'u Kapat</system:String>
+    <system:String x:Key="wox_plugin_sys_restart">Wox'u Yeniden Ba?lat</system:String>
+    <system:String x:Key="wox_plugin_sys_setting">Wox Ayarlar?n? A?</system:String>
+    <system:String x:Key="wox_plugin_sys_sleep">Bilgisayar? Uyku Moduna Al</system:String>
+    <system:String x:Key="wox_plugin_sys_emptyrecyclebin">Geri D?n¨¹?¨¹m Kutusunu Bo?alt</system:String>
+    <system:String x:Key="wox_plugin_sys_hibernate">Bilgisayar? Ask?ya Al</system:String>
+    <system:String x:Key="wox_plugin_sys_save_all_settings">T¨¹m Wox Ayarlar?n? Kaydet</system:String>
+    <system:String x:Key="wox_plugin_sys_reload_plugin_data">Eklentilerin verilerini Wox'un a??l???ndan sonra yap?lan de?i?iklikleri i?in g¨¹nceller. Eklentilerin bu ?zelli?i zaten eklemi? olmas? gerekir.</system:String>
+
+    <!--Diyaloglar-->
+    <system:String x:Key="wox_plugin_sys_dlgtitle_success">Ba?ar?l?</system:String>
+    <system:String x:Key="wox_plugin_sys_dlgtext_all_settings_saved">T¨¹m Wox ayarlar? kaydedildi.</system:String>
+    <system:String x:Key="wox_plugin_sys_dlgtext_shutdown_computer">Bilgisayar? kapatmak istedi?inize emin misiniz?</system:String>
+    <system:String x:Key="wox_plugin_sys_dlgtext_restart_computer">Bilgisayar? yeniden ba?latmak istedi?inize emin misiniz?</system:String>
+
+    <!--Eklenti Bilgisi-->
+    <system:String x:Key="wox_plugin_sys_plugin_name">Sistem Komutlar?</system:String>
+    <system:String x:Key="wox_plugin_sys_plugin_description">Sistem ile ilgili komutlara eri?im sa?lar. ?r. shutdown, lock, settings vb.</system:String>
+
+</ResourceDictionary>

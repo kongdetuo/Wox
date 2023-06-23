@@ -1,0 +1,11 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <system:String x:Key="wox_plugin_url_open_url">?ffne URL:{0}</system:String>
+    <system:String x:Key="wox_plugin_url_canot_open_url">Kann URL nicht ?ffnen:{0}</system:String>
+
+    <system:String x:Key="wox_plugin_url_plugin_name">URL</system:String>
+    <system:String x:Key="wox_plugin_url_plugin_description">?ffne eine eingegebene URL mit Wox</system:String>
+
+</ResourceDictionary>

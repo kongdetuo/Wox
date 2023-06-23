@@ -1,0 +1,46 @@
+﻿<Window x:Class="Wox.ActionKeywords"
+       xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		 mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+       SizeToContent="WidthAndHeight">
+	
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
+        <TextBlock Margin="10" FontSize="14" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center"
+                   HorizontalAlignment="Right" Text="{DynamicResource oldActionKeywords}" />
+        <TextBlock x:Name="tbOldActionKeyword" Margin="10" FontSize="14" Grid.Row="0" Grid.Column="1"
+                   VerticalAlignment="Center" HorizontalAlignment="Left">
+            Old ActionKeywords:
+        </TextBlock>
+
+        <TextBlock Margin="10,0" FontSize="14" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center"
+                   HorizontalAlignment="Right" Text="{DynamicResource newActionKeywords}" />
+
+        <TextBox x:Name="tbAction" Margin="10,10,10,4" 
+                     Grid.Row="1" Grid.Column="1"
+                     Padding="4" VerticalAlignment="Center" HorizontalAlignment="Stretch" />
+
+
+        <TextBlock Grid.Row="2" Grid.ColumnSpan="1" Grid.Column="1" Margin="10,0" Foreground="Gray"
+                   Text="{DynamicResource actionkeyword_tips}" />
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Grid.Row="3" Grid.Column="1" Margin="16">
+            <Button x:Name="btnCancel" Click="BtnCancel_OnClick" Margin="10 0 10 0" Width="80" Height="25"
+                    Content="{DynamicResource cancel}" />
+            <Button x:Name="btnDone" Margin="10 0 10 0" Width="80" Height="25" Click="btnDone_OnClick">
+                <TextBlock x:Name="lblAdd" Text="{DynamicResource done}" />
+            </Button>
+        </StackPanel>
+    </Grid>
+</Window>

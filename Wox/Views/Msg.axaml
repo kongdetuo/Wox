@@ -1,0 +1,41 @@
+﻿<Window x:Class="Wox.Msg"
+
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        Background="Transparent"
+        Topmost="True"
+        SizeToContent="Height"
+        ShowInTaskbar="False"
+        Title="Msg" Height="60" Width="420">
+    <!--<Window.Triggers>
+        <EventTrigger RoutedEvent="Window.Loaded">
+            <BeginStoryboard>
+                <Storyboard>
+                    <DoubleAnimation x:Name="showAnimation" Duration="0:0:0.3" Storyboard.TargetProperty="Top"
+                                     AccelerationRatio="0.2" />
+                </Storyboard>
+            </BeginStoryboard>
+        </EventTrigger>
+
+    </Window.Triggers>-->
+    <!--<Border CornerRadius="4" Background="White" Padding="4">
+        <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+            <Image x:Name="imgIco" Width="32" Height="32" HorizontalAlignment="Left" Margin="4,8" />
+            <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Center">
+                <StackPanel Margin="5">
+                    <TextBlock x:Name="tbTitle" FontSize="16" Foreground="#37392c" FontWeight="Medium">Title</TextBlock>
+                    <TextBlock Foreground="#8e94a4" Margin="0,3" x:Name="tbSubTitle">sdfdsf</TextBlock>
+                </StackPanel>
+            </StackPanel>
+            <Image x:Name="imgClose" Grid.Column="2" Cursor="Hand" Width="16" VerticalAlignment="Top"
+               HorizontalAlignment="Right" Grid.ColumnSpan="2" />
+        </Grid>
+    </Border>-->
+</Window>

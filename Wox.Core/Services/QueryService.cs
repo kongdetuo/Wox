@@ -81,7 +81,7 @@ namespace Wox.Core.Services
         {
             if (plugin.Plugin is IResultUpdated updatedPlugin)
             {
-                return updatedPlugin.QueryUpdates(query, token).Select(p => CreatePluginQueryResult(plugin, query, p));
+                return updatedPlugin.QueryUpdates(query, token).Select(p => CreatePluginQueryResult(plugin, query, p).WithToken(token));
             }
             return AsyncEnumerable.Empty<PluginQueryResult>();
         }
@@ -101,7 +101,7 @@ namespace Wox.Core.Services
 
                 metadata.QueryCount += 1;
                 metadata.AvgQueryTime = metadata.QueryCount == 1 ? milliseconds : (metadata.AvgQueryTime + milliseconds) / 2;
-                return CreatePluginQueryResult(pair, query, results);
+                return CreatePluginQueryResult(pair, query, results).WithToken(token);
             }
             catch (Exception e)
             {
@@ -186,6 +186,14 @@ namespace Wox.Core.Services
         public Query? Query { get; private set; }
 
         public List<Result> Results { get; set; }
+
+        public CancellationToken CancellationToken { get; set; } = CancellationToken.None;
+
+        public PluginQueryResult WithToken(CancellationToken token)
+        {
+            this.CancellationToken = token;
+            return this;
+        }
     }
 
     static class AsyncEnumerable

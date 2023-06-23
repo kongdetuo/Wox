@@ -1,0 +1,14 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <system:String x:Key="wox_plugin_cmd_relace_winr">Nahradi? Win+R</system:String>
+    <system:String x:Key="wox_plugin_cmd_leave_cmd_open">Nezatv¨¢ra? pr¨ªkazovy riadok po dokon?en¨ª pr¨ªkazu</system:String>
+    <system:String x:Key="wox_plugin_cmd_always_run_as_administrator">Spusti? v?dy ako spr¨¢vca</system:String>
+    <system:String x:Key="wox_plugin_cmd_run_as_different_user">Spusti? ako iny pou?¨ªvate?</system:String>
+    <system:String x:Key="wox_plugin_cmd_plugin_name">Shell</system:String>
+    <system:String x:Key="wox_plugin_cmd_plugin_description">Umo?¨¾uje sp¨²??a? syst¨¦mov¨¦ pr¨ªkazy z Woxu. Pr¨ªkazy za?¨ªnaj¨²  ></system:String>
+    <system:String x:Key="wox_plugin_cmd_cmd_has_been_executed_times">tento pr¨ªkaz bol vykonany {0} kr¨¢t</system:String>
+    <system:String x:Key="wox_plugin_cmd_execute_through_shell">vykona? pr¨ªkaz cez command shell</system:String>
+    <system:String x:Key="wox_plugin_cmd_run_as_administrator">Spusti? ako spr¨¢vca</system:String>
+</ResourceDictionary>

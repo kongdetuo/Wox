@@ -1,0 +1,48 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <!--Program setting-->
+    <system:String x:Key="wox_plugin_program_sources">Program Sources</system:String>
+    <system:String x:Key="wox_plugin_program_delete">Odstr¨¢ni?</system:String>
+    <system:String x:Key="wox_plugin_program_edit">Upravi?</system:String>
+    <system:String x:Key="wox_plugin_program_add">Prida?</system:String>
+    <system:String x:Key="wox_plugin_program_disable">Disable</system:String>
+    <system:String x:Key="wox_plugin_program_location">Umiestnenie</system:String>
+    <system:String x:Key="wox_plugin_program_suffixes">Pr¨ªpony s¨²borov</system:String>
+    <system:String x:Key="wox_plugin_program_reindex">Reindexova?</system:String>
+    <system:String x:Key="wox_plugin_program_indexing">Indexovanie</system:String>
+    <system:String x:Key="wox_plugin_program_index_start">Indexova? Menu ?tart</system:String>
+    <system:String x:Key="wox_plugin_program_index_registry">Indexova? Registry</system:String>
+    <system:String x:Key="wox_plugin_program_suffixes_header">Pr¨ªpony</system:String>
+    <system:String x:Key="wox_plugin_program_max_depth_header">Max. h?bka</system:String>
+
+    <system:String x:Key="wox_plugin_program_directory">Prie?inok:</system:String>
+    <system:String x:Key="wox_plugin_program_browse">Prehliada?</system:String>
+    <system:String x:Key="wox_plugin_program_file_suffixes">Pr¨ªpony s¨²boru:</system:String>
+    <system:String x:Key="wox_plugin_program_max_search_depth">Max. h?bka h?adania (-1 je neobm.):</system:String>
+
+    <system:String x:Key="wox_plugin_program_pls_select_program_source">Pros¨ªm, zadajte zdroj programu</system:String> 
+
+    <system:String x:Key="wox_plugin_program_update">Aktualizova?</system:String>
+    <system:String x:Key="wox_plugin_program_only_index_tip">Wox bude indexova? iba s¨²bory s nasleduj¨²cimi pr¨ªponami:</system:String>
+    <system:String x:Key="wox_plugin_program_split_by_tip">(Ka?d¨² pr¨ªponu odde?te ;)</system:String>
+    <system:String x:Key="wox_plugin_program_update_file_suffixes">Pr¨ªpony boli ¨²spe?ne aktualizovan¨¦</system:String>
+    <system:String x:Key="wox_plugin_program_suffixes_cannot_empty">S¨²bor s pr¨ªponami nem??e by? pr¨¢zdny</system:String>
+
+    <system:String x:Key="wox_plugin_program_run_as_different_user">Spusti? ako iny pou?¨ªvate?</system:String>
+    <system:String x:Key="wox_plugin_program_run_as_administrator">Spusti? ako spr¨¢vca</system:String>
+    <system:String x:Key="wox_plugin_program_open_containing_folder">Otvori? pr¨ªslu?ny prie?inok</system:String>
+
+    <system:String x:Key="wox_plugin_program_plugin_name">Program</system:String>
+    <system:String x:Key="wox_plugin_program_plugin_description">Vyh?ad¨¢va programy vo Woxe</system:String>
+	
+    <system:String x:Key="wox_plugin_program_ignored_sequences">Ignorovan¨¦ sekvencie</system:String>
+    <system:String x:Key="wox_plugin_program_sequence">Sekvencie</system:String>
+    <system:String x:Key="wox_plugin_program_pls_select_ignored">Vyberte ignorovan¨¦ sekvencie</system:String>
+    <system:String x:Key="wox_plugin_program_delete_ignored">Naozaj chcete odstr¨¢ni? {0}?</system:String>
+    <system:String x:Key="wox_plugin_program_use_regex">Pou?i? regul¨¢rne vyrazy?</system:String>
+
+    <system:String x:Key="wox_plugin_program_invalid_path">Neplatn¨¢ cesta</system:String>
+
+</ResourceDictionary>

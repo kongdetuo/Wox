@@ -1,0 +1,44 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <!--Program setting-->
+    <system:String x:Key="wox_plugin_program_sources">Program Sources</system:String>
+    <system:String x:Key="wox_plugin_program_delete">刪除</system:String>
+    <system:String x:Key="wox_plugin_program_edit">編輯</system:String>
+    <system:String x:Key="wox_plugin_program_add">新增</system:String>
+    <system:String x:Key="wox_plugin_program_location">路徑</system:String>
+    <system:String x:Key="wox_plugin_program_suffixes">索引副檔名清單</system:String>
+    <system:String x:Key="wox_plugin_program_reindex">重新建立索引</system:String>
+    <system:String x:Key="wox_plugin_program_indexing">正在建立索引</system:String>
+    <system:String x:Key="wox_plugin_program_index_start">替開始選單建立索引</system:String>
+    <system:String x:Key="wox_plugin_program_index_registry">替登錄檔建立索引</system:String>
+    <system:String x:Key="wox_plugin_program_suffixes_header">副檔名</system:String>
+    <system:String x:Key="wox_plugin_program_max_depth_header">最大深度</system:String>
+
+    <system:String x:Key="wox_plugin_program_directory">目錄</system:String>
+    <system:String x:Key="wox_plugin_program_browse">瀏覽</system:String>
+    <system:String x:Key="wox_plugin_program_file_suffixes">副檔名</system:String>
+    <system:String x:Key="wox_plugin_program_max_search_depth">最大搜尋深度（-1是無限的）：</system:String>
+
+    <system:String x:Key="wox_plugin_program_pls_select_program_source">請先選擇一項</system:String>
+
+    <system:String x:Key="wox_plugin_program_update">更新</system:String>
+    <system:String x:Key="wox_plugin_program_only_index_tip">Wox 僅索引下列副檔名的檔案：</system:String>
+    <system:String x:Key="wox_plugin_program_split_by_tip">（每個副檔名以英文的分號分隔）</system:String>
+    <system:String x:Key="wox_plugin_program_update_file_suffixes">成功更新索引副檔名清單</system:String>
+    <system:String x:Key="wox_plugin_program_suffixes_cannot_empty">副檔名不能為空</system:String>
+    
+    <system:String x:Key="wox_plugin_program_run_as_administrator">以系統管理員身分執行</system:String>
+    <system:String x:Key="wox_plugin_program_open_containing_folder">開啟檔案位置</system:String>
+
+    <system:String x:Key="wox_plugin_program_plugin_name">程式</system:String>
+    <system:String x:Key="wox_plugin_program_plugin_description">在 Wox 中搜尋程式</system:String>
+
+    <system:String x:Key="wox_plugin_program_ignored_sequences">Ignored sequences</system:String>
+    <system:String x:Key="wox_plugin_program_sequence">Sequence</system:String>
+    <system:String x:Key="wox_plugin_program_pls_select_ignored">Please select an ignored sequence</system:String>
+    <system:String x:Key="wox_plugin_program_delete_ignored">Are you sure you want to delete {0}?</system:String>
+    <system:String x:Key="wox_plugin_program_use_regex">Use regular expressions?</system:String>
+
+</ResourceDictionary>

@@ -113,7 +113,7 @@ namespace Wox.Plugin.WebSearch
 
         #region ISettingProvider Members
 
-        public Control CreateSettingPanel()
+        public Avalonia.Controls.Control CreateSettingPanel()
         {
             return new SettingsControl(_context, _viewModel);
         }

@@ -4,6 +4,6 @@ namespace Wox.Plugin
 {
     public interface ISettingProvider
     {
-        Control CreateSettingPanel();
+        Avalonia.Controls.Control CreateSettingPanel();
     }
 }

@@ -1,0 +1,33 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <system:String x:Key="wox_plugin_websearch_delete">L?schen</system:String>
+    <system:String x:Key="wox_plugin_websearch_edit">Bearbeiten</system:String>
+    <system:String x:Key="wox_plugin_websearch_add">Hinzuf¨¹gen</system:String>
+    <system:String x:Key="wox_plugin_websearch_confirm">Confirm</system:String>
+    <system:String x:Key="wox_plugin_websearch_action_keyword">Aktionsschl¨¹sselwort</system:String>
+    <system:String x:Key="wox_plugin_websearch_url">URL</system:String>
+    <system:String x:Key="wox_plugin_websearch_search">Suche</system:String>
+    <system:String x:Key="wox_plugin_websearch_enable_suggestion">Aktiviere Suchvorschl?ge</system:String>
+    <system:String x:Key="wox_plugin_websearch_pls_select_web_search">Bitte w?hle einen Suchdienst</system:String>
+    <system:String x:Key="wox_plugin_websearch_delete_warning">Willst du wirklich {0} l?schen?</system:String>
+
+
+    <!--web search edit-->
+    <system:String x:Key="wox_plugin_websearch_title">Titel</system:String>
+    <system:String x:Key="wox_plugin_websearch_enable">Aktivieren</system:String>
+    <system:String x:Key="wox_plugin_websearch_select_icon">W?hle Symbol</system:String>
+    <system:String x:Key="wox_plugin_websearch_icon">Symbol</system:String>
+    <system:String x:Key="wox_plugin_websearch_cancel">Abbrechen</system:String>
+    <system:String x:Key="wox_plugin_websearch_invalid_web_search">Ung¨¹ltige Internetsuche</system:String>
+    <system:String x:Key="wox_plugin_websearch_input_title">Bitte Titel eingeben</system:String>
+    <system:String x:Key="wox_plugin_websearch_input_action_keyword">Bitte Aktionsschl¨¹sselwort eingeben</system:String>
+    <system:String x:Key="wox_plugin_websearch_input_url">Bitte URL eingeben</system:String>
+    <system:String x:Key="wox_plugin_websearch_action_keyword_exist">Aktionsschl¨¹sselwort existiert bereits. Bitte gebe ein anderes ein.</system:String>
+    <system:String x:Key="wox_plugin_websearch_succeed">Erfolgreich</system:String>
+
+    <system:String x:Key="wox_plugin_websearch_plugin_name">Internetsuche</system:String>
+    <system:String x:Key="wox_plugin_websearch_plugin_description">Stellt die M?glichkeit f¨¹r Internetsuchen bereit</system:String>
+
+</ResourceDictionary>

@@ -1,0 +1,32 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <!--Command List-->
+    <system:String x:Key="wox_plugin_sys_command">Pr¨ªkaz</system:String>
+    <system:String x:Key="wox_plugin_sys_desc">Popis</system:String>
+
+    <system:String x:Key="wox_plugin_sys_shutdown_computer">Vypn¨²? po?¨ªta?</system:String>
+    <system:String x:Key="wox_plugin_sys_restart_computer">Re?tartova? po?¨ªta?</system:String>
+    <system:String x:Key="wox_plugin_sys_log_off">Odhl¨¢si?</system:String>
+    <system:String x:Key="wox_plugin_sys_lock">Zamkn¨²? po?¨ªta?</system:String>
+    <system:String x:Key="wox_plugin_sys_exit">Zatvori? Wox</system:String>
+    <system:String x:Key="wox_plugin_sys_restart">Re?tartova? Wox</system:String>
+    <system:String x:Key="wox_plugin_sys_setting">Nastavi?</system:String>
+    <system:String x:Key="wox_plugin_sys_sleep">Uspa? po?¨ªta?</system:String>
+    <system:String x:Key="wox_plugin_sys_emptyrecyclebin">Vysypa? k??</system:String>
+    <system:String x:Key="wox_plugin_sys_hibernate">Hibernova? po?¨ªta?</system:String>
+    <system:String x:Key="wox_plugin_sys_save_all_settings">Ulo?i? v?etky nastavenia Woxu</system:String>
+    <system:String x:Key="wox_plugin_sys_reload_plugin_data">Aktualizova? v?etky d¨¢ta pluginov od spustenia Woxu. Pluginy musia t¨²to funkciu podporova?.</system:String>
+
+    <!--Dialogs-->
+    <system:String x:Key="wox_plugin_sys_dlgtitle_success">¨²spe?n¨¦</system:String>
+    <system:String x:Key="wox_plugin_sys_dlgtext_all_settings_saved">V?etky nastavenia Woxu ulo?en¨¦</system:String>
+    <system:String x:Key="wox_plugin_sys_dlgtext_all_applicableplugins_reloaded">V?etky d¨¢ta pluginov aktualizovan¨¦</system:String>
+    <system:String x:Key="wox_plugin_sys_dlgtext_shutdown_computer">Naozaj chcete po?¨ªta? vypn¨²??</system:String>
+    <system:String x:Key="wox_plugin_sys_dlgtext_restart_computer">Naozaj chcete po?¨ªta? re?tartova??</system:String>
+
+    <system:String x:Key="wox_plugin_sys_plugin_name">Syst¨¦mov¨¦ pr¨ªkazy</system:String>
+    <system:String x:Key="wox_plugin_sys_plugin_description">Poskytuje pr¨ªkazy s¨²visiace so syst¨¦mom ako je vypnutie, uzamknutie po?¨ªta?a at?.</system:String>
+
+</ResourceDictionary>

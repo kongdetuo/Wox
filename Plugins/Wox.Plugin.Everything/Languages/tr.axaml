@@ -1,0 +1,22 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <system:String x:Key="wox_plugin_everything_is_not_running">Everything Client ?al??m?yor</system:String>
+    <system:String x:Key="wox_plugin_everything_query_error">Sorgu Everything ¨¹zerinde ?al??t?r?l?rken hata olu?tu</system:String>
+    <system:String x:Key="wox_plugin_everything_copied">Kopyaland?</system:String>
+    <system:String x:Key="wox_plugin_everything_canot_start">{0} ba?lat?lam?yor</system:String>
+    <system:String x:Key="wox_plugin_everything_open_containing_folder">??eren klas?r¨¹ a?</system:String>
+    <system:String x:Key="wox_plugin_everything_open_with_editor">{0} ile a?</system:String>
+    <system:String x:Key="wox_plugin_everything_editor_path">D¨¹zenleyici Konumu</system:String>
+    <system:String x:Key="wox_plugin_everything_copy_path">Konumu Kopyala</system:String>
+    <system:String x:Key="wox_plugin_everything_copy">Kopyala</system:String>
+    <system:String x:Key="wox_plugin_everything_delete">Sil</system:String>
+    <system:String x:Key="wox_plugin_everything_canot_delete">{0} silinemiyor</system:String>
+
+    <system:String x:Key="wox_plugin_everything_plugin_name">Everything</system:String>
+    <system:String x:Key="wox_plugin_everything_plugin_description">Everything program? yard?m?yla diskteki dosyalar?n?z? aray?n.</system:String>
+
+    <system:String x:Key="wox_plugin_everything_use_location_as_working_dir">Program?n ?al??ma klas?r¨¹ olarak sonu? klas?r¨¹n¨¹ kullan</system:String>
+
+</ResourceDictionary>

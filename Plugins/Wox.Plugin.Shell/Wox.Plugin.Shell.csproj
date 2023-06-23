@@ -26,7 +26,7 @@
     <OutputPath>..\..\Output\Release\Plugins\Wox.Plugin.Shell\</OutputPath>
   </PropertyGroup>
 	<ItemGroup>
-		<Content Include="Languages\*.xaml">
+		<Content Include="Languages\*.axaml">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 	</ItemGroup>

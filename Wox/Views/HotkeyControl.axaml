@@ -1,0 +1,19 @@
+﻿<UserControl x:Class="Wox.HotkeyControl"
+        
+        xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:input="clr-namespace:System.Windows.Input;assembly=PresentationCore"
+             mc:Ignorable="d"
+             Height="24">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="150" />
+            <ColumnDefinition Width="120" />
+        </Grid.ColumnDefinitions>
+        <TextBox x:Name="tbHotkey" TabIndex="100" VerticalContentAlignment="Center" Grid.Column="0"
+                 />
+        <TextBlock x:Name="tbMsg"   IsVisible="false" Margin="5 0 0 0" VerticalAlignment="Center" Grid.Column="1" />
+    </Grid>
+</UserControl>

@@ -81,12 +81,12 @@ namespace Wox.Infrastructure.Logger
                 SendException(exception);
             }
 
-#if DEBUG
-            if (throwException)
-            {
-                throw exception;
-            }
-#endif
+//#if DEBUG
+//            if (throwException)
+//            {
+//                throw exception;
+//            }
+//#endif
         }
 
         public static void updateSettingsInfo(string woxLanguage)

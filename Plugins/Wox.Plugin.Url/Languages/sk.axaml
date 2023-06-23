@@ -1,0 +1,14 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <system:String x:Key="wox_plugin_url_open_url">Otvori? url:{0}</system:String>
+    <system:String x:Key="wox_plugin_url_canot_open_url">Adresa URL sa ned¨¢ otvori?: {0}</system:String>
+
+    <system:String x:Key="wox_plugin_url_plugin_name">URL</system:String>
+    <system:String x:Key="wox_plugin_url_plugin_description">Otvor¨ª zadan¨² adresu URL z Woxu</system:String>
+
+    <system:String x:Key="wox_plugin_url_plugin_set_tip">Zadajte cestu k prehliada?u:</system:String>
+    <system:String x:Key="wox_plugin_url_plugin_choose">Vybra?</system:String>
+    <system:String x:Key="wox_plugin_url_plugin_filter">Aplik¨¢cie (*.exe)|*.exe|V?etky s¨²bory|*.*</system:String>
+</ResourceDictionary>

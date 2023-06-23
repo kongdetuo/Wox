@@ -9,7 +9,6 @@ using System.Windows.Interop;
 using Wox.Infrastructure;
 using Wox.Infrastructure.Logger;
 using Application = System.Windows.Application;
-using Control = System.Windows.Controls.Control;
 using FormsApplication = System.Windows.Forms.Application;
 using MessageBox = System.Windows.MessageBox;
 
@@ -48,7 +47,7 @@ namespace Wox.Plugin.Sys
 
         private static readonly NLog.Logger Logger = LogManager.GetCurrentClassLogger();
 
-        public Control CreateSettingPanel()
+        public Avalonia.Controls.Control CreateSettingPanel()
         {
             var results = Commands();
             return new SysSettings(results);

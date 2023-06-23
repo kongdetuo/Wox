@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Avalonia;
+using Avalonia.Threading;
+using System;
 using System.IO.Pipes;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
+//using System.Windows;
 
 // http://blogs.microsoft.co.il/arik/2010/05/28/wpf-single-instance-application/
 // modified to allow single instace restart
@@ -103,8 +105,7 @@ namespace Wox.Helper
                 await pipeServer.WaitForConnectionAsync();
                 if (Application.Current != null)
                 {
-                    // Do an asynchronous call to ActivateFirstInstance function
-                    Application.Current.Dispatcher.Invoke(ActivateFirstInstance);
+                    await Dispatcher.UIThread.InvokeAsync(ActivateFirstInstance);
                 }
                 // Disconect client
                 pipeServer.Disconnect();

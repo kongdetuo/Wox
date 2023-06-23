@@ -1,0 +1,32 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:system="clr-namespace:System;assembly=mscorlib">
+
+    <system:String x:Key="wox_plugin_websearch_delete">Odstr¨¢ni?</system:String>
+    <system:String x:Key="wox_plugin_websearch_edit">Upravi?</system:String>
+    <system:String x:Key="wox_plugin_websearch_add">Prida?</system:String>
+    <system:String x:Key="wox_plugin_websearch_confirm">Potvrdi?</system:String>
+    <system:String x:Key="wox_plugin_websearch_action_keyword">Skratka akcie</system:String>
+    <system:String x:Key="wox_plugin_websearch_url">URL</system:String>
+    <system:String x:Key="wox_plugin_websearch_search">H?ada?</system:String>
+    <system:String x:Key="wox_plugin_websearch_enable_suggestion">Povoli? n¨¢vrhy vyh?ad¨¢vania</system:String>
+    <system:String x:Key="wox_plugin_websearch_pls_select_web_search">Vyberte webov¨¦ vyh?ad¨¢vanie</system:String>
+    <system:String x:Key="wox_plugin_websearch_delete_warning">Naozaj chcete odstr¨¢ni? {0}?</system:String>
+
+    <!--web search edit-->
+    <system:String x:Key="wox_plugin_websearch_title">N¨¢zov</system:String>
+    <system:String x:Key="wox_plugin_websearch_enable">Povoli?</system:String>
+    <system:String x:Key="wox_plugin_websearch_select_icon">Vybra? ikonu</system:String>
+    <system:String x:Key="wox_plugin_websearch_icon">Ikona</system:String>
+    <system:String x:Key="wox_plugin_websearch_cancel">Zru?i?</system:String>
+    <system:String x:Key="wox_plugin_websearch_invalid_web_search">Neplatn¨¦ webov¨¦ vyh?ad¨¢vanie</system:String>
+    <system:String x:Key="wox_plugin_websearch_input_title">Zadajte n¨¢zov</system:String>
+    <system:String x:Key="wox_plugin_websearch_input_action_keyword">Zadajte skratku akcie</system:String>
+    <system:String x:Key="wox_plugin_websearch_input_url">Zadajte URL</system:String>
+    <system:String x:Key="wox_plugin_websearch_action_keyword_exist">Zadan¨¢ skratka akcie u? existuje, zadajte in¨²</system:String>
+    <system:String x:Key="wox_plugin_websearch_succeed">¨²spe?n¨¦</system:String>
+
+    <system:String x:Key="wox_plugin_websearch_plugin_name">Webov¨¦ vyh?ad¨¢vanie</system:String>
+    <system:String x:Key="wox_plugin_websearch_plugin_description">Umo?¨¾uje vyh?ad¨¢vanie webov</system:String>
+
+</ResourceDictionary>

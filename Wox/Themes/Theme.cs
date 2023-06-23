@@ -30,6 +30,7 @@ namespace Wox.Themes
         public Theme()
         {
             Settings = Settings.Instance;
+            return;
             _themeDirectories.Add(DirectoryPath);
             _themeDirectories.Add(UserDirectoryPath);
             MakesureThemeDirectoriesExist();
@@ -290,26 +291,26 @@ namespace Wox.Themes
         public void SetBlurForWindow()
         {
             // Exception of FindResource can't be cathed if global exception handle is set
-            if (Environment.OSVersion.Version >= new Version(6, 2))
-            {
+            //if (Environment.OSVersion.Version >= new Version(6, 2))
+            //{
 
-                var resource = Application.Current.TryFindResource("ThemeBlurEnabled");
-                var blur = false;
-                if (resource is bool b)
-                    blur = b;
+            //    var resource = Application.Current.TryFindResource("ThemeBlurEnabled");
+            //    var blur = false;
+            //    if (resource is bool b)
+            //        blur = b;
 
-                var accent = blur ? AccentState.ACCENT_ENABLE_BLURBEHIND : AccentState.ACCENT_DISABLED;
-                SetWindowAccent(Application.Current.MainWindow, accent);
-            }
+            //    var accent = blur ? AccentState.ACCENT_ENABLE_BLURBEHIND : AccentState.ACCENT_DISABLED;
+            //    SetWindowAccent(Application.Current.MainWindow, accent);
+            //}
         }
 
         public void DisableBlur()
         {
-            // Exception of FindResource can't be cathed if global exception handle is set
-            if (Environment.OSVersion.Version >= new Version(6, 2))
-            {
-                SetWindowAccent(Application.Current.MainWindow, AccentState.ACCENT_DISABLED);
-            }
+            //// Exception of FindResource can't be cathed if global exception handle is set
+            //if (Environment.OSVersion.Version >= new Version(6, 2))
+            //{
+            //    SetWindowAccent(Application.Current.MainWindow, AccentState.ACCENT_DISABLED);
+            //}
         }
 
         private void SetWindowAccent(Window w, AccentState state)

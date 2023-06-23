@@ -1,11 +1,11 @@
-﻿using System;
+﻿using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.Documents;
+using Avalonia.Media;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Media;
+
 using Wox.Plugin;
 using Wox.Themes;
 
@@ -13,22 +13,27 @@ namespace Wox
 {
     public class HighLightTextBlock
     {
+        static HighLightTextBlock()
+        {
+            HighlightTextProperty.Changed.Subscribe(Refresh);
+        }
+
+
         #region FontWeight
 
 
-        public static FontWeight GetFontWeight(DependencyObject obj)
+        public static FontWeight GetFontWeight(Control obj)
         {
-            return (FontWeight)obj.GetValue(FontWeightProperty);
+            return obj.GetValue(FontWeightProperty);
         }
 
-        public static void SetFontWeight(DependencyObject obj, FontWeight value)
+        public static void SetFontWeight(Control obj, FontWeight value)
         {
             obj.SetValue(FontWeightProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for FontWeight.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty FontWeightProperty =
-            DependencyProperty.RegisterAttached("FontWeight", typeof(FontWeight), typeof(HighLightTextBlock), new PropertyMetadata(FontWeights.Normal));
+        public static readonly AttachedProperty<FontWeight> FontWeightProperty =
+            AvaloniaProperty.RegisterAttached<HighLightTextBlock, Control, FontWeight>("FontWeight", FontWeight.Normal);
 
 
         #endregion
@@ -36,19 +41,18 @@ namespace Wox
         #region FontStyle
 
 
-        public static FontStyle GetFontStyle(DependencyObject obj)
+        public static FontStyle GetFontStyle(Control obj)
         {
-            return (FontStyle)obj.GetValue(FontStyleProperty);
+            return obj.GetValue(FontStyleProperty);
         }
 
-        public static void SetFontStyle(DependencyObject obj, FontStyle value)
+        public static void SetFontStyle(Control obj, FontStyle value)
         {
             obj.SetValue(FontStyleProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for FontStyle.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty FontStyleProperty =
-            DependencyProperty.RegisterAttached("FontStyle", typeof(FontStyle), typeof(HighLightTextBlock), new PropertyMetadata(FontStyles.Normal));
+        public static readonly AttachedProperty<FontStyle> FontStyleProperty =
+            AvaloniaProperty.RegisterAttached<HighLightTextBlock, Control, FontStyle>("FontStyle", FontStyle.Normal);
 
 
         #endregion
@@ -56,19 +60,18 @@ namespace Wox
         #region FontStretch
 
 
-        public static FontStretch GetFontStretch(DependencyObject obj)
+        public static FontStretch GetFontStretch(Control obj)
         {
             return (FontStretch)obj.GetValue(FontStretchProperty);
         }
 
-        public static void SetFontStretch(DependencyObject obj, FontStretch value)
+        public static void SetFontStretch(Control obj, FontStretch value)
         {
             obj.SetValue(FontStretchProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for FontStretch.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty FontStretchProperty =
-            DependencyProperty.RegisterAttached("FontStretch", typeof(FontStretch), typeof(HighLightTextBlock), new PropertyMetadata(FontStretches.Normal));
+        public static readonly AttachedProperty<FontStretch> FontStretchProperty =
+            AvaloniaProperty.RegisterAttached<HighLightTextBlock, Control, FontStretch>("FontStretch", FontStretch.Normal);
 
 
         #endregion
@@ -76,48 +79,53 @@ namespace Wox
         #region Foreground
 
 
-        public static Brush GetForeground(DependencyObject obj)
+        public static IBrush GetForeground(Control obj)
         {
-            return (Brush)obj.GetValue(ForegroundProperty);
+            return obj.GetValue(ForegroundProperty);
         }
 
-        public static void SetForeground(DependencyObject obj, Brush value)
+        public static void SetForeground(Control obj, IBrush value)
         {
             obj.SetValue(ForegroundProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for Foreground.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty ForegroundProperty =
-            DependencyProperty.RegisterAttached("Foreground", typeof(Brush), typeof(HighLightTextBlock), new PropertyMetadata(Brushes.Black));
-
+        public static readonly AttachedProperty<IBrush> ForegroundProperty =
+            AvaloniaProperty.RegisterAttached<HighLightTextBlock, Control, IBrush>("Foreground", Brushes.AliceBlue);
 
         #endregion
 
         #region HighlightText
 
-        public static HighlightText GetHighlightText(DependencyObject obj)
+        public static HighlightText GetHighlightText(Control obj)
         {
             return (HighlightText)obj.GetValue(HighlightTextProperty);
         }
 
-        public static void SetHighlightText(DependencyObject obj, HighlightText value)
+        public static void SetHighlightText(Control obj, HighlightText value)
         {
             obj.SetValue(HighlightTextProperty, value);
         }
 
-        // Using a DependencyProperty as the backing store for HighlightText.  This enables animation, styling, binding, etc...
-        public static readonly DependencyProperty HighlightTextProperty =
-            DependencyProperty.RegisterAttached("HighlightText", typeof(HighlightText), typeof(HighLightTextBlock), new PropertyMetadata(null, Refresh));
+        public static readonly AttachedProperty<HighlightText> HighlightTextProperty =
+            AvaloniaProperty.RegisterAttached<HighLightTextBlock, Control, HighlightText>("HighlightText");
 
 
         #endregion
 
-        private static void Refresh(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        private static void Refresh(AvaloniaPropertyChangedEventArgs<HighlightText> e)
         {
-            var textBlock = d as TextBlock;
-            var highlightText = GetHighlightText(d);
-            textBlock.Inlines.Clear();
-            if (textBlock is not null && highlightText is not null && !string.IsNullOrWhiteSpace(highlightText.Text))
+            var textBlock = e.Sender as TextBlock;
+            var highlightText = e.NewValue.Value;
+            if (textBlock == null)
+                return;
+
+            textBlock.Text = "";
+            if (textBlock.Inlines == null)
+                textBlock.Inlines = new InlineCollection();
+            else textBlock.Inlines.Clear();
+            textBlock.Inlines.Add(new Run());
+
+            if (textBlock is not null && highlightText is not null )
             {
                 var text = highlightText.Text;
 
@@ -127,13 +135,10 @@ namespace Wox
                     if (range.Start.Value > i)
                         textBlock.Inlines.Add(new Run(text[i..range.Start]));
 
-                    var run = new Run(text[range]);
-                    BindingOperations.SetBinding(run, TextElement.ForegroundProperty, new Binding()
+                    var run = new Run(text[range])
                     {
-                        Source = textBlock,
-                        Path = new PropertyPath(ForegroundProperty),
-                        Mode = BindingMode.OneWay,
-                    });
+                        [!Run.ForegroundProperty] = textBlock[!ForegroundProperty]
+                    };
                     textBlock.Inlines.Add(run);
 
                     i = range.End.Value;
