@@ -34,7 +34,7 @@
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" Version="11.0.999-cibuild0036076-beta" />
     <PackageReference Include="Avalonia.Markup.Xaml.Loader" Version="11.0.999-cibuild0036076-beta" />
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="8.0.0-preview.4.23259.5" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="8.0.0" />
     <PackageReference Include="PropertyChanged.Fody">
       <Version>4.1.0</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
