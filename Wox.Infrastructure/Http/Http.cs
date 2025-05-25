@@ -3,7 +3,6 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
 using NLog;
 using Wox.Infrastructure.Logger;
 using Wox.Infrastructure.UserSettings;
@@ -51,14 +50,14 @@ namespace Wox.Infrastructure.Http
             }
         }
 
-        public static void Download([NotNull] string url, [NotNull] string filePath)
+        public static void Download(string url, string filePath)
         {
             var client = new WebClient { Proxy = WebProxy() };
             client.Headers.Add("user-agent", UserAgent);
             client.DownloadFile(url, filePath);
         }
 
-        public static async Task<string> Get([NotNull] string url, string encoding = "UTF-8")
+        public static async Task<string> Get(string url, string encoding = "UTF-8")
         {
             Logger.WoxDebug($"Url <{url}>");
             var request = WebRequest.CreateHttp(url);

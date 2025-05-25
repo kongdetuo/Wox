@@ -23,7 +23,7 @@ namespace Wox.Core.Plugin
         public const string PythonExecutable = "pythonw.exe";
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        public static List<PluginProxy> Plugins(List<PluginConfig> metadatas, PluginsSettings settings)
+        public static List<WoxPlugin> Plugins(List<PluginConfig> metadatas, PluginsSettings settings)
         {
             var csharpPlugins = CSharpPlugins(metadatas).ToList();
             var pythonPlugins = PythonPlugins(metadatas, settings.PythonDirectory);
@@ -34,7 +34,7 @@ namespace Wox.Core.Plugin
                 .ToList();
         }
 
-        public static IEnumerable<PluginProxy> CSharpPlugins(List<PluginConfig> source)
+        public static IEnumerable<WoxPlugin> CSharpPlugins(List<PluginConfig> source)
         {
             var metadatas = source
                 .Where(IsCSharpPlugin);
@@ -45,9 +45,9 @@ namespace Wox.Core.Plugin
                 .ToList();
         }
 
-        private static PluginProxy LoadCSharpPlugin(PluginConfig config)
+        private static WoxPlugin LoadCSharpPlugin(PluginConfig config)
         {
-            PluginProxy pair = null;
+            WoxPlugin pair = null;
             var milliseconds = Logger.StopWatchDebug($"Constructor init cost for {config.Name}", () =>
             {
                 Assembly assembly;
@@ -69,7 +69,15 @@ namespace Wox.Core.Plugin
                 try
                 {
                     var types = assembly.GetExportedTypes();
-                    type = types.FirstOrDefault(type => typeof(IAsyncPlugin).IsAssignableFrom(type));
+
+                    bool isPluginType(Type type)
+                    {
+                        if (typeof(IAsyncPlugin).IsAssignableFrom(type))
+                            return true;
+                        return false;
+                    }
+
+                    type = types.FirstOrDefault(isPluginType);
                     if (type is null)
                         return;
                 }
@@ -97,10 +105,10 @@ namespace Wox.Core.Plugin
                     return;
                 }
 
-                pair = new PluginProxy
+                pair = new WoxPlugin
                 {
-                    Plugin = plugin,
-                    Metadata = CreateMetadata(config)
+                    Instance = plugin,
+                    Metadata = CreateMetadata(config),
                 };
             });
             if (pair == null)
@@ -109,7 +117,7 @@ namespace Wox.Core.Plugin
             return pair;
         }
 
-        private static IEnumerable<PluginProxy> PythonPlugins(List<PluginConfig> source, string pythonDirecotry)
+        private static IEnumerable<WoxPlugin> PythonPlugins(List<PluginConfig> source, string pythonDirecotry)
         {
             var configs = source.Where(o => o.Language.ToUpper() == AllowedLanguage.Python);
             string filename;
@@ -127,13 +135,13 @@ namespace Wox.Core.Plugin
                     else
                     {
                         Logger.WoxError("Python can't be found in PATH.");
-                        return new List<PluginProxy>();
+                        return new List<WoxPlugin>();
                     }
                 }
                 else
                 {
                     Logger.WoxError("PATH environment variable is not set.");
-                    return new List<PluginProxy>();
+                    return new List<WoxPlugin>();
                 }
             }
             else
@@ -146,25 +154,25 @@ namespace Wox.Core.Plugin
                 else
                 {
                     Logger.WoxError("Can't find python executable in <b ");
-                    return new List<PluginProxy>();
+                    return new List<WoxPlugin>();
                 }
             }
             Constant.PythonPath = filename;
-            var plugins = configs.Select(config => new PluginProxy
+            var plugins = configs.Select(config => new WoxPlugin
             {
-                Plugin = new PythonPlugin(filename),
+                Instance = new PythonPlugin(filename),
                 Metadata = CreateMetadata(config)
             });
             return plugins;
         }
 
-        private static IEnumerable<PluginProxy> ExecutablePlugins(IEnumerable<PluginConfig> source)
+        private static IEnumerable<WoxPlugin> ExecutablePlugins(IEnumerable<PluginConfig> source)
         {
             var configs = source.Where(o => o.Language.ToUpper() == AllowedLanguage.Executable);
 
-            var plugins = configs.Select(config => new PluginProxy
+            var plugins = configs.Select(config => new WoxPlugin
             {
-                Plugin = new ExecutablePlugin(config.GetExecuteFilePath()),
+                Instance = new ExecutablePlugin(config.GetExecuteFilePath()),
                 Metadata = CreateMetadata(config)
             });
             return plugins;

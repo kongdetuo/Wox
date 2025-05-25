@@ -3,20 +3,19 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using System.Windows;
 using Wox.Infrastructure;
 
 namespace Wox.Plugin
 {
     public class Actions
     {
-        public static Func<ActionContext, bool> CopyTextToClipboard(string value)
+        public static Func<ActionContext, Task<bool>> CopyTextToClipboard(string value)
         {
-            return context =>
+            return async context =>
             {
                 try
                 {
-                    Clipboard.SetText(value);
+                    await context.API.Clipboard.SetTextAsync(value);
                     return true;
                 }
                 catch (ExternalException)
@@ -26,14 +25,26 @@ namespace Wox.Plugin
                 }
             };
         }
-
-        public static Func<ActionContext, bool> CopyFilesToClipboard(params string[] filepaths)
+        public static async Task<bool> CopyTextToClipboard(ActionContext context, string value)
         {
-            return _ =>
+            try
+            {
+                await context.API.Clipboard.SetTextAsync(value);
+                return true;
+            }
+            catch (ExternalException)
+            {
+                context.API.ShowMsg("Copy failed, please try later");
+                return false;
+            }
+        }
+        public static Func<ActionContext, Task<bool>> CopyFilesToClipboard(params string[] filepaths)
+        {
+            return async context =>
             {
                 var collect = new System.Collections.Specialized.StringCollection();
                 collect.AddRange(filepaths);
-                Clipboard.SetFileDropList(collect);
+                //await context.API.Clipboard.SetFileDropList(collect);
                 return true;
             };
         }

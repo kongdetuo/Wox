@@ -1,0 +1,84 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Wox.Views.SettingViews.SettingGeneralView">
+			<ListBox>
+				<CheckBox IsChecked="{Binding PortableMode}">
+					<TextBlock Text="{DynamicResource portableMode}" />
+				</CheckBox>
+				<CheckBox IsChecked="{Binding Settings.StartWoxOnSystemStartup}"
+                          Checked="OnAutoStartupChecked" Unchecked="OnAutoStartupUncheck">
+					<TextBlock Text="{DynamicResource startWoxOnSystemStartup}" />
+				</CheckBox>
+				<CheckBox IsChecked="{Binding Settings.HideOnStartup}">
+					<TextBlock Text="{DynamicResource hideOnStartup}" />
+				</CheckBox>
+				<CheckBox IsChecked="{Binding Settings.HideWhenDeactive}">
+					<TextBlock Text="{DynamicResource hideWoxWhenLoseFocus}" />
+				</CheckBox>
+				<CheckBox IsChecked="{Binding Settings.HideNotifyIcon}">
+					<TextBlock Text="{DynamicResource hideNotifyIcon}" />
+				</CheckBox>
+				<CheckBox IsChecked="{Binding Settings.RememberLastLaunchLocation}">
+					<TextBlock Text="{DynamicResource rememberLastLocation}" />
+				</CheckBox>
+				<CheckBox IsChecked="{Binding Settings.IgnoreHotkeysOnFullscreen}">
+					<TextBlock Text="{DynamicResource ignoreHotkeysOnFullscreen}" />
+				</CheckBox>
+				<CheckBox IsChecked="{Binding Settings.AutoUpdates}">
+					<TextBlock Text="{DynamicResource autoUpdates}" />
+				</CheckBox>
+				<CheckBox IsChecked="{Binding Settings.UpdateToPrereleases}">
+					<TextBlock Text="{DynamicResource updateToPrereleases}" />
+				</CheckBox>
+				<CheckBox IsChecked="{Binding ShouldUsePinyin}">
+					<TextBlock Text="{DynamicResource ShouldUsePinyin}" />
+				</CheckBox>
+				<DockPanel>
+					<ComboBox Margin="10 0 0 0" DockPanel.Dock="Right"
+                              ItemsSource="{Binding QuerySearchPrecisionStrings}"
+                              SelectedItem="{Binding Settings.QuerySearchPrecisionString}" />
+					<TextBlock Text="{DynamicResource querySearchPrecision}" />
+				</DockPanel>
+				<DockPanel>
+					<ComboBox Margin="10 0 0 0" DockPanel.Dock="Right" Width="200"
+                              ItemsSource="{Binding LastQueryModes}"
+							  SelectedItem="{Binding LastQueryMode}"
+                              >
+						<ComboBox.ItemTemplate>
+							<DataTemplate>
+								<TextBlock Text="{Binding Display}"/>
+							</DataTemplate>
+						</ComboBox.ItemTemplate>
+					</ComboBox>
+					<TextBlock Text="{DynamicResource lastQueryMode}" />
+				</DockPanel>
+				<DockPanel>
+					<ComboBox Margin="10 0 0 0" DockPanel.Dock="Right"
+                              ItemsSource="{Binding Languages}"
+							  SelectedItem="{Binding Language}">
+						<ComboBox.ItemTemplate>
+							<DataTemplate>
+								<TextBlock Text="{Binding Display}"/>
+							</DataTemplate>
+						</ComboBox.ItemTemplate>
+					</ComboBox>
+					<TextBlock Text="{DynamicResource language}" />
+				</DockPanel>
+				<DockPanel>
+					<ComboBox Margin="10 0 0 0" DockPanel.Dock="Right" ItemsSource="{Binding MaxResultsRange}"
+                              SelectedItem="{Binding Settings.MaxResultsToShow}" />
+					<TextBlock Text="{DynamicResource maxShowResults}" />
+				</DockPanel>
+				<DockPanel>
+					<StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+						<TextBox Width="300"  Text="{Binding Settings.PluginSettings.PythonDirectory}" />
+						<Button  Click="OnSelectPythonDirectoryClick" Content="{DynamicResource selectPythonDirectory}" />
+					</StackPanel>
+					<TextBlock Text="{DynamicResource pythonDirectory}" />
+				</DockPanel>
+			</ListBox>
+
+</UserControl>

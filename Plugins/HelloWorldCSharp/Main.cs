@@ -10,21 +10,23 @@ namespace HelloWorldCSharp
 {
     class Main : IPlugin
     {
-        public List<Result> Query(Query query)
+        private PluginInitContext context;
+
+        public List<IResult> Query(Query query)
         {
             System.Reactive.Linq.Observable.Return(1);
-            var result = new Result
+            var result = new Result1
             {
                 Title = "Hello World from CSharp",
                 SubTitle = $"Query: {query.Search}",
-                IcoPath = Path.Combine("Images", "app.png")
+                IconLoader = context.API.IconHelper.FromImage(Path.Combine("Images", "app.png"))
             };
-            return new List<Result> { result };
+            return new List<IResult> { result };
         }
 
         public void Init(PluginInitContext context)
         {
-
+            this.context = context;
         }
 }
 }

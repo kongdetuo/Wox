@@ -5,6 +5,7 @@
         public SpecialKeyState SpecialKeyState { get; set; }
 
         public IPublicAPI API { get; set; }
+
     }
 
     public class SpecialKeyState

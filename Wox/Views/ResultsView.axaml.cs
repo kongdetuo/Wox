@@ -1,6 +1,7 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml.Templates;
+using Avalonia.Media;
 
 namespace Wox
 {

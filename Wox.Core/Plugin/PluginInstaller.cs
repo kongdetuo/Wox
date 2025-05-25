@@ -11,85 +11,85 @@ namespace Wox.Core.Plugin
     {
         internal static void Install(string path)
         {
-            if (File.Exists(path))
-            {
-                string tempFoler = Path.Combine(Path.GetTempPath(), "wox\\plugins");
-                if (Directory.Exists(tempFoler))
-                {
-                    Directory.Delete(tempFoler, true);
-                }
-                UnZip(path, tempFoler, true);
+            //if (File.Exists(path))
+            //{
+            //    string tempFoler = Path.Combine(Path.GetTempPath(), "wox\\plugins");
+            //    if (Directory.Exists(tempFoler))
+            //    {
+            //        Directory.Delete(tempFoler, true);
+            //    }
+            //    UnZip(path, tempFoler, true);
 
-                string iniPath = Path.Combine(tempFoler, PluginConfig.PluginConfigName);
-                if (!File.Exists(iniPath))
-                {
-                    MessageBox.Show("Install failed: plugin config is missing");
-                    return;
-                }
-                var config = PluginConfig.Load(tempFoler);
-                if (config == null || config.Name == null)
-                {
-                    MessageBox.Show("Install failed: plugin config is invalid");
-                    return;
-                }
+            //    string iniPath = Path.Combine(tempFoler, PluginConfig.PluginConfigName);
+            //    if (!File.Exists(iniPath))
+            //    {
+            //        MessageBox.Show("Install failed: plugin config is missing");
+            //        return;
+            //    }
+            //    var config = PluginConfig.Load(tempFoler);
+            //    if (config == null || config.Name == null)
+            //    {
+            //        MessageBox.Show("Install failed: plugin config is invalid");
+            //        return;
+            //    }
 
-                PluginMetadata plugin = PluginsLoader.CreateMetadata(config);
+            //    PluginMetadata plugin = PluginsLoader.CreateMetadata(config);
 
-                string pluginFolerPath = Infrastructure.UserSettings.DataLocation.PluginsDirectory;
+            //    string pluginFolerPath = Infrastructure.UserSettings.DataLocation.PluginsDirectory;
 
-                string newPluginName = plugin.Name
-                    .Replace("/", "_")
-                    .Replace("\\", "_")
-                    .Replace(":", "_")
-                    .Replace("<", "_")
-                    .Replace(">", "_")
-                    .Replace("?", "_")
-                    .Replace("*", "_")
-                    .Replace("|", "_")
-                    + "-" + Guid.NewGuid();
-                string newPluginPath = Path.Combine(pluginFolerPath, newPluginName);
-                PluginProxy existingPlugin = PluginManager.GetPluginForId(plugin.ID);
-                string content = $"Do you want to install following plugin and restart Wox?{Environment.NewLine}{Environment.NewLine}" +
-                                 $"Name: {plugin.Name}{Environment.NewLine}";
-                if (existingPlugin != null)
-                {
-                    content += $"Old Version: {existingPlugin.Metadata.Version}{Environment.NewLine}" +
-                              $"New Version: {plugin.Version}{Environment.NewLine}" +
-                              $"Author: {plugin.Author}";
-                }
-                else
-                {
-                    content += $"Version: {plugin.Version}{Environment.NewLine}" +
-                              $"Author: {plugin.Author}";
-                }
-                content += $"{Environment.NewLine}{Environment.NewLine}If you choose No, the plugin will take effect since next time Wox starts.";
+            //    string newPluginName = plugin.Name
+            //        .Replace("/", "_")
+            //        .Replace("\\", "_")
+            //        .Replace(":", "_")
+            //        .Replace("<", "_")
+            //        .Replace(">", "_")
+            //        .Replace("?", "_")
+            //        .Replace("*", "_")
+            //        .Replace("|", "_")
+            //        + "-" + Guid.NewGuid();
+            //    string newPluginPath = Path.Combine(pluginFolerPath, newPluginName);
+            //    WoxPlugin existingPlugin = PluginManager.GetPluginForId(plugin.ID);
+            //    string content = $"Do you want to install following plugin and restart Wox?{Environment.NewLine}{Environment.NewLine}" +
+            //                     $"Name: {plugin.Name}{Environment.NewLine}";
+            //    if (existingPlugin != null)
+            //    {
+            //        content += $"Old Version: {existingPlugin.Metadata.Version}{Environment.NewLine}" +
+            //                  $"New Version: {plugin.Version}{Environment.NewLine}" +
+            //                  $"Author: {plugin.Author}";
+            //    }
+            //    else
+            //    {
+            //        content += $"Version: {plugin.Version}{Environment.NewLine}" +
+            //                  $"Author: {plugin.Author}";
+            //    }
+            //    content += $"{Environment.NewLine}{Environment.NewLine}If you choose No, the plugin will take effect since next time Wox starts.";
 
-                var result = MessageBox.Show(content, "Install plugin", MessageBoxButton.YesNoCancel, MessageBoxImage.Question, MessageBoxResult.No);
-                if (result != MessageBoxResult.Cancel)
-                {
-                    if (existingPlugin != null && Directory.Exists(existingPlugin.Metadata.PluginDirectory))
-                    {
-                        //when plugin is in use, we can't delete them. That's why we need to make plugin folder a random name
-                        File.Create(Path.Combine(existingPlugin.Metadata.PluginDirectory, "NeedDelete.txt")).Close();
-                    }
+            //    var result = MessageBox.Show(content, "Install plugin", MessageBoxButton.YesNoCancel, MessageBoxImage.Question, MessageBoxResult.No);
+            //    if (result != MessageBoxResult.Cancel)
+            //    {
+            //        if (existingPlugin != null && Directory.Exists(existingPlugin.Metadata.PluginDirectory))
+            //        {
+            //            //when plugin is in use, we can't delete them. That's why we need to make plugin folder a random name
+            //            File.Create(Path.Combine(existingPlugin.Metadata.PluginDirectory, "NeedDelete.txt")).Close();
+            //        }
 
-                    UnZip(path, newPluginPath, true);
-                    Directory.Delete(tempFoler, true);
+            //        UnZip(path, newPluginPath, true);
+            //        Directory.Delete(tempFoler, true);
 
-                    //existing plugins may be has loaded by application,
-                    //if we try to delete those kind of plugins, we will get a  error that indicate the
-                    //file is been used now.
-                    //current solution is to restart Wox. Ugly.
-                    //if (MainWindow.Initialized)
-                    //{
-                    //    Plugins.Initialize();
-                    //}
-                    if (result == MessageBoxResult.Yes)
-                    {
-                        PluginManager.API.RestarApp();
-                    }
-                }
-            }
+            //        //existing plugins may be has loaded by application,
+            //        //if we try to delete those kind of plugins, we will get a  error that indicate the
+            //        //file is been used now.
+            //        //current solution is to restart Wox. Ugly.
+            //        //if (MainWindow.Initialized)
+            //        //{
+            //        //    Plugins.Initialize();
+            //        //}
+            //        if (result == MessageBoxResult.Yes)
+            //        {
+            //            PluginManager.API.RestarApp();
+            //        }
+            //    }
+            //}
         }
 
 

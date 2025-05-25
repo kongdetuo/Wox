@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Specialized;
-using System.Diagnostics;
-using System.Linq;
 using System.Runtime.Caching;
 using NLog;
-using ToolGood.Words;
-using Wox.Infrastructure.Logger;
 using Wox.Infrastructure.UserSettings;
 using ToolGood.Words.FirstPinyin;
 

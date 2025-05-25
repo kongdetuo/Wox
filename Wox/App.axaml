@@ -13,16 +13,7 @@
 		</ResourceDictionary>
 
 	</Application.Resources>
-	<!--<Application.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.ThemeDictionaries>
-                <ResourceDictionary Source="/Themes/Dark.axaml" />
-                -->
-	<!--<ResourceDictionary Source="pack://application:,,,/Languages/en.xaml" />-->
-	<!--
-            </ResourceDictionary.ThemeDictionaries>
-        </ResourceDictionary>
-    </Application.Resources>-->
+
 	<Application.DataTemplates>
 		<local:ViewLocator/>
 	</Application.DataTemplates>
@@ -38,7 +29,7 @@
 					  Command="{Binding Awake}">
 				<TrayIcon.Menu>
 					<NativeMenu>
-						<NativeMenuItem Header="{DynamicResource iconTrayOpen}" Command="{Binding Awake}"/>
+						<NativeMenuItem Header="{DynamicResource iconTrayOpen}" Icon="" Command="{Binding Awake}"/>
 						<NativeMenuItem Header="{DynamicResource iconTraySettings}" Command="{Binding OpenSetting}"/>
 						<NativeMenuItemSeparator />
 						<NativeMenuItem Header="{DynamicResource iconTrayExit}" Command="{Binding Shutdown}"/>

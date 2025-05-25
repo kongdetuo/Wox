@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using System.Windows.Media;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 
@@ -11,13 +10,11 @@ namespace Wox.Plugin.WebSearch
         public string Title { get; set; }
         public string ActionKeyword { get; set; }
 
-        [NotNull]
         public string Icon { get; set; } = DefaultIcon;
 
         /// <summary>
         /// All icon should be put under Images directory
         /// </summary>
-        [NotNull]
         [JsonIgnore]
         internal string IconPath => Path.Combine(Main.ImagesDirectory, Icon);
 

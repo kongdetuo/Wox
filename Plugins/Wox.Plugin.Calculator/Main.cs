@@ -1,17 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Mages.Core;
 using Wox.Infrastructure.Storage;
 using Wox.Plugin.Caculator.ViewModels;
-using Wox.Plugin.Caculator.Views;
 
 namespace Wox.Plugin.Caculator
 {
-    public class Main : IPlugin, IPluginI18n, ISavable, ISettingProvider
+    public class Main : IPlugin, IPluginI18n
     {
         private static readonly Regex RegValidExpressChar = new Regex(
                         @"^(" +
@@ -29,6 +30,8 @@ namespace Wox.Plugin.Caculator
         private static SettingsViewModel _viewModel = null!;
         private static Settings _settings=>_viewModel.Settings;
 
+        IconLoader IconLoader { get; set; }
+
         static Main()
         {
             MagesEngine = new Engine();
@@ -37,21 +40,25 @@ namespace Wox.Plugin.Caculator
         public void Init(PluginInitContext context)
         {
             Context = context;
-
+            this.IconLoader = context.API.IconHelper.FromImage("Images/calculator.png");
             _viewModel = new SettingsViewModel();
         }
 
-        public List<Result> Query(Query query)
+        public List<IResult> Query(Query query)
         {
             if (!CanCalculate(query))
             {
-                return new List<Result>();
+                return new List<IResult>();
             }
 
             try
             {
                 var expression = query.Search.Replace(",", ".");
                 var result = MagesEngine.Interpret(expression);
+                if(result == null)
+                {
+                    return new();
+                }
 
                 if (result.ToString() == "NaN")
                     result = Context.API.GetTranslation("wox_plugin_calculator_not_a_number");
@@ -64,15 +71,14 @@ namespace Wox.Plugin.Caculator
                     decimal roundedResult = Math.Round(Convert.ToDecimal(result), _settings.MaxDecimalPlaces, MidpointRounding.AwayFromZero);
                     string newResult = ChangeDecimalSeparator(roundedResult, GetDecimalSeparator());
 
-                    return new List<Result>
+                    return new List<IResult>
                     {
-                        new Result
+                        new CaculatorResult
                         {
                             Title = newResult,
-                            IcoPath = "Images/calculator.png",
                             Score = 300,
                             SubTitle = Context.API.GetTranslation("wox_plugin_calculator_copy_number_to_clipboard"),
-                            Action = Actions.CopyTextToClipboard(newResult)
+                            IconLoader = this.IconLoader
                         }
                     };
                 }
@@ -82,7 +88,7 @@ namespace Wox.Plugin.Caculator
                 // ignored
             }
 
-            return new List<Result>();
+            return new List<IResult>();
         }
 
         private bool CanCalculate(Query query)
@@ -161,14 +167,41 @@ namespace Wox.Plugin.Caculator
             return Context.API.GetTranslation("wox_plugin_caculator_plugin_description");
         }
 
-        public Control CreateSettingPanel()
-        {
-            return new CalculatorSettings(_viewModel);
-        }
+        public IEnumerable<PluginOption> Options => [
+            new ComboBoxOption(){
+                Key = "wox_plugin_calculator_output_decimal_seperator",
+                Items = ComboBoxOption.ItemsFromEnum<DecimalSeparator>(),
+                Value = _settings.DecimalSeparator,
+            },
+            new NumberBoxOption(){
+                Key = "wox_plugin_calculator_max_decimal_places",
+                MinValue = 0,
+                MaxValue = 20,
+                Value = _settings.MaxDecimalPlaces
+            }
+        ];
 
-        public void Save()
+        public void SaveOptions(IEnumerable<PluginOption> options)
         {
+            _settings.DecimalSeparator = (DecimalSeparator) options.OfType<ComboBoxOption>().FirstOrDefault()!.Value;
+            _settings.MaxDecimalPlaces = (int) options.OfType<NumberBoxOption>().FirstOrDefault()!.Value;
             _viewModel.Save();
+        }
+    }
+
+    public class CaculatorResult : IResult
+    {
+        public required string Title { get; init; }
+
+        public string? SubTitle { get; init; }
+
+        public int Score { get; init; }
+
+        public IconLoader? IconLoader { get; init; }
+
+        public Task<bool> InvokeAsync(ActionContext context)
+        {
+            return Actions.CopyTextToClipboard(context, Title);
         }
     }
 }

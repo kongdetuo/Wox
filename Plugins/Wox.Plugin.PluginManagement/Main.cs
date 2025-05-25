@@ -3,10 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
 using Newtonsoft.Json;
 using NLog;
 using Wox.Infrastructure;
@@ -26,9 +22,9 @@ namespace Wox.Plugin.PluginManagement
 
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        public List<Result> Query(Query query)
+        public List<IResult> Query(Query query)
         {
-            List<Result> results = new List<Result>();
+            List<IResult> results = new List<IResult>();
 
             if (string.IsNullOrEmpty(query.Search))
             {
@@ -108,9 +104,9 @@ namespace Wox.Plugin.PluginManagement
             return result;
         }
 
-        private List<Result> ResultForInstallPlugin(Query query)
+        private List<IResult> ResultForInstallPlugin(Query query)
         {
-            List<Result> results = new List<Result>();
+            List<IResult> results = new List<IResult>();
             string pluginName = query.SecondSearch;
             if (string.IsNullOrEmpty(pluginName)) return results;
             string json;
@@ -123,7 +119,7 @@ namespace Wox.Plugin.PluginManagement
                 //todo add option in log to decide give user prompt or not
                 context.API.ShowMsg("PluginManagement.ResultForInstallPlugin: Can't connect to Wox plugin website, check your conenction");
                 Logger.WoxError("Can't connect to Wox plugin website, check your conenction", e);
-                return new List<Result>();
+                return new List<IResult>();
             }
             List<WoxPluginResult> searchedPlugins;
             try
@@ -171,10 +167,10 @@ namespace Wox.Plugin.PluginManagement
             return results;
         }
 
-        private List<Result> ResultForUnInstallPlugin(Query query)
+        private List<IResult> ResultForUnInstallPlugin(Query query)
         {
-            List<Result> results = new List<Result>();
-            List<PluginMetadata> allInstalledPlugins = context.API.GetAllPlugins().Select(o => o.Metadata).ToList();
+            List<IResult> results = new List<IResult>();
+            List<PluginMetadata> allInstalledPlugins = context.API.GetAllPlugins();
             if (!string.IsNullOrEmpty(query.SecondSearch))
             {
                 allInstalledPlugins =
@@ -204,23 +200,23 @@ namespace Wox.Plugin.PluginManagement
                              $"Name: {plugin.Name}{Environment.NewLine}" +
                              $"Version: {plugin.Version}{Environment.NewLine}" +
                              $"Author: {plugin.Author}";
-            if (MessageBox.Show(content, "Wox", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
-            {
-                File.Create(Path.Combine(plugin.PluginDirectory, "NeedDelete.txt")).Close();
-                var result = MessageBox.Show($"You have uninstalled plugin {plugin.Name} successfully.{Environment.NewLine}" +
-                                             "Restart Wox to take effect?",
-                                             "Install plugin", MessageBoxButton.YesNo, MessageBoxImage.Question);
-                if (result == MessageBoxResult.Yes)
-                {
-                    context.API.RestarApp();
-                }
-            }
+            //if (MessageBox.Show(content, "Wox", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            //{
+            //    File.Create(Path.Combine(plugin.PluginDirectory, "NeedDelete.txt")).Close();
+            //    var result = MessageBox.Show($"You have uninstalled plugin {plugin.Name} successfully.{Environment.NewLine}" +
+            //                                 "Restart Wox to take effect?",
+            //                                 "Install plugin", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            //    if (result == MessageBoxResult.Yes)
+            //    {
+            //        context.API.RestarApp();
+            //    }
+            //}
         }
 
-        private List<Result> ResultForListInstalledPlugins()
+        private List<IResult> ResultForListInstalledPlugins()
         {
-            List<Result> results = new List<Result>();
-            foreach (PluginMetadata plugin in context.API.GetAllPlugins().Select(o => o.Metadata))
+            List<IResult> results = new List<IResult>();
+            foreach (PluginMetadata plugin in context.API.GetAllPlugins())
             {
                 string actionKeywordString = string.Join(" or ", plugin.ActionKeywords.ToArray());
                 results.Add(new Result

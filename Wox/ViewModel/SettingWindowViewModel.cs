@@ -1,12 +1,11 @@
-using Avalonia.Controls;
-using Avalonia.Layout;
-using Avalonia.Media;
+using Avalonia.Media; 
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Wox.Core.Plugin;
 using Wox.Core.Resource;
+using Wox.Core.Services;
 using Wox.Infrastructure;
 using Wox.Infrastructure.UserSettings;
 using Wox.Plugin;
@@ -33,6 +32,10 @@ namespace Wox.ViewModel
         public void Save()
         {
             Settings.Save();
+            foreach (var item in PluginViewModels)
+            {
+                item.SaveOptions();
+            }
         }
 
         #region general
@@ -153,38 +156,18 @@ namespace Wox.ViewModel
         public static string Plugin => "http://www.wox.one/plugin";
         public PluginViewModel? SelectedPlugin { get; set; }
 
+        private IList<PluginViewModel> plugins;
         public IList<PluginViewModel> PluginViewModels
         {
             get
             {
-                var metadatas = PluginManager.AllPlugins
+                return plugins ??= PluginManager.AllPlugins
                     .OrderBy(x => x.Metadata.Disabled)
                     .ThenBy(y => y.Metadata.Name)
                     .Select(p => new PluginViewModel(p))
                     .ToList();
-                return metadatas;
             }
         }
-
-        public Control? SettingProvider
-        {
-            get
-            {
-                if (SelectedPlugin?.PluginPair.Plugin is ISettingProvider settingProvider)
-                {
-                    var control = settingProvider.CreateSettingPanel();
-                    control.HorizontalAlignment = HorizontalAlignment.Stretch;
-                    control.VerticalAlignment = VerticalAlignment.Stretch;
-                    return control;
-                }
-                else
-                {
-                    return new Control();
-                }
-            }
-        }
-
-
 
         #endregion
 
@@ -233,7 +216,7 @@ namespace Wox.ViewModel
         {
             get
             {
-                var results = new List<Result>
+                var results = new List<IResult>
                 {
                     new Result
                     {
@@ -273,7 +256,7 @@ namespace Wox.ViewModel
                     //}
                 };
                 var vm = new ResultsViewModel(Settings, () => { });
-                vm.AddResults(results, "PREVIEW");
+                vm.SetResult(new PluginQueryResult(results, "PREVIEW"));
                 return vm;
             }
         }

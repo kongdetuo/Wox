@@ -11,6 +11,7 @@ using Wox.Infrastructure;
 using Wox.Infrastructure.Logger;
 using Windows.Win32;
 using Windows.Win32.Foundation;
+using System.Threading.Tasks;
 
 namespace Wox.Plugin.Program.Programs
 {
@@ -28,19 +29,38 @@ namespace Wox.Plugin.Program.Programs
 
         private static readonly NLog.Logger Logger = LogManager.GetCurrentClassLogger();
 
+        private class Win32Result : IResult
+        {
+            public string Title { get; set; }
+
+            public string? SubTitle { get; set; }
+
+            public int Score { get; set; }
+
+            public IconLoader? IconLoader { get; set; }
+
+            public string FilePath { get; set; }
+
+            public string ParentDirectory { get; set; }
+
+            public Task<bool> InvokeAsync(ActionContext context)
+            {
+               return Task.Run(()=>  Actions.RunExe(FilePath, ParentDirectory)(context));
+            }
+        }
 
 
-        public Result Result(string query, IPublicAPI api)
+        public IResult Result(string query, IPublicAPI api)
         {
             var match = StringMatcher.FuzzySearch(query, Name);
-            var result = new Result
+            var result = new Win32Result
             {
-                Title = new(Name, match.MatchData),
+                Title = Name,
                 SubTitle = "Win32 ”¶”√≥Ã–Ú",
                 Score = match.Score,
-                IcoPath = IcoPath,
-                ContextData = this,
-                Action = Actions.RunExe(FullPath, ParentDirectory)
+                FilePath = this.FullPath,
+                ParentDirectory = this.ParentDirectory,
+                IconLoader = api.IconHelper.FromAssociatedIcon(FullPath)
             };
 
             return result;
@@ -268,22 +288,21 @@ namespace Wox.Plugin.Program.Programs
 
         private unsafe static string GetLocalizedName(string path)
         {
-            var cs = stackalloc char[1024];
-            var buffer = new PWSTR(cs);
-            var result = PInvoke.SHGetLocalizedName(path, buffer, 1024, out var index);
+            Span<char>cs = stackalloc char[1024];
+            var result = PInvoke.SHGetLocalizedName(path, cs, out var index);
             if (result.Succeeded)
             {
-                path = System.Environment.ExpandEnvironmentVariables(new string(buffer.AsSpan()));
+                path = System.Environment.ExpandEnvironmentVariables(new string(cs));
                 using var ptr = PInvoke.LoadLibrary(path);
                 if (ptr.IsInvalid)
                 {
-                    var str = new string(buffer.AsSpan());
+                    var str = new string(cs);
                     return str;
                 }
                 else
                 {
-                    var aaa = PInvoke.LoadString(ptr, (uint)index, buffer, 1024);
-                    var str = new string(buffer.AsSpan());
+                    var aaa = PInvoke.LoadString(ptr, (uint)index, cs, 1024);
+                    var str = new string(cs);
                     return str;
                 }
             }

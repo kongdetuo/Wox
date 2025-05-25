@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using Wox.Plugin.Services;
 
 namespace Wox.Plugin
 {
@@ -83,12 +85,16 @@ namespace Wox.Plugin
         /// Get all loaded plugins 
         /// </summary>
         /// <returns></returns>
-        List<PluginProxy> GetAllPlugins();
+        List<PluginMetadata> GetAllPlugins();
 
         /// <summary>
         /// Fired after global keyboard events
         /// if you want to hook something like Ctrl+R, you should use this event
         /// </summary>
         event WoxGlobalKeyboardEventHandler GlobalKeyboardEvent;
+
+        IClipboardService Clipboard { get; }
+
+        IIconHelper IconHelper { get; }
     }
 }

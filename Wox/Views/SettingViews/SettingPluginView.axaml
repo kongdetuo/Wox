@@ -1,0 +1,32 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:wox="using:Wox"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Wox.Views.SettingViews.SettingPluginView">
+	<Grid VerticalAlignment="Stretch" HorizontalAlignment="Stretch" >
+
+
+		<!--<TextBlock DockPanel.Dock="Top" Margin="10">
+                        <Hyperlink NavigateUri="{Binding Plugin, Mode=OneWay}" RequestNavigate="OnRequestNavigate">
+                            <Run Text="{DynamicResource browserMorePlugins}" />
+                        </Hyperlink>
+                </TextBlock>-->
+
+		<ListBox SelectedIndex="0" SelectedItem="{Binding SelectedPlugin}"
+				 ItemsSource="{Binding PluginViewModels}"
+				 BorderThickness="0"
+				 HorizontalAlignment="Stretch"
+                        
+                        >
+
+			<ListBox.ItemTemplate>
+				<DataTemplate>
+					<wox:PluginView/>
+				</DataTemplate>
+			</ListBox.ItemTemplate>
+		</ListBox>
+	</Grid>
+
+</UserControl>

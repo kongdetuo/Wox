@@ -5,7 +5,6 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using Newtonsoft.Json;
 using NLog;
 using Wox.Infrastructure.Exception;
@@ -18,7 +17,7 @@ namespace Wox.Core.Plugin
     /// Represent the plugin that using JsonPRC
     /// every JsonRPC plugin should has its own plugin instance
     /// </summary>
-    internal abstract class JsonRPCPlugin : IAsyncPlugin, IAsyncContextMenu
+    internal abstract class JsonRPCPlugin : IAsyncPlugin/*, IAsyncContextMenu*/
     {
         protected PluginInitContext context;
         public const string JsonRPC = "JsonRPC";
@@ -34,7 +33,7 @@ namespace Wox.Core.Plugin
 
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        public async Task<List<Result>> QueryAsync(Query query, CancellationToken token)
+        public async Task<List<IResult>> QueryAsync(Query query, CancellationToken token)
         {
             string output = await ExecuteQuery(query);
             try
@@ -48,7 +47,7 @@ namespace Wox.Core.Plugin
             }
         }
 
-        public async Task<List<Result>> LoadContextMenusAsync(Result selectedResult)
+        public async Task<List<IResult>> LoadContextMenusAsync(Result selectedResult, ActionContext context)
         {
             string output = await ExecuteContextMenu(selectedResult);
             try
@@ -58,15 +57,15 @@ namespace Wox.Core.Plugin
             catch (Exception e)
             {
                 Logger.WoxError($"Exception on result <{selectedResult}>", e);
-                return null;
+                return [];
             }
         }
 
-        private List<Result> DeserializedResult(string output)
+        private List<IResult> DeserializedResult(string output)
         {
             if (!String.IsNullOrEmpty(output))
             {
-                List<Result> results = new List<Result>();
+                List<IResult> results = new List<IResult>();
 
                 JsonRPCQueryResponseModel queryResponseModel = JsonConvert.DeserializeObject<JsonRPCQueryResponseModel>(output);
                 if (queryResponseModel.Result == null) return null;
@@ -164,7 +163,7 @@ namespace Wox.Core.Plugin
                     if (!result.StartsWith("DEBUG:"))
                         return result;
 
-                    MessageBox.Show(new Form { TopMost = true }, result.Substring(6));
+                    //MessageBox.Show(new Form { TopMost = true }, result.Substring(6));
                     return string.Empty;
                 }
 

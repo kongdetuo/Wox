@@ -5,7 +5,6 @@
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
     <UseWindowsForms>true</UseWindowsForms>
 	  <Nullable>enable</Nullable>
-	  <UseWPF>true</UseWPF>
     <ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
 	  <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 	  <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
@@ -29,20 +28,12 @@
     <ProjectReference Include="..\Wox.Plugin\Wox.Plugin.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="FodyWeavers.xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" Version="11.0.999-cibuild0036076-beta" />
-    <PackageReference Include="Avalonia.Markup.Xaml.Loader" Version="11.0.999-cibuild0036076-beta" />
-    <PackageReference Include="Microsoft.Extensions.Primitives" Version="8.0.0" />
-    <PackageReference Include="PropertyChanged.Fody">
-      <Version>4.1.0</Version>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.0" />
+    <PackageReference Include="Avalonia.Markup.Xaml.Loader" Version="11.3.0" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="9.0.5" />
     <PackageReference Include="SharpZipLib">
       <Version>1.4.2</Version>
     </PackageReference>
-    <PackageReference Include="System.Reactive.Linq" Version="6.0.0" />
+    <PackageReference Include="System.Reactive.Linq" Version="6.0.1" />
   </ItemGroup>
 </Project>

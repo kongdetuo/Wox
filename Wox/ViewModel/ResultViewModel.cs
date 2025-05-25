@@ -1,11 +1,9 @@
-﻿using System;
-using System.IO;
-using System.Windows.Forms;
-using System.Windows.Media;
-using System.Windows.Threading;
-using Avalonia.Media.Imaging;
+﻿
+using Avalonia.Media;
 using NLog;
+using ReactiveUI;
 using Wox.Core.Plugin;
+using Wox.Core.Services;
 using Wox.Image;
 using Wox.Infrastructure;
 using Wox.Infrastructure.Logger;
@@ -14,18 +12,15 @@ using Wox.Plugin;
 
 namespace Wox.ViewModel
 {
-    public class ResultViewModel : BaseModel
+    public class ResultViewModel : ReactiveUI.ReactiveObject
     {
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        private IImage image;
 
-        public ResultViewModel(Result result, Core.Services.PluginQueryResult? rs = null)
+        public ResultViewModel(ResultWrapper result, Core.Services.PluginQueryResult? rs = null)
         {
             Result = result;
-            Image = new Lazy<Bitmap?>(() =>
-            {
-                return SetImage(result);
-            });
-
+ 
             if (rs != null)
             {
                 this.Query = rs.Query;
@@ -39,44 +34,60 @@ namespace Wox.ViewModel
 
         public int Score { get; init; }
 
-        private Bitmap? SetImage(Result result)
+        private void LoadImage()
         {
-            if (result.IcoPath == null && this.PluginMetadata is null)
+            var context = new ImageLoadContext()
             {
-                return null;
-            }
+                WoxDirectory = Constant.ProgramDirectory,
+                PluginDirectory = this.Result.Plugin?.Metadata?.PluginDirectory
+            };
 
-            string? imagePath = result.IcoPath;
-
-            var plugin = PluginManager.GetPluginForId(PluginMetadata?.ID);
-            var pluginDirectory = plugin?.Metadata?.PluginDirectory;
-            try
+            if(this.Result.Result is Plugin.Result r && !string.IsNullOrEmpty(r.IcoPath))
             {
-                // will get here either when icoPath has value\icon delegate is null\when had exception in delegate
-                return ImageLoader.Load(imagePath, UpdateImageCallback, result.Title.Text, PluginId, pluginDirectory);
-            }
-            catch (Exception e)
+                this.Image =(IImage) App.API.IconHelper.FromImage(r.IcoPath).Load(context);
+            }else if(this.Result.Result.IconLoader != null)
             {
-                e.Data.Add(nameof(result.Title), result.Title);
-                e.Data.Add(nameof(PluginId), PluginId);
-                e.Data.Add(nameof(result.IcoPath), result.IcoPath);
-                Logger.WoxError($"Cannot read image {result.IcoPath}", e);
-                return ImageLoader.GetErrorImage();
+                this.Color = Colors.Transparent;
+                if (this.Result.Result.IconLoader is IconHelper.ColorIconLoader c)
+                {
+                    this.Color = (Color)c.Load(null!);
+                }
+                else
+                {
+                    this.Image = (IImage)this.Result.Result.IconLoader?.Load(context);
+                }
             }
         }
 
-        public void UpdateImageCallback(Bitmap image)
-        {
-            Image = new Lazy<Bitmap?>(() => image);
-            OnPropertyChanged(nameof(Image));
-        }
 
         // directly binding will cause unnecessory image load
         // only binding get will cause load twice or more
         // so use lazy binding
-        public Lazy<Bitmap?> Image { get; set; }
 
-        public Result Result { get; set; }
+        private bool loaded = false;
+
+        public IImage Image
+        {
+            get
+            {
+                if (!loaded)
+                {
+                    loaded = true;
+                    LoadImage();
+                }
+
+                return image;
+            }
+            set
+            {
+                image = value;
+                this.RaisePropertyChanged(nameof(Image));
+            }
+        }
+
+        public Color Color { get; set => this.RaiseAndSetIfChanged(ref field, value); } = Colors.Transparent;
+
+        public ResultWrapper Result { get; set; }
 
         public PluginMetadata? PluginMetadata { get; set; }
 

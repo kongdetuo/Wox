@@ -8,7 +8,7 @@ namespace Wox.Plugin.PluginIndicator
     {
         private PluginInitContext context = null!;
 
-        public List<Result> Query(Query query)
+        public List<IResult> Query(Query query)
         {
             var results = from plugin in PluginManager.AllPlugins
                           where plugin.Metadata.Disabled == false
@@ -26,7 +26,7 @@ namespace Wox.Plugin.PluginIndicator
                                   return false;
                               }
                           };
-            return results.ToList();
+            return results.OfType<IResult>().ToList();
         }
 
         public void Init(PluginInitContext context)

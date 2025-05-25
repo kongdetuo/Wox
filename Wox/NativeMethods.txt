@@ -1,0 +1,10 @@
+﻿LoadLibraryEx
+LoadImage
+DestroyIcon
+DeleteObject
+EnumResourceNamesW
+
+IShellItem2
+IShellItemImageFactory
+SHParseDisplayName
+SHCreateItemFromParsingName

@@ -1,14 +1,75 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 
 namespace Wox.Plugin
 {
-    public class Result : IEquatable<Result>
+    public interface IResult
+    {
+        public string Title { get; }
+
+        public string? SubTitle { get; }
+
+        public int Score { get; }
+
+        public virtual List<IResult> LoadContextMenu(ActionContext context)
+        {
+            return new List<IResult>();
+        }
+
+        public IconLoader? IconLoader { get; }
+
+        public Task<bool> InvokeAsync(ActionContext context);
+    }
+
+    public class ImageLoadContext
+    {
+        public string WoxDirectory { get; set; } = "";
+
+        public string? PluginDirectory { get; set; }
+
+    }
+
+    public abstract class IconLoader
+    {
+        public abstract object? Load(ImageLoadContext context);
+    }
+
+    public class Result1 : IResult
+    {
+        public required string Title { get; init; }
+
+        public string? SubTitle { get; init; }
+
+        public int Score { get; init; }
+
+        public IconLoader? IconLoader { get; init; }
+
+
+        /// <summary>
+        /// return true to hide wox after select result
+        /// </summary>
+        public Func<ActionContext, bool>? Action { get; init; }
+
+        public Func<ActionContext, Task<bool>>? AsyncAction { get; init; }
+
+
+        public async Task<bool> InvokeAsync(ActionContext context)
+        {
+            if (AsyncAction != null)
+            {
+                await AsyncAction.Invoke(context);
+            }
+            else if (Action != null)
+            {
+                return Action.Invoke(context);
+            }
+            return false;
+        }
+    }
+
+    public class Result : IEquatable<Result>, IResult
     {
         public HighlightText Title { get; set; } = HighlightText.Empty;
 
@@ -27,7 +88,7 @@ namespace Wox.Plugin
         /// </summary>
         public Func<ActionContext, bool>? Action { get; set; }
 
-        public Func<ActionContext, ValueTask<bool>>? AsyncAction { get; set; }
+        public Func<ActionContext, Task<bool>>? AsyncAction { get; set; }
 
         public int Score { get; set; }
 
@@ -58,6 +119,22 @@ namespace Wox.Plugin
             return equality;
         }
 
+
+        public async Task<bool> InvokeAsync(ActionContext context)
+        {
+            if (this.Action != null)
+            {
+                return this.Action(context);
+            }
+            else if (this.AsyncAction != null)
+            {
+                return await this.AsyncAction(context);
+            }else
+            {
+                return false;
+            }
+        }
+
         public Result()
         { }
 
@@ -65,6 +142,19 @@ namespace Wox.Plugin
         /// Additional data associate with this result
         /// </summary>
         public object? ContextData { get; set; }
+
+        string IResult.Title => this.Title.Text;
+
+        string? IResult.SubTitle => this.SubTitle.Text;
+
+        IconLoader icon;
+        public IconLoader IconLoader
+        {
+            get
+            {
+                return null;
+            }
+        }
     }
 
     public class HighlightText
@@ -124,7 +214,7 @@ namespace Wox.Plugin
             }
         }
 
-         
+
 
         private static readonly List<int> EmptyHighlightData = new(0);
 

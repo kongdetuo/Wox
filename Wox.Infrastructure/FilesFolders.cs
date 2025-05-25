@@ -2,7 +2,6 @@
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Windows;
 using Wox.Infrastructure.Logger;
 
 namespace Wox.Infrastructure
@@ -15,7 +14,6 @@ namespace Wox.Infrastructure
         {
             // Get the subdirectories for the specified directory.
             DirectoryInfo dir = new DirectoryInfo(sourcePath);
-
             if (!dir.Exists)
             {
                 throw new DirectoryNotFoundException(
@@ -51,7 +49,7 @@ namespace Wox.Infrastructure
             {
                 string message = $"Copying path {targetPath} has failed, it will now be deleted for consistency";
                 Logger.WoxError(message, e);
-                MessageBox.Show(message);
+                //MessageBox.Show(message);
                 RemoveFolderIfExists(targetPath);
             }
 
@@ -76,7 +74,7 @@ namespace Wox.Infrastructure
             {
                 string message = $"Unable to verify folders and files between {fromPath} and {toPath}";
                 Logger.WoxError(message, e);
-                MessageBox.Show(message);
+                //MessageBox.Show(message);
                 return false;
             }
 
@@ -93,7 +91,7 @@ namespace Wox.Infrastructure
             {
                 string message = $"Not able to delete folder { (object)path}, please go to the location and manually delete it";
                 Logger.WoxError(message, e);
-                MessageBox.Show(message);
+                //MessageBox.Show(message);
             }
         }
 
@@ -118,7 +116,7 @@ namespace Wox.Infrastructure
             {
                 string message = $"Unable to open location { (object)location}, please check if it exists";
                 Logger.WoxError(message, e);
-                MessageBox.Show(message);
+                //MessageBox.Show(message);
             }
         }
     }

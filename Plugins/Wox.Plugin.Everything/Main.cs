@@ -7,8 +7,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
-using Avalonia.Controls;
 using NLog;
 using Wox.Infrastructure;
 using Wox.Infrastructure.Logger;
@@ -17,7 +15,7 @@ using Wox.Plugin.Everything.Everything;
 
 namespace Wox.Plugin.Everything
 {
-    public class Main : IAsyncPlugin, ISettingProvider, IPluginI18n, IContextMenu, ISavable
+    public class Main : IAsyncPlugin, IPluginI18n
     {
         public const string DLL = "Everything.dll";
         private readonly EverythingApi _api = new();
@@ -28,15 +26,10 @@ namespace Wox.Plugin.Everything
         private PluginJsonStorage<Settings> _storage = null!;
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        public void Save()
-        {
-            _storage.Save();
-        }
-
-        public async Task<List<Result>> QueryAsync(Query query, CancellationToken token)
+        public async Task<List<IResult>> QueryAsync(Query query, CancellationToken token)
         {
             await Task.Yield();
-            var results = new List<Result>();
+            var results = new List<IResult>();
             if (!string.IsNullOrEmpty(query.Search))
             {
                 var keyword = query.Search;
@@ -72,9 +65,9 @@ namespace Wox.Plugin.Everything
                     {
                         Title = _context.API.GetTranslation("wox_plugin_everything_query_error"),
                         SubTitle = e.Message,
-                        Action = _ =>
+                        AsyncAction = async _ =>
                         {
-                            Clipboard.SetText(e.Message + "\r\n" + e.StackTrace);
+                            await _context.API.Clipboard.SetTextAsync(e.Message + "\r\n" + e.StackTrace);
                             _context.API.ShowMsg(_context.API.GetTranslation("wox_plugin_everything_copied"), "", string.Empty);
                             return false;
                         },
@@ -86,7 +79,7 @@ namespace Wox.Plugin.Everything
             return results;
         }
 
-        private Result? CreateResult(string keyword, SearchResult searchResult, int index)
+        private IResult? CreateResult(string keyword, SearchResult searchResult, int index)
         {
             var path = searchResult.FullPath;
 
@@ -96,45 +89,20 @@ namespace Wox.Plugin.Everything
             if (workingDir == null)
                 return null;
 
-            var r = new Result
+            var r = new EverythingResult
             {
+                _settings = _settings,
                 Score = _settings.MaxSearchCount - index,
-                Title = new(searchResult.FileName, searchResult.FileNameHightData),
-                SubTitle = new(searchResult.FullPath, searchResult.FullPathHightData),
-                IcoPath = searchResult.FullPath,
-                Action = File.Exists(path) ? Actions.OpenFile(path, workingDir) : Actions.OpenDirectory(path),
+                FilePath = searchResult.FullPath,
+                workingDir = workingDir,
+                Title = searchResult.FileName,
+                SubTitle = searchResult.FullPath,
                 ContextData = searchResult,
+                IconLoader = _context.API.IconHelper.FromAssociatedIcon(searchResult.FullPath)
             };
             return r;
         }
 
-        private List<ContextMenu> GetDefaultContextMenu()
-        {
-            List<ContextMenu> defaultContextMenus = new();
-            ContextMenu openFolderContextMenu = new()
-            {
-                Name = _context.API.GetTranslation("wox_plugin_everything_open_containing_folder"),
-                Command = "explorer.exe",
-                Argument = " /select,\"{path}\"",
-                ImagePath = "Images\\folder.png"
-            };
-
-            defaultContextMenus.Add(openFolderContextMenu);
-
-            string editorPath = string.IsNullOrEmpty(_settings.EditorPath) ? "notepad.exe" : _settings.EditorPath;
-
-            ContextMenu openWithEditorContextMenu = new()
-            {
-                Name = string.Format(_context.API.GetTranslation("wox_plugin_everything_open_with_editor"), Path.GetFileNameWithoutExtension(editorPath)),
-                Command = editorPath,
-                Argument = " \"{path}\"",
-                ImagePath = editorPath
-            };
-
-            defaultContextMenus.Add(openWithEditorContextMenu);
-
-            return defaultContextMenus;
-        }
 
         public Task InitAsync(PluginInitContext context)
         {
@@ -178,13 +146,76 @@ namespace Wox.Plugin.Everything
             return _context.API.GetTranslation("wox_plugin_everything_plugin_description");
         }
 
-        public List<Result> LoadContextMenus(Result selectedResult)
+        public IEnumerable<PluginOption> Options => [
+                new CheckBoxOption(){
+                    Key = "wox_plugin_everything_use_location_as_working_dir",
+                    Value = _settings.UseLocationAsWorkingDir,
+                },
+                //new CheckBoxOption(){
+                //    Key = "",
+                //    Value = _settings.MaxSearchCount,
+                //}
+            ];
+
+        public void SaveOptions(IEnumerable<PluginOption> options)
         {
-            List<Result> contextMenus = new();
-            if (selectedResult.ContextData is not SearchResult record) return contextMenus;
+            _settings.UseLocationAsWorkingDir = options.FirstCheckBoxValue("wox_plugin_everything_use_location_as_working_dir");
+            _storage.Save();
+        }
+    }
+
+    class EverythingResult : IResult
+    {
+        public string Title { get; init; }
+
+        public string? SubTitle { get; init; }
+
+        public int Score { get; init; }
+
+        public Object ContextData { get; init; }
+
+        internal Settings _settings { get; set; }
+
+        public String FilePath { get; set; }
+        public String workingDir { get; set; }
+
+        private List<ContextMenu> GetDefaultContextMenu(ActionContext context)
+        {
+            List<ContextMenu> defaultContextMenus = new();
+            ContextMenu openFolderContextMenu = new()
+            {
+                Name = context.API.GetTranslation("wox_plugin_everything_open_containing_folder"),
+                Command = "explorer.exe",
+                Argument = " /select,\"{path}\"",
+                ImagePath = "Images\\folder.png"
+            };
+
+            defaultContextMenus.Add(openFolderContextMenu);
+
+            string editorPath = string.IsNullOrEmpty(_settings.EditorPath) ? "notepad.exe" : _settings.EditorPath;
+
+            ContextMenu openWithEditorContextMenu = new()
+            {
+                Name = string.Format(context.API.GetTranslation("wox_plugin_everything_open_with_editor"),System.IO. Path.GetFileNameWithoutExtension(editorPath)),
+                Command = editorPath,
+                Argument = " \"{path}\"",
+                ImagePath = editorPath
+            };
+
+            defaultContextMenus.Add(openWithEditorContextMenu);
+
+            return defaultContextMenus;
+        }
+
+
+        public List<IResult> LoadContextMenu(ActionContext context)
+        {
+            List<IResult> contextMenus = new();
+            if (ContextData is not SearchResult record) 
+                return contextMenus;
 
             List<ContextMenu> availableContextMenus = new();
-            availableContextMenus.AddRange(GetDefaultContextMenu());
+            availableContextMenus.AddRange(GetDefaultContextMenu(context));
             availableContextMenus.AddRange(_settings.ContextMenus);
 
             if (record.Type == ResultType.File)
@@ -204,7 +235,7 @@ namespace Wox.Plugin.Everything
                             }
                             catch
                             {
-                                _context.API.ShowMsg(string.Format(_context.API.GetTranslation("wox_plugin_everything_canot_start"), record.FullPath), string.Empty, string.Empty);
+                                context.API.ShowMsg(string.Format(context.API.GetTranslation("wox_plugin_everything_canot_start"), record.FullPath), string.Empty, string.Empty);
                                 return false;
                             }
                             return true;
@@ -217,22 +248,22 @@ namespace Wox.Plugin.Everything
             var icoPath = (record.Type == ResultType.File) ? "Images\\file.png" : "Images\\folder.png";
             contextMenus.Add(new Result
             {
-                Title = _context.API.GetTranslation("wox_plugin_everything_copy_path"),
-                Action = Actions.CopyTextToClipboard(record.FullPath),
+                Title = context.API.GetTranslation("wox_plugin_everything_copy_path"),
+                AsyncAction = Actions.CopyTextToClipboard(record.FullPath),
                 IcoPath = icoPath
             });
 
             contextMenus.Add(new Result
             {
-                Title = _context.API.GetTranslation("wox_plugin_everything_copy"),
-                Action = Actions.CopyFilesToClipboard(record.FullPath),
+                Title = context.API.GetTranslation("wox_plugin_everything_copy"),
+                AsyncAction = Actions.CopyFilesToClipboard(record.FullPath),
                 IcoPath = icoPath
             });
 
             if (record.Type == ResultType.File || record.Type == ResultType.Folder)
                 contextMenus.Add(new Result
                 {
-                    Title = _context.API.GetTranslation("wox_plugin_everything_delete"),
+                    Title = context.API.GetTranslation("wox_plugin_everything_delete"),
                     Action = (context) =>
                     {
                         try
@@ -244,7 +275,7 @@ namespace Wox.Plugin.Everything
                         }
                         catch
                         {
-                            _context.API.ShowMsg(string.Format(_context.API.GetTranslation("wox_plugin_everything_canot_delete"), record.FullPath), string.Empty, string.Empty);
+                            context.API.ShowMsg(string.Format(context.API.GetTranslation("wox_plugin_everything_canot_delete"), record.FullPath), string.Empty, string.Empty);
                             return false;
                         }
 
@@ -255,10 +286,15 @@ namespace Wox.Plugin.Everything
 
             return contextMenus;
         }
-
-        public Control CreateSettingPanel()
+        public Task<bool> InvokeAsync(ActionContext context)
         {
-            return new EverythingSettings(_settings);
+            if (File.Exists(FilePath))
+                Actions.OpenFile(FilePath, workingDir)(context);
+            else
+                Actions.OpenDirectory(FilePath)(context);
+            return Task.FromResult(true);
         }
+
+        public IconLoader IconLoader { get; set; }
     }
 }

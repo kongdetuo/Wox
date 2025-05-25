@@ -4,8 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Threading;
+using Avalonia.Threading;
 using NLog;
 using Wox.Infrastructure;
 using Wox.Infrastructure.Exception;
@@ -27,7 +26,7 @@ namespace Wox.Helper
         public static void UnhandledExceptionHandleTask(Task t)
         {
             string id = SendException(t.Exception);
-            Application.Current.Dispatcher.Invoke(() =>
+            Dispatcher.UIThread.Invoke(() =>
             {
                 Report(t.Exception, id.ToString());
             });

@@ -1,18 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using Wox.Infrastructure;
 using Wox.Infrastructure.Logger;
-using Rect = System.Windows.Rect;
 using NLog;
-using System.Collections.Concurrent;
 using Microsoft.Win32;
 using System.Xml;
 //using Windows.Management.Deployment;
@@ -288,7 +283,7 @@ namespace Wox.Plugin.Program.Programs
             public string LogoPath { get; set; }
             public UWP Package { get; set; }
 
-            public Result Result(string query, IPublicAPI api)
+            public IResult Result(string query, IPublicAPI api)
             {
                 var result = new Result
                 {
@@ -297,7 +292,7 @@ namespace Wox.Plugin.Program.Programs
                     ContextData = this,
                     Action = e =>
                     {
-                        Launch(api);
+                        Launch(e.API);
                         return true;
                     }
                 };
@@ -346,16 +341,20 @@ namespace Wox.Plugin.Program.Programs
                 return contextMenus;
             }
 
-            private async void Launch(IPublicAPI api)
+            private void Launch(IPublicAPI api)
             {
                 var appManager = new ApplicationActivationManager();
                 const string noArgs = "";
                 const ACTIVATEOPTIONS noFlags = ACTIVATEOPTIONS.AO_NONE;
-                await Task.Run(() =>
+                Task.Run(() =>
                 {
                     try
                     {
                         appManager.ActivateApplication(UserModelId, noArgs, noFlags, out uint unusedPid);
+                    }
+                    catch (COMException ex ) when (ex.ErrorCode == -2147023673)
+                    {
+                        // The operation was canceled by the user.
                     }
                     catch (Exception)
                     {

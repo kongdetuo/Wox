@@ -3,10 +3,12 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using NLog;
 using Wox.Infrastructure;
+using Wox.Infrastructure.Hotkey;
 using Wox.Infrastructure.Logger;
 using Wox.Infrastructure.Storage;
 using Wox.Infrastructure.UserSettings;
@@ -19,16 +21,27 @@ namespace Wox.Core.Plugin
     /// </summary>
     public static class PluginManager
     {
-        private static Dictionary<string, PluginProxy> PluginDic = null!;
-        public static IReadOnlyList<PluginProxy> AllPlugins { get => allPlugins; }
+        private static Dictionary<string, WoxPlugin> PluginDic = null!;
+        public static IReadOnlyList<WoxPlugin> AllPlugins { get => allPlugins; }
 
         public static IPublicAPI API { private set; get; } = null!;
 
         private static PluginsSettings Settings { get; set; } = null!;
-        private static List<PluginProxy> allPlugins = null!;
+        private static List<WoxPlugin> allPlugins = null!;
         private static readonly string[] Directories = { Constant.PreinstalledDirectory, DataLocation.PluginsDirectory };
 
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+        private static HashSet<Keyword>? allKeys;
+        public static HashSet<Keyword> AllKeys => allKeys ??= AllPlugins
+                .Where(p => !p.Metadata.Disabled)
+                .SelectMany(p => p.Metadata.ActionKeywords)
+                .Distinct()
+                .ToHashSet();
+
+        public static IEnumerable<WoxPlugin> ActivePlugins =>
+            AllPlugins
+                .Where(p => !p.Metadata.Disabled);
 
         private static void ValidateUserDirectory()
         {
@@ -52,20 +65,12 @@ namespace Wox.Core.Plugin
             }
         }
 
-        public static void Save()
-        {
-            foreach (var plugin in AllPlugins)
-            {
-                var savable = plugin.Plugin as ISavable;
-                savable?.Save();
-            }
-        }
 
         public static void ReloadData()
         {
             foreach (var plugin in AllPlugins)
             {
-                var reloadablePlugin = plugin.Plugin as IReloadable;
+                var reloadablePlugin = plugin.Instance as IReloadable;
                 reloadablePlugin?.ReloadData();
             }
         }
@@ -99,9 +104,12 @@ namespace Wox.Core.Plugin
         public static async Task InitializePluginsAsync(IPublicAPI api)
         {
             API = api;
-            var failedPlugins = new ConcurrentQueue<PluginProxy>();
-
-            await Task.WhenAll(AllPlugins.AsParallel().Select(async pair =>
+            var failedPlugins = new ConcurrentQueue<WoxPlugin>();
+            foreach (var item in allPlugins)
+            {
+                item.Icon = API.IconHelper.FromImage(item.Metadata.IcoPath).Load(new ImageLoadContext());
+            }
+            await Task.WhenAll(AllPlugins.Select(async pair =>
             {
                 try
                 {
@@ -139,7 +147,7 @@ namespace Wox.Core.Plugin
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public static PluginProxy? GetPluginForId(string? id)
+        public static WoxPlugin? GetPluginForId(string? id)
         {
             if (id != null && PluginDic.TryGetValue(id, out var plugin))
             {
@@ -148,44 +156,9 @@ namespace Wox.Core.Plugin
             return null;
         }
 
-        public static IEnumerable<PluginProxy> GetPluginsForInterface<T>() where T : IFeatures
+        public static IEnumerable<WoxPlugin> GetPluginsForInterface<T>() where T : IFeatures
         {
-            return AllPlugins.Where(p => p.Plugin is T);
-        }
-
-        public static async Task<List<Result>> GetContextMenusForPlugin(string pluginid, Result result)
-        {
-            var pluginPair = GetPluginForId(pluginid);
-            if (pluginPair != null)
-            {
-                var metadata = pluginPair.Metadata;
-
-                try
-                {
-                    List<Result> results = new();
-                    if (pluginPair.Plugin is IAsyncContextMenu asyncContext)
-                    {
-                        results = await asyncContext.LoadContextMenusAsync(result) ?? new();
-                    }
-                    else if (pluginPair.Plugin is IContextMenu context)
-                    {
-                        results = context.LoadContextMenus(result) ?? new();
-                    }
-
-
-                    return results;
-                }
-                catch (Exception e)
-                {
-                    Logger.WoxError($"Can't load context menus for plugin <{metadata.Name}>", e);
-                    return new List<Result>();
-                }
-            }
-            else
-            {
-                return new List<Result>();
-            }
-
+            return AllPlugins.Where(p => p.Instance is T);
         }
 
         /// <summary>
@@ -243,18 +216,10 @@ namespace Wox.Core.Plugin
                 AddActionKeyword(id, newActionKeyword);
             }
         }
-    }
 
-    public class HistoryPlugin : IPlugin
-    {
-        public void Init(PluginInitContext context)
+        public static bool IsEnabled(WoxPlugin plugin)
         {
-            throw new NotImplementedException();
-        }
-
-        public List<Result> Query(Query query)
-        {
-            throw new NotImplementedException();
+            return plugin.Metadata.Disabled == false;
         }
     }
 }

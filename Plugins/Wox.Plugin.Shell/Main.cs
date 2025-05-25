@@ -12,13 +12,11 @@ using Wox.Infrastructure.Hotkey;
 using Wox.Infrastructure.Logger;
 using Wox.Infrastructure.Storage;
 using Wox.Infrastructure;
-using Application = System.Windows.Application;
 using Keys = System.Windows.Forms.Keys;
-using Avalonia.Controls;
 
 namespace Wox.Plugin.Shell
 {
-    public class Main : IPlugin, ISettingProvider, IPluginI18n, IContextMenu, ISavable
+    public class Main : IPlugin, IPluginI18n /*IContextMenu,*/
     {
         private const string Image = "Images/shell.png";
         private PluginInitContext _context;
@@ -27,7 +25,7 @@ namespace Wox.Plugin.Shell
 
         private readonly Settings _settings;
         private readonly PluginJsonStorage<Settings> _storage;
-        
+
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
         public Main()
@@ -42,9 +40,9 @@ namespace Wox.Plugin.Shell
         }
 
 
-        public List<Result> Query(Query query)
+        public List<IResult> Query(Query query)
         {
-            List<Result> results = new List<Result>();
+            List<IResult> results = new List<IResult>();
             string cmd = query.Search;
             if (string.IsNullOrEmpty(cmd))
             {
@@ -79,8 +77,8 @@ namespace Wox.Plugin.Shell
                         var autocomplete = Directory.GetFileSystemEntries(basedir).
                             Select(o => dir + Path.GetFileName(o)).
                             Where(o => o.StartsWith(cmd, StringComparison.OrdinalIgnoreCase) &&
-                                       !results.Any(p => o.Equals(p.Title.Text, StringComparison.OrdinalIgnoreCase)) &&
-                                       !results.Any(p => o.Equals(p.Title.Text, StringComparison.OrdinalIgnoreCase))).ToList();
+                                       !results.Any(p => o.Equals(p.Title, StringComparison.OrdinalIgnoreCase)) &&
+                                       !results.Any(p => o.Equals(p.Title, StringComparison.OrdinalIgnoreCase))).ToList();
                         autocomplete.Sort();
                         results.AddRange(autocomplete.ConvertAll(m => new Result
                         {
@@ -148,9 +146,9 @@ namespace Wox.Plugin.Shell
             return result;
         }
 
-        private List<Result> ResultsFromlHistory()
+        private List<IResult> ResultsFromlHistory()
         {
-            IEnumerable<Result> history = _settings.Count.OrderByDescending(o => o.Value)
+            IEnumerable<IResult> history = _settings.Count.OrderByDescending(o => o.Value)
                 .Select(m => new Result
                 {
                     Title = m.Key,
@@ -176,7 +174,7 @@ namespace Wox.Plugin.Shell
             if (_settings.Shell == Shell.Cmd)
             {
                 var arguments = _settings.LeaveShellOpen ? $"/k \"{command}\"" : $"/c \"{command}\" & pause";
-                
+
                 info = ShellCommand.SetProcessStartInfo("cmd.exe", workingDirectory, arguments, runAsAdministratorArg);
             }
             else if (_settings.Shell == Shell.Powershell)
@@ -244,11 +242,11 @@ namespace Wox.Plugin.Shell
             return info;
         }
 
-        private void Execute(Func<ProcessStartInfo, Process> startProcess,ProcessStartInfo info)
+        private void Execute(Func<ProcessStartInfo, Process> startProcess, ProcessStartInfo info)
         {
             try
             {
-                startProcess(info);                
+                startProcess(info);
             }
             catch (FileNotFoundException e)
             {
@@ -256,7 +254,7 @@ namespace Wox.Plugin.Shell
                 var message = $"Command not found: {e.Message}";
                 _context.API.ShowMsg(name, message);
             }
-            catch(Win32Exception e)
+            catch (Win32Exception e)
             {
                 var name = "Plugin: Shell";
                 var message = $"Error running the command: {e.Message}";
@@ -326,11 +324,6 @@ namespace Wox.Plugin.Shell
             _context.API.ChangeQuery(query, true);
         }
 
-        public Control CreateSettingPanel()
-        {
-            return new CMDSetting(_settings);
-        }
-
         public string GetTranslatedPluginTitle()
         {
             return _context.API.GetTranslation("wox_plugin_cmd_plugin_name");
@@ -341,7 +334,7 @@ namespace Wox.Plugin.Shell
             return _context.API.GetTranslation("wox_plugin_cmd_plugin_description");
         }
 
-        public List<Result> LoadContextMenus(Result selectedResult)
+        public List<Result> LoadContextMenus(Result selectedResult, ActionContext context)
         {
             var resultlist = new List<Result>
             {
@@ -368,6 +361,36 @@ namespace Wox.Plugin.Shell
             };
 
             return resultlist;
+        }
+
+        public IEnumerable<PluginOption> Options => [
+                new CheckBoxOption(){
+                    Key = "wox_plugin_cmd_relace_winr",
+                    Value = _settings.ReplaceWinR
+                },
+                new CheckBoxOption(){
+                    Key = "wox_plugin_cmd_leave_cmd_open",
+                    Value = _settings.LeaveShellOpen,
+                    WhenValueChanged = p => _settings.LeaveShellOpen = p
+                },
+                new CheckBoxOption(){
+                    Key = "wox_plugin_cmd_always_run_as_administrator",
+                    Value = _settings.RunAsAdministrator
+                },
+                new ComboBoxOption(){
+                    Key = "wox_plugin_cmd_execute_through_shell",
+                    Items = ComboBoxOption.ItemsFromEnum<Shell>(),
+                    Value = _settings.Shell
+                }
+            ];
+
+        public void SaveOptions(IEnumerable<PluginOption> options)
+        {
+            _settings.ReplaceWinR = options.FirstCheckBoxValue("wox_plugin_cmd_relace_winr");
+            _settings.LeaveShellOpen = options.FirstCheckBoxValue("wox_plugin_cmd_leave_cmd_open");
+            _settings.RunAsAdministrator = options.FirstCheckBoxValue("wox_plugin_cmd_always_run_as_administrator");
+            _settings.Shell = (Shell)options.ComboboxValue("wox_plugin_cmd_execute_through_shell");
+            Save();
         }
     }
 }

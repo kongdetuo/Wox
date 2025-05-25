@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Text;
-using System.Threading;
-using System.Windows;
-using System.Xml;
-using Microsoft.Win32;
 using Wox.Infrastructure.UserSettings;
 
 namespace Wox.Infrastructure.Exception

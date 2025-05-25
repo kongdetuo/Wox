@@ -1,25 +1,17 @@
 ﻿using System;
-using System.ComponentModel;
-using NLog;
-using Wox.Core.Resource;
 using Wox.Infrastructure.UserSettings;
 using Wox.ViewModel;
-using NotifyIcon = System.Windows.Forms.NotifyIcon;
 using System.Reactive.Linq;
 using Wox.Themes;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.ReactiveUI;
-using System.Windows;
 using ReactiveUI;
-using System.Windows.Input;
-using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Platform;
 using System.Reactive;
 
 namespace Wox
 {
-    public partial class MainWindow : ReactiveWindow<MainViewModel>
+    [ReactiveUI.SourceGenerators.IViewFor<MainViewModel>]
+    public partial class MainWindow : Window
     {
         //private readonly Storyboard _progressBarStoryboard = new();
         private Settings _settings = null!;
@@ -29,8 +21,12 @@ namespace Wox
         {
             DataContext = mainVM;
             ViewModel = mainVM;
+            this.TransparencyLevelHint = [WindowTransparencyLevel.Mica];
+            this.SystemDecorations = SystemDecorations.None;
 
-  
+            //this.ExtendClientAreaChromeHints = ExtendClientAreaChromeHints.NoChrome;
+            //this.ExtendClientAreaToDecorationsHint = true;
+
             ViewModel.WhenAnyValue(p => p.ShowMainWindow).Where(p=>p).Subscribe(p =>
             {
                 if (p)
@@ -156,6 +152,8 @@ namespace Wox
         {
             ThemeManager.Instance.SetBlurForWindow();
             QueryTextBox.Focus();
+
+
         }
 
         private void Window_Deactivated(object? sender, EventArgs e)
@@ -163,7 +161,7 @@ namespace Wox
             ThemeManager.Instance.DisableBlur();
             if (_settings.HideWhenDeactive)
             {
-                this.ViewModel!.ShowMainWindow = false;
+                //this.ViewModel!.ShowMainWindow = false;
             }
         }
 
@@ -198,5 +196,10 @@ namespace Wox
                 _settings.WindowTop = e.Point.Y;
             }
         }
+    }
+
+    public class MyTextbox : TextBox
+    {
+        
     }
 }

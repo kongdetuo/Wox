@@ -1,5 +1,3 @@
-using Avalonia.Controls;
-using NLog.LayoutRenderers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,7 +8,7 @@ using Wox.Infrastructure.Storage;
 
 namespace Wox.Plugin.Folder
 {
-    public class Main : IPlugin, ISettingProvider, IPluginI18n, ISavable, IContextMenu
+    public class Main : IPlugin, IPluginI18n
     {
         public const string FolderImagePath = "Images\\folder.png";
         public const string FileImagePath = "Images\\file.png";
@@ -24,22 +22,13 @@ namespace Wox.Plugin.Folder
 
         private Settings _settings=null!;
         private PluginJsonStorage<Settings> _storage=null!;
-        private IContextMenu _contextMenuLoader = null!;
+       private ContextMenuLoader _contextMenuLoader = null!;
 
         public Main()
         {
 
         }
 
-        public void Save()
-        {
-            _storage.Save();
-        }
-
-        public Control CreateSettingPanel()
-        {
-            return new FileSystemSettings(_context.API, _settings);
-        }
 
         public void Init(PluginInitContext context)
         {
@@ -50,9 +39,9 @@ namespace Wox.Plugin.Folder
             InitialDriverList();
         }
 
-        public List<Result> Query(Query query)
+        public List<IResult> Query(Query query)
         {
-            var results = GetUserFolderResults(query);
+            List<IResult> results = GetUserFolderResults(query);
 
             string search = query.Search.ToLower();
             if (!IsDriveOrSharedFolder(search))
@@ -61,10 +50,10 @@ namespace Wox.Plugin.Folder
             results.AddRange(QueryInternal_Directory_Exists(query));
 
             // todo why was this hack here?
-            foreach (var result in results)
-            {
-                result.Score += 10;
-            }
+            //foreach (var result in results)
+            //{
+            //    result.Score += 10;
+            //}
 
             return results;
         }
@@ -114,7 +103,7 @@ namespace Wox.Plugin.Folder
                     }
 
                     string changeTo = path.EndsWith("\\") ? path : path + "\\";
-                    _context.API.ChangeQuery(query.ActionKeyword is null
+                    _context.API.ChangeQuery(query.ActionKeyword.IsGlobal
                         ? changeTo
                         : query.ActionKeyword + " " + changeTo);
                     return false;
@@ -123,13 +112,15 @@ namespace Wox.Plugin.Folder
             };
         }
 
-        private List<Result> GetUserFolderResults(Query query)
+        private List<IResult> GetUserFolderResults(Query query)
         {
             string search = query.Search.ToLower();
             var userFolderLinks = _settings.FolderLinks.Where(
                 x => x.Nickname.StartsWith(search, StringComparison.OrdinalIgnoreCase));
             var results = userFolderLinks.Select(item =>
-                CreateFolderResult(item.Nickname, DefaultFolderSubtitleString, item.Path, query)).ToList();
+                CreateFolderResult(item.Nickname, DefaultFolderSubtitleString, item.Path, query))
+                .OfType<IResult>()
+                .ToList();
             return results;
         }
 
@@ -285,9 +276,25 @@ namespace Wox.Plugin.Folder
             return _context.API.GetTranslation("wox_plugin_folder_plugin_description");
         }
 
-        public List<Result> LoadContextMenus(Result selectedResult)
+        public List<Result> LoadContextMenus(Result selectedResult, ActionContext context)
         {
-            return _contextMenuLoader.LoadContextMenus(selectedResult);
+            return _contextMenuLoader.LoadContextMenus(selectedResult,context);
+        }
+
+        public IEnumerable<PluginOption> Options =>
+            // 这里要收藏文件夹
+            // 搞个文本框每行写一个好了
+            // 要不删掉这插件应该也挺好的，反正我用不到啊
+            [
+                //new TextOption(){
+                //    Key = "wox_plugin_folder_folder_path"
+                //}
+
+            ];
+
+        public void SaveOptions(IEnumerable<PluginOption> options)
+        {
+            _storage.Save();
         }
     }
 }

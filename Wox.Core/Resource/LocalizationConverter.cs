@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Avalonia.Data.Converters;
+using System;
 using System.ComponentModel;
 using System.Globalization;
 using System.Reflection;
-using System.Windows.Data;
 
 namespace Wox.Core
 {

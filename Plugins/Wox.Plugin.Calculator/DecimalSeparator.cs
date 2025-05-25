@@ -13,12 +13,12 @@ namespace Wox.Plugin.Caculator
     public enum DecimalSeparator
     {
         [LocalizedDescription("wox_plugin_calculator_decimal_seperator_use_system_locale")]
-        UseSystemLocale,
+        UseSystemLocale = 0,
         
         [LocalizedDescription("wox_plugin_calculator_decimal_seperator_dot")]
-        Dot, 
+        Dot = 1, 
         
         [LocalizedDescription("wox_plugin_calculator_decimal_seperator_comma")]
-        Comma
+        Comma = 2
     }
 }

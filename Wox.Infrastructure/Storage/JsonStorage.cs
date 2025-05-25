@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.IO;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NLog;
 using Wox.Infrastructure.Logger;
@@ -56,6 +57,11 @@ namespace Wox.Infrastructure.Storage
                 LoadDefault();
             }
             return _data.NonNull();
+        }
+
+        public Task<T> LoadAsync()
+        {
+            return Task.Run(Load);
         }
 
         private void Deserialize(string searlized)

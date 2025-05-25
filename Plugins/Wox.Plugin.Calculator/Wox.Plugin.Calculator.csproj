@@ -6,7 +6,6 @@
 		<AssemblyName>Wox.Plugin.Caculator</AssemblyName>
 		<SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
 		<Nullable>enable</Nullable>
-		<UseWPF>true</UseWPF>
 		<ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
@@ -58,7 +57,10 @@
 		</None>
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Mages" Version="2.0.1" />
+		<PackageReference Include="Mages" Version="3.0.0" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Views\" />
 	</ItemGroup>
 	<PropertyGroup>
 		<ApplicationIcon />

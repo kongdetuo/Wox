@@ -19,11 +19,13 @@
 		<ApplicationVersion>1.0.0.%2a</ApplicationVersion>
 		<UseApplicationTrust>false</UseApplicationTrust>
 		<BootstrapperEnabled>true</BootstrapperEnabled>
-		<UseWindowsForms>true</UseWindowsForms>
+		<UseWindowsForms>False</UseWindowsForms>
+		<UseWPF>False</UseWPF>
 		<Nullable>enable</Nullable>
 
 		<ImportWindowsDesktopTargets>true</ImportWindowsDesktopTargets>
 		<Platforms>AnyCPU;x64</Platforms>
+		<LangVersion>preview</LangVersion>
 	</PropertyGroup>
 	<PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
 		<OutputPath>..\Output\Debug\</OutputPath>
@@ -184,26 +186,35 @@
 		</None>
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Avalonia.Controls.DataGrid" Version="11.0.5" />
-		<PackageReference Include="Avalonia.Desktop" Version="11.0.999-cibuild0036076-beta" />
-		<PackageReference Include="Avalonia.ReactiveUI" Version="11.0.999-cibuild0036076-beta" />
-		<PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.999-cibuild0036076-beta" />
-		<PackageReference Include="Avalonia.Xaml.Behaviors" Version="11.0.5" />
-		<PackageReference Include="Avalonia.Xaml.Interactions" Version="11.0.5" />
+		<PackageReference Include="Avalonia.Controls.DataGrid" Version="11.3.0" />
+		<PackageReference Include="Avalonia.Desktop" Version="11.3.0" />
+		<PackageReference Include="Avalonia.Diagnostics" Version="11.3.0" />
+		<PackageReference Include="Avalonia.ReactiveUI" Version="11.3.0" />
+		<PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.0" />
 		<PackageReference Include="CommandLineParser">
 			<Version>2.9.1</Version>
 		</PackageReference>
-		<PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.77" />
+		<PackageReference Include="Microsoft-WindowsAPICodePack-Shell" Version="1.1.5" />
+		<PackageReference Include="Microsoft.Windows.CsWin32" Version="0.3.183">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
 		<PackageReference Include="NuGet.CommandLine">
-			<Version>6.8.0</Version>
+			<Version>6.14.0</Version>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
-		<PackageReference Include="NHotkey.Wpf" Version="2.1.1" />
-		<PackageReference Include="Ookii.Dialogs.Wpf" Version="5.0.1" />
-		<PackageReference Include="ReactiveUI.Fody" Version="19.5.1" />
+		<PackageReference Include="NHotkey.Wpf" Version="3.0.0" />
+		<PackageReference Include="ReactiveUI.SourceGenerators" Version="2.1.27">
+		  <PrivateAssets>all</PrivateAssets>
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Splat.Avalonia.DryIoc" Version="15.3.1" />
 		<PackageReference Include="System.Linq.Async" Version="6.0.1" />
-		<PackageReference Include="System.Reactive.Linq" Version="6.0.0" />
+		<PackageReference Include="System.Reactive.Linq" Version="6.0.1" />
+		<PackageReference Include="Vortice.Direct2D1" Version="3.6.2" />
+		<PackageReference Include="Xaml.Behaviors.Avalonia" Version="11.3.0.7" />
+		<PackageReference Include="Xaml.Behaviors.Interactions" Version="11.3.0.7" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -234,6 +245,10 @@
 	  <AvaloniaXaml Remove="Themes\Pink.axaml" />
 	  <AvaloniaXaml Remove="Themes\System Dark.axaml" />
 	  <AvaloniaXaml Remove="Themes\System Light.axaml" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <AdditionalFiles Include="NativeMethods.txt" />
 	</ItemGroup>
 
 	<ItemGroup>

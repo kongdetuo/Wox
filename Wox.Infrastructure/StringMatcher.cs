@@ -2,6 +2,7 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Linq;
 using System.Runtime.Caching;
 
 namespace Wox.Infrastructure
@@ -44,9 +45,8 @@ namespace Wox.Infrastructure
                 stringToCompare = _alphabet.Translate(stringToCompare);
             }
 
-
             string key = $"{queryWithoutCase}|{stringToCompare}";
-            MatchResult match = _cache[key] as MatchResult;
+            MatchResult match = null;
             if (match == null)
             {
                 match = FuzzyMatchRecurrsive(
@@ -116,60 +116,7 @@ namespace Wox.Infrastructure
             int outScore;
             if (matched)
             {
-                outScore = 100;
-                int penality = 3 * matchs[0];
-                outScore = outScore - penality;
-
-                int unmatched = stringToCompare.Length - matchs.Count;
-                outScore = outScore - (5 * unmatched);
-
-                int consecutiveMatch = 0;
-                for (int i = 0; i < matchs.Count; i++)
-                {
-                    int indexCurent = matchs[i];
-                    if (i > 0)
-                    {
-                        int indexPrevious = matchs[i - 1];
-                        if (indexCurent == indexPrevious + 1)
-                        {
-                            consecutiveMatch += 1;
-                            outScore += 10 * consecutiveMatch;
-                        }
-                        else
-                        {
-                            consecutiveMatch = 0;
-                        }
-                    }
-
-                    char current = stringToCompare[indexCurent];
-                    bool currentUpper = char.IsUpper(current);
-                    if (indexCurent > 0)
-                    {
-                        char neighbor = stringToCompare[indexCurent - 1];
-                        if (currentUpper && char.IsLower(neighbor))
-                        {
-                            outScore += 30;
-                        }
-
-                        bool isNeighbourSeparator = neighbor == '_' || neighbor == ' ';
-                        if (isNeighbourSeparator)
-                        {
-                            outScore += 50;
-                            if (currentUpper)
-                            {
-                                outScore += 50;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        outScore += 50;
-                        if (currentUpper)
-                        {
-                            outScore += 50;
-                        }
-                    }
-                }
+                outScore = CalcScore(query, stringToCompare, matchs);
             }
             else
             {
@@ -194,6 +141,73 @@ namespace Wox.Infrastructure
             {
                 return new MatchResult(false, UserSettingSearchPrecision);
             }
+        }
+
+        private static int CalcScore(string query, string stringToCompare, List<int> matchs)
+        {
+            if(matchs.Count < query.Length)
+                return int.MinValue;
+
+            // »ù´¡·ÖÊý 
+            int outScore = 50 * query.Length;
+
+            // Î´Æ¥Åä³¤¶È³Í·£
+            //outScore -= ((stringToCompare.Length / matchs.Count) - 1) * 20;
+            outScore -= 5 * (stringToCompare.Length - matchs.Count);
+
+            // Ê××ÖÆ¥Åä½±Àø
+            if (matchs[0] == 0)
+                outScore += 20;
+
+            // ´óÐ´Æ¥Åä½±Àø
+            if (char.IsUpper(stringToCompare[0]))
+                outScore += 50;
+
+            int consecutiveMatch = 0;
+            for (int i = 1; i < matchs.Count; i++)
+            {
+                int indexCurent = matchs[i];
+
+                // Á¬Ðø½±Àø
+                int indexPrevious = matchs[i - 1];
+                if (indexCurent == indexPrevious + 1)
+                {
+                    consecutiveMatch += 1;
+                    outScore += 10 * consecutiveMatch;
+                }
+                else
+                {
+                    consecutiveMatch = 0;
+                }
+
+
+                char current = stringToCompare[indexCurent];
+
+                // ´óÐ´Æ¥Åä½±Àø
+                bool currentUpper = char.IsUpper(current);
+                char neighbor = stringToCompare[indexCurent - 1];
+                if (currentUpper && char.IsLower(neighbor))
+                {
+                    outScore += 30;
+                }
+
+                // ·Ö´ÊÊ××ÖÄ¸½±Àø
+                // ·Ö´ÊÊ××ÖÄ¸´óÐ´½±Àø
+                bool isNeighbourSeparator = neighbor == '_' || neighbor == ' ' || neighbor == '-';
+                if (isNeighbourSeparator)
+                {
+                    outScore += 20;
+                    if (currentUpper)
+                    {
+                        outScore += 20;
+                    }
+                }
+            }
+
+            // ¶à¸öÆ¥ÅäÊ±£¬ÓÅÏÈÆ¥ÅäÇ°ÃæµÄ
+            outScore -= matchs.Sum();
+
+            return outScore;
         }
 
         public enum SearchPrecisionScore

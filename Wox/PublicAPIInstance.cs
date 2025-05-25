@@ -1,28 +1,34 @@
-﻿using System;
+﻿using Avalonia.Input.Platform;
+using Avalonia.Threading;
+using Splat;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Windows;
+using System.Threading.Tasks;
 using Wox.Core.Plugin;
 using Wox.Core.Resource;
 using Wox.Helper;
 using Wox.Infrastructure.Hotkey;
 using Wox.Plugin;
+using Wox.Plugin.Services;
 using Wox.ViewModel;
 
 namespace Wox
 {
     public class PublicAPIInstance : IPublicAPI
     {
-        private readonly SettingWindowViewModel _settingsVM;
-        private readonly MainViewModel _mainVM;
+        public SettingWindowViewModel SettingsVM { get; set; }
+        public MainViewModel MainVM { get; set; }
+
+        public IClipboardService Clipboard { get; set; }
+
+        public IIconHelper IconHelper { get; } = new IconHelper();
 
         #region Constructor
 
-        public PublicAPIInstance(SettingWindowViewModel settingsVM, MainViewModel mainVM)
+        public PublicAPIInstance()
         {
-            _settingsVM = settingsVM;
-            _mainVM = mainVM;
+
             GlobalHotkey.Instance.hookedKeyboardCallback += KListener_hookedKeyboardCallback;
             WebRequest.RegisterPrefix("data", new DataWebRequestFactory());
         }
@@ -35,35 +41,34 @@ namespace Wox
         {
             if (requery)
             {
-                _mainVM.SelectedResults = _mainVM.Results;
-                if (_mainVM.QueryText == query)
-                    _mainVM.ChangeQueryText(string.Empty); // ensure queryText will be change or equal to string.Empty
+                MainVM.SelectedResults = MainVM.Results;
+                if (MainVM.QueryText == query)
+                    MainVM.ChangeQueryText(string.Empty); // ensure queryText will be change or equal to string.Empty
             }
-            _mainVM.ChangeQueryText(query);
+            MainVM.ChangeQueryText(query);
         }
 
         public void RestarApp()
         {
-            _mainVM.ShowMainWindow = false;
+            MainVM.ShowMainWindow = false;
 
             // we must manually save
             // UpdateManager.RestartApp() will call Environment.Exit(0)
             // which will cause ungraceful exit
             SaveAppAllSettings();
 
-       
+
         }
 
         public void CheckForNewUpdate()
         {
-           
+
         }
 
         public void SaveAppAllSettings()
         {
-            _mainVM.Save();
-            _settingsVM.Save();
-            PluginManager.Save();
+            MainVM.Save();
+            SettingsVM.Save();
         }
 
         public void ReloadAllPluginData()
@@ -78,24 +83,28 @@ namespace Wox
 
         public void ShowMsg(string title, string subTitle, string iconPath, bool useMainWindowAsOwner = true)
         {
-            Application.Current.Dispatcher.Invoke(() =>
+            Dispatcher.UIThread.Invoke(() =>
             {
                 var msg = useMainWindowAsOwner ? new Msg() : new Msg();
                 msg.Show(title, subTitle, iconPath);
             });
+
         }
 
         public void OpenSettingDialog()
         {
-            Application.Current.Dispatcher.Invoke(() =>
+            Dispatcher.UIThread.Invoke(() =>
             {
-                //SettingWindow sw = SingletonWindowOpener.Open<SettingWindow>(this, _settingsVM);
+                //SingletonWindowOpener.Open<SettingWindow>(this, SettingsVM);
+
+                SettingWindow sw = new SettingWindow(this, SettingsVM);
+                sw.Show();
             });
         }
 
         public void InstallPlugin(string path)
         {
-            Application.Current.Dispatcher.Invoke(() => PluginManager.InstallPlugin(path));
+            //Application.Current.Dispatcher.Invoke(() => PluginManager.InstallPlugin(path));
         }
 
         public string GetTranslation(string key)
@@ -103,14 +112,16 @@ namespace Wox
             return InternationalizationManager.Instance.GetTranslation(key);
         }
 
-        public List<PluginProxy> GetAllPlugins()
+        public List<PluginMetadata> GetAllPlugins()
         {
-            return PluginManager.AllPlugins.ToList();
+            return PluginManager.AllPlugins.Select(p=>p.Metadata).ToList();
         }
+
+       
 
         public void ShowWox()
         {
-            _mainVM.ShowMainWindow = false;
+            MainVM.ShowMainWindow = false;
         }
 
         public event WoxGlobalKeyboardEventHandler GlobalKeyboardEvent;
@@ -130,11 +141,24 @@ namespace Wox
 
         internal void HideWindow()
         {
-            _mainVM.ShowMainWindow = false;
+            MainVM.ShowMainWindow = false;
+        }
+        #endregion Private Methods
+    }
+
+
+    class ClipboardService : IClipboardService
+    {
+        Avalonia.Input.Platform.IClipboard Clipboard { get; set; }
+
+        public ClipboardService(IClipboard clipboard)
+        {
+            Clipboard = clipboard;
         }
 
-
-
-        #endregion Private Methods
+        public async Task SetTextAsync(string? text)
+        {
+            await Clipboard.SetTextAsync(text);
+        }
     }
 }

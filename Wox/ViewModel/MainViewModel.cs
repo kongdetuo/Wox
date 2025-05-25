@@ -1,30 +1,30 @@
+using Avalonia.Media;
+using MS.WindowsAPICodePack.Internal;
+using NHotkey;
+using NHotkey.Wpf;
+using ReactiveUI;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using NHotkey;
-using NHotkey.Wpf;
-
 using Wox.Core.Plugin;
 using Wox.Core.Resource;
 using Wox.Core.Services;
+using Wox.Core.Storage;
 using Wox.Helper;
 using Wox.Infrastructure;
 using Wox.Infrastructure.Hotkey;
 using Wox.Infrastructure.Storage;
 using Wox.Infrastructure.UserSettings;
 using Wox.Plugin;
-using Wox.Core.Storage;
-using System.Reactive.Concurrency;
-using ReactiveUI;
-using ReactiveUI.Fody.Helpers;
-using Avalonia.Media;
 
 namespace Wox.ViewModel
 {
@@ -64,7 +64,9 @@ namespace Wox.ViewModel
             _history = _historyItemsStorage.Load();
             _userSelectedRecord = _userSelectedRecordStorage.Load();
             _topMostRecord = _topMostRecordStorage.Load();
-            this.QueryService = new QueryService(_topMostRecord, _userSelectedRecord);
+            this.QueryService = new QueryService(_topMostRecord, _userSelectedRecord, App.API, _history);
+
+
 
 
             ContextMenu = new ResultsViewModel(_settings, UpdateResultVisible);
@@ -84,13 +86,19 @@ namespace Wox.ViewModel
 
         #region ViewModel Properties
 
-        [Reactive] public ResultsViewModel Results { get; private set; }
-        [Reactive] public ResultsViewModel ContextMenu { get; private set; }
-        [Reactive] public ResultsViewModel History { get; private set; }
+        public ResultsViewModel Results { get; private set => this.RaiseAndSetIfChanged(ref field, value); }
+        public ResultsViewModel ContextMenu { get; private set => this.RaiseAndSetIfChanged(ref field, value); }
+        public ResultsViewModel History { get; private set => this.RaiseAndSetIfChanged(ref field, value); }
 
         public string? PluginID { get; set; }
 
-        [Reactive] public string QueryText { get; set; } = string.Empty;
+        WoxPlugin PluginProxy { get; set; }
+
+        public ObservableCollection<object> Icons { get; set; } = new ObservableCollection<object>();
+
+        public object SelectedPlugin { get; set => this.RaiseAndSetIfChanged(ref field, value); }
+
+        public string QueryText { get; set => this.RaiseAndSetIfChanged(ref field, value); } = string.Empty;
 
         /// <summary>
         /// we need move cursor to end when we manually changed query
@@ -99,14 +107,20 @@ namespace Wox.ViewModel
         /// <param name="queryText"></param>
         public void ChangeQueryText(string queryText)
         {
-            if(string.IsNullOrEmpty(queryText))
+            if (string.IsNullOrEmpty(queryText))
                 queryText = string.Empty;
+            if (SelectedResults != Results)
+            {
+                _queryTextBeforeLeaveResults = queryText;
+                SelectedResults = Results; // 重置为查询状态
+            }
             QueryText = queryText;
             CaretIndex = queryText.Length;
+
         }
 
         public bool LastQuerySelected { get; set; }
-        [Reactive] public int CaretIndex { get; set; }
+        public int CaretIndex { get; set => this.RaiseAndSetIfChanged(ref field, value); }
 
         public bool ShowIcon => PluginIcon is null;
 
@@ -126,7 +140,6 @@ namespace Wox.ViewModel
                 {
                     // use DistinctUntilChanged operator to avoid duplicate query
                     ChangeQueryText(_queryTextBeforeLeaveResults);
-                    UpdateResultVisible();
                 }
                 else
                 {
@@ -139,27 +152,20 @@ namespace Wox.ViewModel
             }
         }
 
-        [Reactive] public bool ShowProcessBar { get; set; }
-        [Reactive] public bool ShowMainWindow { get; set; }
+        public bool ShowProcessBar { get; set => this.RaiseAndSetIfChanged(ref field, value); }
+        public bool ShowMainWindow { get; set=> this.RaiseAndSetIfChanged(ref field, value); }
 
 
         #endregion ViewModel Properties
 
         #region Commands
-        private ICommand? loadContextMenuCommand;
-        private ICommand? loadHistoryCommand;
-        private ICommand? openResultCommand;
-        private ICommand? autoComplationCommand;
-        private ICommand? startHelpCommand;
-        private ICommand? refreshCommand;
-        private ICommand? escCommand;
-        private ReactiveCommand<Unit, Unit> openSettingCommand;
 
-        public ICommand EscCommand => escCommand ??= new RelayCommand(_ =>
+        public ICommand EscCommand => field ??= new RelayCommand(_ =>
         {
             if (!SelectedIsFromQueryResults)
             {
                 SelectedResults = Results;
+                UpdateResultVisible();
             }
             else
             {
@@ -167,7 +173,7 @@ namespace Wox.ViewModel
             }
         });
 
-        public ICommand StartHelpCommand => startHelpCommand ??= new RelayCommand(_ =>
+        public ICommand StartHelpCommand => field ??= new RelayCommand(_ =>
         {
             Process.Start(new ProcessStartInfo()
             {
@@ -175,8 +181,8 @@ namespace Wox.ViewModel
                 UseShellExecute = true
             });
         });
-        public ICommand RefreshCommand => refreshCommand ??= new RelayCommand(_ => Refresh());
-        public ICommand LoadContextMenuCommand => loadContextMenuCommand ??= new RelayCommand(_ =>
+        public ICommand RefreshCommand => field ??= new RelayCommand(_ => Refresh());
+        public ICommand LoadContextMenuCommand => field ??= new RelayCommand(_ =>
         {
             if (SelectedIsFromQueryResults)
             {
@@ -187,76 +193,73 @@ namespace Wox.ViewModel
                 SelectedResults = Results;
             }
         });
-        public ICommand LoadHistoryCommand => loadHistoryCommand ?? new RelayCommand(_ =>
+        public ICommand LoadHistoryCommand => field ?? new RelayCommand(_ =>
         {
             if (SelectedIsFromQueryResults)
             {
                 SelectedResults = History;
-                History.SelectedIndex = _history.Items.Count - 1;
+                History.SelectedIndex = 0;
             }
             else
             {
                 SelectedResults = Results;
             }
         });
-        public ICommand OpenResultCommand => openResultCommand ??= new RelayCommand(obj =>
+        public ICommand OpenResultCommand => field ??= ReactiveCommand.CreateFromTask<ResultViewModel>(async resultVM =>
         {
-            Task.Run(async () =>
+            if (resultVM != null)
             {
-                var resultVM = obj switch
+                try
                 {
-                    ResultViewModel r => r,
-                    string ss when int.TryParse(ss, out var index) && index < SelectedResults.Count => SelectedResults.Results[index],
-                    _ => null
-                };
+                bool queryResult = SelectedIsFromQueryResults;
 
-                if (resultVM != null)
+                bool hideWindow = false;
+                var result = resultVM.Result;
+
+                hideWindow = await result.Result.InvokeAsync(new ActionContext
                 {
-                    var context = new ActionContext
-                    {
-                        SpecialKeyState = GlobalHotkey.Instance.CheckModifiers(),
-                        API = App.API
-                    };
+                    SpecialKeyState = GlobalHotkey.Instance.CheckModifiers(),
+                    API = App.API
+                });
 
-                    bool hideWindow = false;
-                    var result = resultVM.Result;
-                    if (result.AsyncAction is not null)
-                        hideWindow = await result.AsyncAction(context);
-                    else if (result.Action is not null)
-                        hideWindow = result.Action(context);
-
-                    if (hideWindow)
-                    {
-                        ShowMainWindow = false;
-                    }
-
-                    if (SelectedIsFromQueryResults)
-                    {
-                        _userSelectedRecord.Add(result);
-                        _history.Add(resultVM.Query!.RawQuery);
-                    }
-                    else
-                    {
-                        SelectedResults = Results;
-                    }
+                if (hideWindow)
+                {
+                    ShowMainWindow = false;
                 }
-            });
+
+                if (queryResult)
+                {
+                    _userSelectedRecord.Add(result);
+                    _history.Add(resultVM.Query!.RawQuery);
+                }
+                else
+                {
+                    SelectedResults = Results;
+                }
+                }
+                catch (Exception)
+                {
+
+    
+                }
+
+            }
         });
 
-        public ICommand AutoComplationCommand => autoComplationCommand ??= new RelayCommand(_ =>
+        public ICommand AutoComplationCommand => field ??= new RelayCommand(_ =>
         {
             var result = SelectedResults.Results.FirstOrDefault()?.Result;
-            if (result is not null && result.Title.Text.StartsWith(QueryText, true, null))
+            if (result is not null && result.Title.StartsWith(QueryText, true, null))
             {
-                ChangeQueryText(result.Title.Text);
+                ChangeQueryText(result.Title);
             }
         });
 
         public readonly Interaction<Unit, Unit> ShowSettingInteraction = new Interaction<Unit, Unit>();
 
-        public ICommand OpenSettingCommand => openSettingCommand ??= ReactiveCommand.Create(() =>
+        public ICommand OpenSettingCommand => field ??= ReactiveCommand.Create(() =>
         {
-           // new 
+            // new 
         });
 
         public async void OpenSetting()
@@ -270,197 +273,51 @@ namespace Wox.ViewModel
         private void InitQuery()
         {
             var queryTextChangeds = this.WhenAnyValue(p => p.QueryText)
-                //.Where(p => MainWindowVisibility == Visibility.Visible)
-                .Publish();
+                .Throttle(TimeSpan.FromMilliseconds(100))
+                .DistinctUntilChanged();
 
-            var querys = queryTextChangeds.Where(_ => SelectedIsFromQueryResults)
+            var querys = queryTextChangeds
+                .Where(_ => SelectedIsFromQueryResults)
                 .Select(p => p.TrimStart())
                 .DistinctUntilChanged()
-                .ObserveOn(ThreadPoolScheduler.Instance)
-                .Throttle(TimeSpan.FromMilliseconds(20))
-                .Select(p => QueryService.Query(QueryBuilder.Build(p)))
-                .Publish();
+                .Select(QueryBuilder.Build);
 
-            querys
+            // 每一个插件单独查询返回一个 IObservable<T> 然后合并成最新结果
+            // 每60毫秒取一次最新结果显示出来
+            PluginManager.ActivePlugins
+                .Select(plugin => querys
+                    .Select(query => QueryService.Query(plugin, query))
+                    .Switch())
+                .CombineLatest()
+                .Sample(TimeSpan.FromMilliseconds(60))
+                .ObserveOn(SynchronizationContext.Current!)
+                .Subscribe(this.Results.SetResult);
+
+            this.WhenAnyValue(p => p.SelectedResults)
+                .Where(p => p == ContextMenu)
+                .Select(p => Results.SelectedItem)
+                .Where(p => p != null)
+                .Select(p => QueryService.QueryContextMenuAsync(p.Result, p.Query!))
                 .Switch()
-                .Buffer(TimeSpan.FromMilliseconds(60))
-                .Where(p => p.Count > 0)
-                .ObserveOn(this.SynchronizationContext)
-                .Subscribe(p =>
-                {
-                    UpdateResultView(p, CancellationToken.None);
-                });
+                .Subscribe(ContextMenu.SetResult);
 
-            querys.Select(CreateProgressBarVisibles)
-                .Switch().DistinctUntilChanged()
-                .ObserveOn(this.SynchronizationContext)
-                .Subscribe(p => ShowProcessBar = p);
-
-            querys.Connect();
-
-
-            _ = queryTextChangeds.Where(p => ContextMenuSelected)
-                .Select(queryText => Observable.FromAsync(token => QueryContextMenuAsync(token)))
-                .Switch().Subscribe();
-
-            _ = queryTextChangeds.Where(p => HistorySelected)
-                .Subscribe(queryText => QueryHistory());
-
-
-            queryTextChangeds.Connect();
+            this.WhenAnyValue(p => p.SelectedResults)
+                .Where(p => p == History)
+                .Select(p => queryTextChangeds.StartWith(""))
+                .Switch()
+                .Select(QueryService.QueryHistory)
+                .Subscribe(History.SetResult);
         }
 
-        private static IObservable<bool> CreateProgressBarVisibles(IObservable<PluginQueryResult> queryViewModel)
+        private void Results_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
-            return Observable.Create<bool>(async (ob, token) =>
-            {
-                try
-                {
-                    await Task.Delay(200, token);
-                    if (token.IsCancellationRequested)
-                        return;
-                    ob.OnNext(true);
-
-                    await queryViewModel;
-                    if (token.IsCancellationRequested)
-                        return;
-                    ob.OnNext(false);
-                }
-                catch (Exception)
-                {
-                }
-                finally
-                {
-                    ob.OnCompleted();
-                }
-            });
-        }
-        private async Task<Unit> QueryContextMenuAsync(CancellationToken token)
-        {
-            const string id = "Context Menu ID";
-            var query = QueryText.ToLower().Trim();
-            ContextMenu.Clear();
-
-            var selected = Results.SelectedItem;
-
-            if (selected != null) // SelectedItem returns null if selection is empty.
-            {
-                var results = await PluginManager.GetContextMenusForPlugin(selected.PluginMetadata!.ID, selected.Result);
-                results.Add(ContextMenuTopMost(selected));
-                results.Add(ContextMenuPluginInfo(selected.PluginMetadata.ID));
-
-                if (!string.IsNullOrEmpty(query))
-                    results = results.Where(r => MatchResult(r, query)).ToList();
-                if (token.IsCancellationRequested == false)
-                {
-                    ContextMenu.AddResults(results, id);
-                    UpdateResultVisible();
-                }
-            }
-            return Unit.Default;
-        }
-
-        private void QueryHistory()
-        {
-            const string id = "Query History ID";
-            var query = QueryText.ToLower().Trim();
-            History.Clear();
-
-            var results = new List<Result>();
-            foreach (var h in _history.Items)
-            {
-                var title = _translator!.GetTranslation("executeQuery");
-                var time = _translator.GetTranslation("lastExecuteTime");
-                var result = new Result
-                {
-                    Title = string.Format(title, h.Query),
-                    SubTitle = string.Format(time, h.ExecutedDateTime),
-                    IcoPath = "Images\\history.png",
-                    Action = _ =>
-                    {
-                        SelectedResults = Results;
-                        ChangeQueryText(h.Query);
-                        return false;
-                    }
-                };
-                results.Add(result);
-            }
-
-            if (!string.IsNullOrEmpty(query))
-                results = results.Where(r => MatchResult(r, query)).ToList();
-
-            History.AddResults(results, id);
-            UpdateResultVisible();
-        }
-
-        private static bool MatchResult(Result result, string query)
-        {
-            return StringMatcher.FuzzySearch(query, result.Title.Text).IsSearchPrecisionScoreMet()
-                || StringMatcher.FuzzySearch(query, result.SubTitle.Text).IsSearchPrecisionScoreMet();
+            SetPluginIcon();
         }
 
         private static void Refresh()
         {
             PluginManager.ReloadData();
         }
-
-        private Result ContextMenuTopMost(ResultViewModel result)
-        {
-            Result menu;
-            if (_topMostRecord.IsTopMost(result.Query!, result.PluginMetadata!.ID, result.Result))
-            {
-                menu = new Result
-                {
-                    Title = InternationalizationManager.Instance.GetTranslation("cancelTopMostInThisQuery"),
-                    IcoPath = "Images\\down.png",
-                    Action = _ =>
-                    {
-                        _topMostRecord.Remove(result.Query!);
-                        App.API.ShowMsg("Success");
-                        return false;
-                    }
-                };
-            }
-            else
-            {
-                menu = new Result
-                {
-                    Title = InternationalizationManager.Instance.GetTranslation("setAsTopMostInThisQuery"),
-                    IcoPath = "Images\\up.png",
-                    Action = _ =>
-                    {
-                        _topMostRecord.AddOrUpdate(result.Query!, result.PluginMetadata.ID, result.Result);
-                        App.API.ShowMsg("Success");
-                        return false;
-                    }
-                };
-            }
-            return menu;
-        }
-
-        private static Result ContextMenuPluginInfo(string id)
-        {
-            var metadata = PluginManager.GetPluginForId(id)!.Metadata;
-            var translator = InternationalizationManager.Instance;
-
-            var author = translator.GetTranslation("author");
-            var website = translator.GetTranslation("website");
-            var version = translator.GetTranslation("version");
-            var plugin = translator.GetTranslation("plugin");
-            var title = $"{plugin}: {metadata.Name}";
-            var icon = metadata.IcoPath;
-            var subtitle = $"{author}: {metadata.Author}, {website}: {metadata.Website} {version}: {metadata.Version}";
-
-            var menu = new Result
-            {
-                Title = title,
-                IcoPath = icon,
-                SubTitle = subtitle,
-                Action = _ => false
-            };
-            return menu;
-        }
-
 
 
         #endregion
@@ -473,27 +330,30 @@ namespace Wox.ViewModel
 
         private void SetPluginIcon()
         {
-            var queryText = QueryText.AsSpan().TrimStart();
+            var queryText = QueryText.TrimStart();
             if (SelectedIsFromQueryResults)
             {
-                if (this.Results.PluginID != this.PluginID)
+                if (string.IsNullOrEmpty(queryText))
                 {
-                    this.PluginID = this.Results.PluginID;
-                    var plugin = PluginManager.GetPluginForId(PluginID);
-                    if (plugin == null && queryText.Contains(' '))
+                    this.PluginIcon = Image.ImageLoader.GetErrorImage();
+                }
+                var icons = this.SelectedResults.Results
+                    .Select(p => p.Result.Plugin)
+                    .Distinct()
+                    .Take(3)
+                    .ToList();
+                if (icons.Any())
+                {
+                    Icons.Clear();
+                    for (int i = 0; i < icons.Count; i++)
                     {
-                        var key = queryText[..queryText.IndexOf(' ')].ToString();
-                        var plugins = PluginManager.AllPlugins
-                            .Where(p => !p.Metadata.Disabled && p.MatchKeyWord(key))
-                            .Take(2).ToArray();
-                        if (plugins.Length == 1)
-                            plugin = plugins[0];
+                        Icons.Add(icons[i]);
                     }
-
-                    if (plugin != null)
-                        this.PluginIcon = Image.ImageLoader.Load(plugin.Metadata.IcoPath, plugin.Metadata.PluginDirectory);
-                    else
-                        this.PluginIcon = null;
+                }
+                else
+                {
+                    Icons.Clear();
+                    //Icons.Add(Image.ImageLoader.GetErrorImage());
                 }
             }
             else if (ContextMenuSelected)
@@ -617,12 +477,6 @@ namespace Wox.ViewModel
         /// <summary>
         /// To avoid deadlock, this method should not called from main thread
         /// </summary>
-        public void UpdateResultView(IList<PluginQueryResult> updates, CancellationToken token)
-        {
-            Results.AddResults(updates, token);
-            UpdateResultVisible();
-            SetPluginIcon();
-        }
 
         private void UpdateResultVisible()
         {
@@ -634,6 +488,8 @@ namespace Wox.ViewModel
                 History.IsVisible = false;
 
             SelectedResults.IsVisible = SelectedResults.Count > 0;
+
+            SetPluginIcon();
         }
 
         #endregion Public Methods

@@ -1,8 +1,4 @@
 ﻿using Avalonia.Media;
-using System;
-using System.Globalization;
-using System.Linq;
-using System.Windows.Markup;
 
 namespace Wox.Themes
 {
@@ -76,7 +72,7 @@ namespace Wox.Themes
         //        ?? family.ChooseRegularFamilyTypeface();
         //}
 
-        private static XmlLanguageConverter languageConverter = new XmlLanguageConverter();
+        //private static XmlLanguageConverter languageConverter = new XmlLanguageConverter();
 
         //public static bool HasCurrentCultureName(this FontFamily family)
         //{

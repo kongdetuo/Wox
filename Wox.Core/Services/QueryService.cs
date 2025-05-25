@@ -1,74 +1,43 @@
 ﻿using NLog;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Wox.Core.Plugin;
 using Wox.Infrastructure;
 using Wox.Infrastructure.Logger;
 using Wox.Plugin;
-using System.Reactive;
 using System.Reactive.Linq;
-using System.Reactive.Concurrency;
 using System.Threading;
-using System.Threading.Channels;
-using Wox.Infrastructure.UserSettings;
-using System.Diagnostics;
 using Wox.Core.Storage;
-using NLog.Config;
+using Wox.Core.Resource;
+using Wox.Core.Plugin;
 
 namespace Wox.Core.Services
 {
-    public class QueryService
+    public class QueryService(TopMostRecord topMostRecord, UserSelectedRecord userSelectedRecord, IPublicAPI API, History history)
     {
-        private readonly TopMostRecord topMostRecord;
-        private readonly UserSelectedRecord userSelectedRecord;
-        private readonly Logger Logger;
+        private readonly TopMostRecord topMostRecord = topMostRecord;
+        private readonly UserSelectedRecord userSelectedRecord = userSelectedRecord;
+        private readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        public QueryService(TopMostRecord topMostRecord, UserSelectedRecord userSelectedRecord)
-        {
-            this.topMostRecord = topMostRecord;
-            this.userSelectedRecord = userSelectedRecord;
-            this.Logger = LogManager.GetCurrentClassLogger();
-
-            // Query(QueryBuilder.Build("我")).IgnoreElements().Subscribe();
-        }
-
-        public IObservable<PluginQueryResult> Query(Query query)
+        public IObservable<PluginQueryResult> Query(WoxPlugin plugin, Query query)
         {
             return Observable.Create<PluginQueryResult>(async (ob, token) =>
             {
-                var plugins = PluginManager.AllPlugins;
-                await Task.WhenAll(plugins.AsParallel().Select(async plugin =>
+                try
                 {
-                    try
-                    {
-                        if (query.IsEmpty || !TryMatch(plugin, query))
-                        {
-                            ob.OnNext(Empty(plugin, query));
-                            return;
-                        }
+                    await foreach (var item in plugin.QueryAsync(query, token))
+                        ob.OnNext(CreatePluginQueryResult(plugin, query, item));
+                }
+                catch (Exception)
+                {
 
-                        ob.OnNext(await QueryAsync(plugin, query, token));
-
-                        await foreach (var item in QueryUpdate(plugin, query, token))
-                        {
-                            if (token.IsCancellationRequested)
-                                break;
-                            ob.OnNext(item);
-                        }
-                    }
-                    catch (Exception)
-                    {
-
-                    }
-                }));
+                }
                 ob.OnCompleted();
             });
         }
 
-        private PluginQueryResult CreatePluginQueryResult(PluginProxy plugin, Query query, List<Result> results)
+        private PluginQueryResult CreatePluginQueryResult(WoxPlugin plugin, Query query, List<IResult> results)
         {
             var result = new PluginQueryResult(plugin, query, results ?? new());
             UpdatePluginMetadata(result.Results, plugin.Metadata, query);
@@ -76,42 +45,116 @@ namespace Wox.Core.Services
             return result;
         }
 
-
-        public IAsyncEnumerable<PluginQueryResult> QueryUpdate(PluginProxy plugin, Query query, CancellationToken token)
+        public async Task<PluginQueryResult> QueryContextMenuAsync(ResultWrapper result, Query query)
         {
-            if (plugin.Plugin is IResultUpdated updatedPlugin)
+            List<IResult> list = new List<IResult>();
+            var plugin = PluginManager.GetPluginForId(result.Plugin.Metadata.ID)!;
+            var metadata = plugin.Metadata;
+            var translator = InternationalizationManager.Instance;
+
+            if (plugin != null)
             {
-                return updatedPlugin.QueryUpdates(query, token).Select(p => CreatePluginQueryResult(plugin, query, p).WithToken(token));
+
+                try
+                {
+                    var actionContext = new ActionContext
+                    {
+                        SpecialKeyState = new(),
+                        API = API
+                    };
+
+                    List<IResult> results = result.Result.LoadContextMenu(actionContext);
+
+                    list = results;
+                }
+                catch (Exception e)
+                {
+                    Logger.WoxError($"Can't load context menus for plugin <{metadata.Name}>", e);
+                }
             }
-            return AsyncEnumerable.Empty<PluginQueryResult>();
+
+            if (topMostRecord.IsTopMost(query!, metadata.ID, result))
+            {
+                list.Add(new Result
+                {
+                    Title = translator.GetTranslation("cancelTopMostInThisQuery"),
+                    IcoPath = "Images\\down.png",
+                    Action = _ =>
+                    {
+                        topMostRecord.Remove(query!);
+                        API.ShowMsg("Success");
+                        return false;
+                    }
+                });
+            }
+            else
+            {
+                list.Add(new Result
+                {
+                    Title = translator.GetTranslation("setAsTopMostInThisQuery"),
+                    IcoPath = "Images\\up.png",
+                    Action = _ =>
+                    {
+                        topMostRecord.AddOrUpdate(query!, metadata.ID, result);
+                        API.ShowMsg("Success");
+                        return false;
+                    }
+                });
+            }
+
+
+
+            var author = translator.GetTranslation("author");
+            var website = translator.GetTranslation("website");
+            var version = translator.GetTranslation("version");
+            var pluginName = translator.GetTranslation("plugin");
+            var title = $"{pluginName}: {metadata.Name}";
+            var icon = metadata.IcoPath;
+            var subtitle = $"{author}: {metadata.Author}, {website}: {metadata.Website} {version}: {metadata.Version}";
+
+            list.Add(new Result
+            {
+                Title = title,
+                IcoPath = icon,
+                SubTitle = subtitle,
+                Action = _ => false
+            });
+
+            return new PluginQueryResult(list, "Context Menu");
         }
 
+ 
 
-
-        public async Task<PluginQueryResult> QueryAsync(PluginProxy pair, Query query, CancellationToken token)
+        public PluginQueryResult QueryHistory(string query)
         {
-            try
-            {
-                var metadata = pair.Metadata;
-                List<Result> results = new();
-                var milliseconds = await Logger.StopWatchDebugAsync($"Query <{query.RawQuery}> Cost for {metadata.Name}", async () =>
-                {
-                    results = await pair.QueryAsync(query, token) ?? new List<Result>();
-                });
+            const string id = "Query History ID";
+            var translator = InternationalizationManager.Instance;
 
-                metadata.QueryCount += 1;
-                metadata.AvgQueryTime = metadata.QueryCount == 1 ? milliseconds : (metadata.AvgQueryTime + milliseconds) / 2;
-                return CreatePluginQueryResult(pair, query, results).WithToken(token);
-            }
-            catch (Exception e)
+            var results = new List<IResult>();
+            IEnumerable<HistoryItem> items = history.Items;
+
+            foreach (var h in history.Items.OrderByDescending(p => p.ExecutedDateTime))
             {
-                e.Data.Add(nameof(pair.Metadata.ID), pair.Metadata.ID);
-                e.Data.Add(nameof(pair.Metadata.Name), pair.Metadata.Name);
-                e.Data.Add(nameof(pair.Metadata.PluginDirectory), pair.Metadata.PluginDirectory);
-                e.Data.Add(nameof(pair.Metadata.Website), pair.Metadata.Website);
-                Logger.WoxError($"Exception for plugin <{pair.Metadata.Name}> when query <{query}>", e);
-                return Empty(pair, query);
+                var title = translator!.GetTranslation("executeQuery");
+                var time = translator.GetTranslation("lastExecuteTime");
+                var result = new Result
+                {
+                    Title = string.Format(title, h.Query),
+                    SubTitle = string.Format(time, h.ExecutedDateTime),
+                    IcoPath = "Images\\history.png",
+                    Action = _ =>
+                    {
+                        API.ChangeQuery(h.Query);
+                        return false;
+                    }
+                };
+                results.Add(result);
             }
+
+            if (!string.IsNullOrEmpty(query))
+                results = results.Where(r => MatchResult(r, query)).ToList();
+
+            return new PluginQueryResult(results, id);
         }
 
         private void UpdateScore(PluginQueryResult update)
@@ -133,7 +176,7 @@ namespace Wox.Core.Services
                 }
             }
         }
-        private static Result SetPluginMetadata(Result result, PluginMetadata plugin, Query query)
+        private static ResultWrapper SetPluginMetadata(ResultWrapper result, PluginMetadata plugin, Query query)
         {
             // ActionKeywordAssigned is used for constructing MainViewModel's query text auto-complete suggestions
             // Plugins may have multi-actionkeywords eg. WebSearches. In this scenario it needs to be overriden on the plugin level
@@ -141,15 +184,8 @@ namespace Wox.Core.Services
                 result.ActionKeywordAssigned = query.ActionKeyword;
             return result;
         }
-        private static bool TryMatch(PluginProxy pair, Query query)
-        {
-            if (pair.Metadata.Disabled)
-                return false;
 
-            var keyword = query.ActionKeyword ?? Keyword.Global;
-            return pair.MatchKeyWord(keyword);
-        }
-        public static void UpdatePluginMetadata(List<Result> results, PluginMetadata metadata, Query query)
+        public static void UpdatePluginMetadata(List<ResultWrapper> results, PluginMetadata metadata, Query query)
         {
             foreach (var r in results)
             {
@@ -157,35 +193,42 @@ namespace Wox.Core.Services
             }
         }
 
-        private static PluginQueryResult Empty(PluginProxy plugin, Query query)
+        private static bool MatchResult(IResult result, string query)
         {
-            return new PluginQueryResult(plugin, query, new List<Result>());
+            return StringMatcher.FuzzySearch(query, result.Title).IsSearchPrecisionScoreMet()
+                || StringMatcher.FuzzySearch(query, result.SubTitle ?? "").IsSearchPrecisionScoreMet();
         }
+    }
+
+    public class PluginService(IPublicAPI api)
+    {
+
+
     }
 
     public class PluginQueryResult
     {
-        public PluginQueryResult(PluginProxy plugin, Query query, List<Result> results)
+        public PluginQueryResult(WoxPlugin plugin, Query query, List<IResult> results)
         {
             this.Plugin = plugin;
             this.PluginID = plugin.Metadata.ID;
             this.Query = query;
-            this.Results = results;
+            this.Results = results.Select(p => new ResultWrapper(p, plugin)).ToList();
         }
 
-        public PluginQueryResult(List<Result> newRawResults, string resultId)
+        public PluginQueryResult(List<IResult> newRawResults, string resultId)
         {
-            this.Results = newRawResults;
+            this.Results = newRawResults.Select(p => new ResultWrapper(p, null)).ToList();
             this.PluginID = resultId;
         }
 
-        public PluginProxy? Plugin { get; private set; }
+        public WoxPlugin? Plugin { get; private set; }
 
         public string PluginID { get; set; }
 
         public Query? Query { get; private set; }
 
-        public List<Result> Results { get; set; }
+        public List<ResultWrapper> Results { get; set; }
 
         public CancellationToken CancellationToken { get; set; } = CancellationToken.None;
 
@@ -196,20 +239,25 @@ namespace Wox.Core.Services
         }
     }
 
-    static class AsyncEnumerable
+    public class ResultWrapper
     {
-        public async static IAsyncEnumerable<T> Empty<T>()
+        public ResultWrapper(IResult result, WoxPlugin metadata)
         {
-            await ValueTask.CompletedTask;
-            yield break;
+            this.Result = result;
+            this.Score = result.Score;
+            this.Plugin = metadata;
+        }
+        public IResult Result { get; set; }
+        public int Score { get; internal set; }
+        public WoxPlugin Plugin { get; }
+        public Keyword? ActionKeywordAssigned { get; internal set; }
+        public string Title => Result.Title;
+        public string SubTitle => Result.SubTitle ?? "";
+
+        public override string ToString()
+        {
+            return Result.Title + Result.SubTitle;
         }
 
-        public static async IAsyncEnumerable<R> Select<T, R>(this IAsyncEnumerable<T> source, Func<T, R> selector)
-        {
-            await foreach (var item in source)
-            {
-                yield return selector(item);
-            }
-        }
     }
 }

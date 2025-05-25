@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using Newtonsoft.Json;
+using Wox.Core.Services;
 using Wox.Plugin;
 
 namespace Wox.Core.Storage
@@ -15,11 +16,11 @@ namespace Wox.Core.Storage
 
         public ConcurrentDictionary<string, Record> RecordDic => recordDic ??= new ConcurrentDictionary<string, Record>(this.records);
 
-        public bool IsTopMost(Query query, string pluginid,Result result)
+        public bool IsTopMost(Query query, string pluginid, ResultWrapper result)
         {
             return RecordDic.TryGetValue(query.RawQuery, out Record? record)
-                && record.Title == result.Title.Text
-                && record.SubTitle == result.SubTitle.Text
+                && record.Title == result.Title
+                && record.SubTitle == result.SubTitle
                 && record.PluginID == pluginid;
         }
 
@@ -34,13 +35,13 @@ namespace Wox.Core.Storage
             RecordDic.Remove(query.RawQuery, out _);
         }
 
-        public void AddOrUpdate(Query query, string pluginid, Result result)
+        public void AddOrUpdate(Query query, string pluginid, ResultWrapper result)
         {
             var record = new Record
             {
                 PluginID = pluginid,
-                Title = result.Title.Text,
-                SubTitle = result.SubTitle.Text
+                Title = result.Title,
+                SubTitle = result.SubTitle
             };
             RecordDic[query.RawQuery] = record;
 

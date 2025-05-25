@@ -2,14 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NLog;
-using Wox.Infrastructure.Exception;
 using Wox.Infrastructure.Logger;
 using Wox.Plugin;
 using Wox.Infrastructure.Storage;
-using System.Windows.Automation;
 
 namespace Wox.Core.Plugin
 {

@@ -7,6 +7,10 @@ using Wox.Infrastructure;
 using Wox.Infrastructure.Logger;
 using Avalonia.Media.Imaging;
 using System.Windows.Media.Imaging;
+using Vortice.WIC;
+using Avalonia.Platform;
+using Avalonia;
+using Windows.Win32;
 
 namespace Wox.Image
 {
@@ -112,13 +116,13 @@ namespace Wox.Image
             return null;
         }
 
-        public static Bitmap? ToAvaloniaBitmap( this System.Windows.Media.ImageSource bitmap)
+        public static Bitmap? ToAvaloniaBitmap(this System.Windows.Media.ImageSource bitmap)
         {
             if (bitmap == null)
                 return null;
             var a = (BitmapSource)bitmap;
             var b = new PngBitmapEncoder();
-            b.Frames.Add( BitmapFrame.Create(a));
+            b.Frames.Add(BitmapFrame.Create(a));
             using var mem = new MemoryStream();
             b.Save(mem);
             mem.Seek(0, SeekOrigin.Begin);
@@ -216,6 +220,8 @@ namespace Wox.Image
 
         public static Bitmap Load(string path, string pluginDirectory)
         {
+            return LoadInternal(path, pluginDirectory);
+
             Logger.WoxDebug($"load begin {path}");
             var img = _cache.GetOrAdd(pluginDirectory + path, p => LoadInternal(path, pluginDirectory));
             Logger.WoxTrace($"load end {path}");

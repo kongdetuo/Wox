@@ -1,25 +1,29 @@
 ﻿
-using System.Reactive.Linq;
+using Avalonia.Layout;
+using Avalonia.Media;
+using ReactiveUI;
 using System;
-using Wox.Plugin;
+using System.Diagnostics;
+using System.Linq;
+using System.Reactive.Linq;
+using Wox.Core.Plugin;
 using Wox.Core.Resource;
 using Wox.Image;
 using Wox.Infrastructure.UserSettings;
-using System.Diagnostics;
-using Avalonia.Media;
-using ReactiveUI;
-using Avalonia.Layout;
+using Wox.Plugin;
 
 namespace Wox.ViewModel
 {
     public class PluginViewModel : BaseModel
     {
 
-        public PluginViewModel(PluginProxy plugin)
+        public PluginViewModel(WoxPlugin plugin)
         {
             this.PluginPair = plugin;
 
             this.Disabled = plugin.Metadata.Disabled;
+
+            this.Options = plugin.Instance.Options.ToList();
 
             this.WhenAnyValue(p => p.Disabled).Subscribe(p =>
             {
@@ -28,7 +32,7 @@ namespace Wox.ViewModel
                 Settings.Instance.PluginSettings.Plugins[plugin.Metadata.ID].Disabled = p;
             });
         }
-        public PluginProxy PluginPair { get; set; }
+        public WoxPlugin PluginPair { get; set; }
 
         public PluginMetadata Metadata => PluginPair.Metadata;
 
@@ -44,23 +48,8 @@ namespace Wox.ViewModel
         public string QueryTime => string.Format(_translator.GetTranslation("plugin_query_time"), Metadata.AvgQueryTime);
         public string ActionKeywordsText => string.Join(Query.ActionKeywordSeperater, Metadata.ActionKeywords);
 
-        public Avalonia.Controls. Control SettingProvider
-        {
-            get
-            {
-                if (PluginPair.Plugin is ISettingProvider settingProvider)
-                {
-                    var control = settingProvider.CreateSettingPanel();
-                    control.HorizontalAlignment = HorizontalAlignment.Stretch;
-                    control.VerticalAlignment = VerticalAlignment.Stretch;
-                    return control;
-                }
-                else
-                {
-                    return new Avalonia.Controls.Control();
-                }
-            }
-        }
+        public System.Collections.Generic.List<PluginOption> Options { get; set; }
+
 
         private RelayCommand openDirectoryCommand = null!;
         public RelayCommand OpenDirectoryCommand => openDirectoryCommand ??= new RelayCommand(p =>
@@ -78,6 +67,16 @@ namespace Wox.ViewModel
             }
         });
 
+
+        public void SaveOptions()
+        {
+            foreach (var option in Options)
+            {
+                option.Save();
+            }
+
+            this.PluginPair.Instance.SaveOptions(this.Options);
+        }
 
     }
 }

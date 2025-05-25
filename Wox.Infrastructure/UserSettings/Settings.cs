@@ -20,7 +20,7 @@ namespace Wox.Infrastructure.UserSettings
         }
 
         private static WoxJsonStorage<Settings> _storage = new WoxJsonStorage<Settings>();
-        public static Settings Instance;
+        private static Settings instance;
 
         public static void Initialize()
         {
@@ -116,6 +116,7 @@ namespace Wox.Infrastructure.UserSettings
 
         [JsonConverter(typeof(StringEnumConverter))]
         public LastQueryMode LastQueryMode { get; set; } = LastQueryMode.Selected;
+        public static Settings Instance { get => instance; set => instance = value; }
     }
 
     public enum LastQueryMode

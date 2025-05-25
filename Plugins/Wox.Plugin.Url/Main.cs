@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Wox.Infrastructure.Storage;
 using Wox.Infrastructure;
-using Avalonia.Controls;
-
 namespace Wox.Plugin.Url
 {
-    public class Main : ISettingProvider,IPlugin, IPluginI18n, ISavable
+    public class Main :IPlugin, IPluginI18n
     {
         //based on https://gist.github.com/dperini/729294
         private const string urlPattern = "^" +
@@ -58,12 +56,12 @@ namespace Wox.Plugin.Url
             _storage.Save();
         }
 
-        public List<Result> Query(Query query)
+        public List<IResult> Query(Query query)
         {
             var raw = query.Search;
             if (IsURL(raw))
             {
-                return new List<Result>
+                return new List<IResult>
                 {
                     new Result
                     {
@@ -99,13 +97,7 @@ namespace Wox.Plugin.Url
                     }
                 };
             }
-            return new List<Result>(0);
-        }
-
-
-        public Control CreateSettingPanel()
-        {
-            return new SettingsControl(context.API,_settings);
+            return new List<IResult>(0);
         }
 
         public bool IsURL(string raw)
@@ -139,6 +131,15 @@ namespace Wox.Plugin.Url
         public string GetTranslatedPluginDescription()
         {
             return context.API.GetTranslation("wox_plugin_url_plugin_description");
+        }
+
+        public IEnumerable<PluginOption> Options =>
+            // 删掉，后面再加，反正也没怎么用过这个
+            [];
+
+        public void SaveOptions(IEnumerable<PluginOption> options)
+        {
+            Save();
         }
     }
 }

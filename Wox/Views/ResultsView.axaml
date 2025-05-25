@@ -52,24 +52,29 @@
 					<Grid Margin="5" ColumnDefinitions="48,*">
 						<Image x:Name="imgIco" Width="32" Height="32"
 							   HorizontalAlignment="Center" VerticalAlignment="Center"
-							   Source="{Binding Image.Value}" />
+							   Source="{Binding Image}" />
+						<Border x:Name="colorIcon" Width="32" Height="32" HorizontalAlignment="Center" VerticalAlignment="Center">
+							<Border.Background>
+								<SolidColorBrush Color="{Binding Color}"/>
+							</Border.Background>
+						</Border>
 						<Grid Margin="0 0 5 0" Grid.Column="1"
 							  HorizontalAlignment="Stretch"
 							  RowDefinitions="*,auto">
-							<Grid.Styles>
+							<!--<Grid.Styles>
 								<Style Selector="TextBlock">
 									<Setter Property="local:HighLightTextBlock.Foreground" Value="{DynamicResource ItemSelectedHighlightColor}"/>
 								</Style>
 								<Style Selector="TextBlock.selected">
 									<Setter Property="local:HighLightTextBlock.Foreground" Value="{DynamicResource ItemHighlightColor}"/>
 								</Style>
-							</Grid.Styles>
+							</Grid.Styles>-->
 
 							<TextBlock Grid.Row="0" x:Name="Title"
 									   VerticalAlignment="Center"
 									   Classes.selected="{Binding $parent[ListBoxItem].IsSelected}"
 									   ToolTip.Tip="{Binding Result.Title, Mode=OneTime}"
-									   local:HighLightTextBlock.HighlightText="{Binding Result.Title}"/>
+								       Text="{Binding Result.Title}"/>
 
 							<TextBlock ToolTip.Tip="{Binding Result.SubTitle}"
 									   Grid.Row="1" x:Name="SubTitle"

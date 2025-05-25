@@ -1,9 +1,8 @@
-﻿using Avalonia.Data.Converters;
+﻿using Avalonia;
+using Avalonia.Data.Converters;
 using Avalonia.Media;
 using System;
 using System.Globalization;
-using System.Linq;
-using System.Windows.Markup;
 
 namespace Wox.Converters
 {
@@ -11,7 +10,7 @@ namespace Wox.Converters
     {
         public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
-            if(value is FontFamily family)
+            if (value is FontFamily family)
             {
                 var names = family.FamilyNames;
                 return family.Name;
@@ -20,6 +19,25 @@ namespace Wox.Converters
                 //    return name;
                 //}
                 //return names.First().Value;
+            }
+            return string.Empty;
+        }
+
+        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class LocalizationConverter : IValueConverter
+    {
+
+        public static LocalizationConverter Instance { get; } = new LocalizationConverter();
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        {
+            if (value != null)
+            {
+                return App.API.GetTranslation(value.ToString());
             }
             return string.Empty;
         }

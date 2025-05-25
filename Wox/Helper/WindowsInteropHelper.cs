@@ -2,11 +2,7 @@
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Windows;
 using System.Windows.Forms;
-using System.Windows.Interop;
-using System.Windows.Media;
-using Point = System.Windows.Point;
 
 namespace Wox.Helper
 {
@@ -113,41 +109,6 @@ namespace Wox.Helper
             }
 
             return false;
-        }
-
-        /// <summary>
-        ///     disable windows toolbar's control box
-        ///     this will also disable system menu with Alt+Space hotkey
-        /// </summary>
-        public static void DisableControlBox(Window win)
-        {
-            var hwnd = new WindowInteropHelper(win).Handle;
-            SetWindowLong(hwnd, GWL_STYLE, GetWindowLong(hwnd, GWL_STYLE) & ~WS_SYSMENU);
-        }
-
-        /// <summary>
-        /// Transforms pixels to Device Independent Pixels used by WPF
-        /// </summary>
-        /// <param name="visual">current window, required to get presentation source</param>
-        /// <param name="unitX">horizontal position in pixels</param>
-        /// <param name="unitY">vertical position in pixels</param>
-        /// <returns>point containing device independent pixels</returns>
-        public static Point TransformPixelsToDIP(Visual visual, double unitX, double unitY)
-        {
-            Matrix matrix;
-            var source = PresentationSource.FromVisual(visual);
-            if (source != null)
-            {
-                matrix = source.CompositionTarget.TransformFromDevice;
-            }
-            else
-            {
-                using (var src = new HwndSource(new HwndSourceParameters()))
-                {
-                    matrix = src.CompositionTarget.TransformFromDevice;
-                }
-            }
-            return new Point((int)(matrix.M11 * unitX), (int)(matrix.M22 * unitY));
         }
 
 

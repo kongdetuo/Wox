@@ -54,8 +54,8 @@ namespace Wox.Core.Resource
         {
             foreach (var plugin in PluginManager.GetPluginsForInterface<IPluginI18n>())
             {
-                var location = Assembly.GetAssembly(plugin.Plugin.GetType()).Location;
-                Logger.WoxDebug($"Plugin language location {plugin.Plugin}: {location}");
+                var location = Assembly.GetAssembly(plugin.Instance.GetType()).Location;
+                Logger.WoxDebug($"Plugin language location {plugin.Instance}: {location}");
                 var dir = Path.GetDirectoryName(location);
                 if (dir != null)
                 {
@@ -186,7 +186,7 @@ namespace Wox.Core.Resource
         {
             foreach (var p in PluginManager.GetPluginsForInterface<IPluginI18n>())
             {
-                var pluginI18N = p.Plugin as IPluginI18n;
+                var pluginI18N = p.Instance as IPluginI18n;
                 if (pluginI18N == null) return;
                 try
                 {

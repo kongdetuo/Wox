@@ -1,30 +1,23 @@
-using System;
-//using System.Windows;
-using System.Globalization;
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Markup.Xaml;
 using NLog;
-
+using ReactiveUI;
+using Splat;
+using System;
+using System.Globalization;
+using System.Threading.Tasks;
 using Wox.Core.Plugin;
 using Wox.Core.Resource;
 using Wox.Helper;
-using Wox.Infrastructure;
-using Wox.Infrastructure.Http;
 using Wox.Image;
+using Wox.Infrastructure;
+using Wox.Infrastructure.Exception;
 using Wox.Infrastructure.Logger;
 using Wox.Infrastructure.UserSettings;
+using Wox.Plugin;
 using Wox.ViewModel;
-using Wox.Infrastructure.Exception;
-//using Sentry;
-using Wox.Themes;
-using Avalonia;
-using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Controls.Shapes;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using Tmds.DBus.SourceGenerator;
-using Avalonia.Markup.Xaml;
-using System.Threading.Tasks;
-using Avalonia.ReactiveUI;
-using Avalonia.Styling;
-using Avalonia.Controls;
+using Wox.Views.SettingViews;
 
 namespace Wox
 {
@@ -55,13 +48,18 @@ namespace Wox
             base.OnFrameworkInitializationCompleted();
         }
 
-        private static ThemeVariant Dark = new ThemeVariant("Dark", null);
+        //private static ThemeVariant Dark = new ThemeVariant("Dark", null);
 
         private async Task OnStartup(IClassicDesktopStyleApplicationLifetime desktop)
         {
+            var api = new PublicAPIInstance();
+
+            Locator.CurrentMutable.RegisterConstant<IPublicAPI>(api);
+            Locator.CurrentMutable.RegisterViewsForViewModels(this.GetType().Assembly);
+
             var time = await Logger.StopWatchNormal("Startup cost", async () =>
             {
-                this.RequestedThemeVariant = Dark;
+                ///this.RequestedThemeVariant = Dark;
 
                 _systemLanguage = CultureInfo.CurrentUICulture.Name;
                 RegisterAppDomainExceptions();
@@ -82,7 +80,13 @@ namespace Wox
                 StringMatcher.Instance = _stringMatcher;
                 _stringMatcher.UserSettingSearchPrecision = Settings.Instance.QuerySearchPrecision;
 
+
                 PluginManager.LoadPlugins(Settings.Instance.PluginSettings);
+
+                System.Diagnostics.Stopwatch.StartNew();
+
+                var api = new PublicAPIInstance();
+                API = api;
                 _mainVM = new MainViewModel();
 
                 //desktop.MainWindow = new MainWindow
@@ -92,15 +96,22 @@ namespace Wox
                 //};
                 //var window = desktop.MainWindow as ReactiveWindow<MainViewModel>;// new MainWindow() {  };
                 // window.DataContext = _mainVM;
+
                 var window = new MainWindow(_mainVM)
                 {
                     IsVisible = false,
                 };
+                API.Clipboard = new ClipboardService(window.Clipboard!);
+
                 window.ViewModel = _mainVM;
-                API = new PublicAPIInstance(_settingsVM, _mainVM);
+                api.SettingsVM = _settingsVM;
+                api.MainVM = _mainVM;
+
                 this.DataContext = new AppViewModel(_mainVM, desktop);
 
-                await PluginManager.InitializePluginsAsync(API);
+
+
+                await Logger.StopWatchDebugAsync("》》》》》》》》》》》初始化耗时《《《《《《《《《《《", () => PluginManager.InitializePluginsAsync(API));
 
                 // desktop.MainWindow= window; 
                 //Current.MainWindow = window;
@@ -108,8 +119,13 @@ namespace Wox
 
                 // todo temp fix for instance code logic
                 // load plugin before change language, because plugin language also needs be changed
+
                 InternationalizationManager.Instance.Settings = Settings.Instance;
-                InternationalizationManager.Instance.ChangeLanguage(Settings.Instance.Language);
+                Logger.StopWatchDebug("》》》》》》》》》》》本地化耗时《《《《《《《《《《《", () =>
+                {
+                    InternationalizationManager.Instance.ChangeLanguage(Settings.Instance.Language);
+                });
+
                 // main windows needs initialized before theme change because of blur settigns
                 //ThemeManager.Instance.ChangeTheme(Settings.Instance.Theme);
 
@@ -145,9 +161,9 @@ namespace Wox
         {
             if (Settings.Instance.StartWoxOnSystemStartup)
             {
-                if (!SettingWindow.StartupSet())
+                if (!SettingGeneralView.StartupSet())
                 {
-                    SettingWindow.SetStartup();
+                    SettingGeneralView.SetStartup();
                 }
             }
         }

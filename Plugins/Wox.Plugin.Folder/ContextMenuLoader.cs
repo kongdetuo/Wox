@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using System.Windows;
 using NLog;
 using Wox.Infrastructure.Logger;
 using Wox.Infrastructure;
 
 namespace Wox.Plugin.Folder
 {
-    internal class ContextMenuLoader : IContextMenu
+    internal class ContextMenuLoader 
     {
         private readonly PluginInitContext _context;
         private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
@@ -20,7 +19,7 @@ namespace Wox.Plugin.Folder
             _context = context;
         }
 
-        public List<Result> LoadContextMenus(Result selectedResult)
+        public List<Result> LoadContextMenus(Result selectedResult, ActionContext context)
         {
             var contextMenus = new List<Result>();
             if (selectedResult.ContextData is SearchResult record)
@@ -37,7 +36,7 @@ namespace Wox.Plugin.Folder
                 {
                     Title = "Copy path",
                     SubTitle = $"Copy the current {fileOrFolder} path to clipboard",
-                    Action = Actions.CopyTextToClipboard(record.FullPath),
+                    AsyncAction = Actions.CopyTextToClipboard(record.FullPath),
                     IcoPath = Main.CopyImagePath
                 });
 
@@ -45,7 +44,7 @@ namespace Wox.Plugin.Folder
                 {
                     Title = $"Copy {fileOrFolder}",
                     SubTitle = $"Copy the {fileOrFolder} to clipboard",
-                    Action = Actions.CopyFilesToClipboard(record.FullPath),
+                    AsyncAction = Actions.CopyFilesToClipboard(record.FullPath),
                     IcoPath = icoPath
                 });
 

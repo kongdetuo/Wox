@@ -3,14 +3,11 @@ using System.Linq;
 using Wox.Infrastructure.Storage;
 using Wox.Plugin.BrowserBookmark.Commands;
 using Wox.Plugin.BrowserBookmark.Models;
-using Wox.Plugin.BrowserBookmark.Views;
-using Wox.Infrastructure;
 using System.Threading.Tasks;
-using Avalonia.Controls;
 
 namespace Wox.Plugin.BrowserBookmark
 {
-    public class Main : ISettingProvider, IPlugin, IReloadable, IPluginI18n, ISavable
+    public class Main : IPlugin, IReloadable, IPluginI18n
     {
         private PluginInitContext context = null!;
 
@@ -54,7 +51,7 @@ namespace Wox.Plugin.BrowserBookmark
             this.context = context;
         }
 
-        public List<Result> Query(Query query)
+        public List<IResult> Query(Query query)
         {
             string param = query.Search.TrimStart();
 
@@ -72,16 +69,16 @@ namespace Wox.Plugin.BrowserBookmark
                     returnList = cachedBookmarks.Where(o => Bookmarks.MatchProgram(o, param)).ToList();
                 }
 
-                var results = returnList.Select(c => new Result()
+                var results = returnList.Select(c => new Result1()
                 {
                     Title = c.Name,
                     SubTitle = c.Url,
-                    IcoPath = @"Images\bookmark.png",
+                    IconLoader = context.API.IconHelper.FromImage(@"Images\bookmark.png"),
                     Score = 5,
                     Action = _settings.OpenInNewBrowserWindow
                         ? Actions.OpenInNewBrowserWindow(c.Url, _settings.BrowserPath)
                         : Actions.OpenInNewBrowserTab(c.Url, _settings.BrowserPath)
-                }).ToList();
+                }).OfType<IResult>().ToList();
                 return results;
             }
 
@@ -114,13 +111,11 @@ namespace Wox.Plugin.BrowserBookmark
             return context.API.GetTranslation("wox_plugin_browserbookmark_plugin_description");
         }
 
+        public IEnumerable<PluginOption> Options =>
+            // 很少用这个插件，我甚至不知道要做什么
+            [];
 
-        public Control CreateSettingPanel()
-        {
-            return new SettingsControl(_settings);
-        }
-
-        public void Save()
+        public void SaveOptions(IEnumerable<PluginOption> options)
         {
             _storage.Save();
         }

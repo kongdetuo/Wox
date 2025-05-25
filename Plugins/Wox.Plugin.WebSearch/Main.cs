@@ -1,18 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Controls;
 using Wox.Infrastructure;
-using Wox.Infrastructure.Storage;
 
 namespace Wox.Plugin.WebSearch
 {
-    public class Main : IPlugin, ISettingProvider, IPluginI18n, ISavable, IResultUpdated
+    public class Main : IPlugin, IPluginI18n, IUpdateablePlugin
     {
         private PluginInitContext _context;
 
@@ -34,17 +30,17 @@ namespace Wox.Plugin.WebSearch
             _viewModel.Save();
         }
 
-        public List<Result> Query(Query query)
+        public List<IResult> Query(Query query)
         {
             var enabledSource = _settings.SearchSources.Where(p => p.Enabled);
             var source = enabledSource
-                .Where(o => o.ActionKeyword == query.ActionKeyword?.Key)
+                .Where(o => o.ActionKeyword == query.ActionKeyword.Key)
                 .Concat(enabledSource.Where(p => p.ActionKeyword == SearchSourceGlobalPluginWildCardSign))
                 .FirstOrDefault();
 
             if (source is not null)
             {
-                return new List<Result>()
+                return new List<IResult>()
                 {
                     GetResult(source, GetKeyword(query, source), GetSubtitle(source))
                 };
@@ -52,17 +48,17 @@ namespace Wox.Plugin.WebSearch
             return null;
         }
 
-        public async IAsyncEnumerable<List<Result>> QueryUpdates(Query query, CancellationToken token)
+        public async IAsyncEnumerable<List<IResult>> QueryUpdateAsync(Query query, CancellationToken token)
         {
             var enabledSource = _settings.SearchSources.Where(p => p.Enabled);
             var source = enabledSource
-                .Where(o => o.ActionKeyword == query.ActionKeyword?.Key)
+                .Where(o => o.ActionKeyword == query.ActionKeyword.Key)
                 .Concat(enabledSource.Where(p => p.ActionKeyword == SearchSourceGlobalPluginWildCardSign))
                 .FirstOrDefault();
 
             if (source is not null)
             {
-                var defaultResults = new List<Result>()
+                var defaultResults = new List<IResult>()
                 {
                     GetResult(source, GetKeyword(query, source), GetSubtitle(source))
                 };
@@ -82,7 +78,7 @@ namespace Wox.Plugin.WebSearch
             }
             else
             {
-                yield return new List<Result>();
+                yield return new List<IResult>();
             }
         }
 
@@ -110,15 +106,6 @@ namespace Wox.Plugin.WebSearch
             ImagesDirectory = Path.Combine(_context.CurrentPluginMetadata.PluginDirectory, Images);
             Helper.ValidateDataDirectory(bundledImagesDirectory, ImagesDirectory);
         }
-
-        #region ISettingProvider Members
-
-        public Avalonia.Controls.Control CreateSettingPanel()
-        {
-            return new SettingsControl(_context, _viewModel);
-        }
-
-        #endregion
 
         public string GetTranslatedPluginTitle()
         {
@@ -183,5 +170,13 @@ namespace Wox.Plugin.WebSearch
             }
         }
 
+        public IEnumerable<PluginOption> Options =>
+            // 这个挺复杂的，先删掉吧，到时候让他自己写配置文件
+            [];
+
+        public void SaveOptions(IEnumerable<PluginOption> options)
+        {
+            Save();
+        }
     }
 }

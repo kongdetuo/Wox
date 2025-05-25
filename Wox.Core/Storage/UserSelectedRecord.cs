@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Newtonsoft.Json;
+using Wox.Core.Services;
 using Wox.Infrastructure.Storage;
 using Wox.Plugin;
 
@@ -10,7 +11,7 @@ namespace Wox.Core.Storage
         [JsonProperty]
         private Dictionary<string, int> records = new Dictionary<string, int>();
 
-        public void Add(Result result)
+        public void Add(ResultWrapper result)
         {
             var key = result.ToString();
             if (records.TryGetValue(key, out int value))
@@ -20,11 +21,10 @@ namespace Wox.Core.Storage
             else
             {
                 records.Add(key, 1);
-
             }
         }
 
-        public int GetSelectedCount(Result result)
+        public int GetSelectedCount(ResultWrapper result)
         {
             if (records.TryGetValue(result.ToString(), out int value))
             {

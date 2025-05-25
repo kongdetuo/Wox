@@ -1,9 +1,9 @@
 ﻿<ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-	<Style x:Key="WindowStyle" Selector="Window">
-		<Setter Property="Background" Value="Black"/>
-	</Style>
-	<SolidColorBrush x:Key="WindowBackground" Color="Black"/>
+	<!--<Style x:Key="WindowStyle" Selector="Window">
+		<Setter Property="Background" Value="#333333"/>
+	</Style>-->
+	<SolidColorBrush x:Key="WindowBackground" Color="#333333"/>
 	<SolidColorBrush x:Key="ItemHighlightColor" Color="Red" />
 	<SolidColorBrush x:Key="ItemSelectedHighlightColor" Color="LightGray" />
 	<SolidColorBrush x:Key="ItemSelectedBackgroundColor" Color="#4F6180" />

@@ -12,7 +12,7 @@ namespace Wox.Plugin
         /// Raw query, this includes action keyword if it has
         /// We didn't recommend use this property directly. You should always use Search property.
         /// </summary>
-        public required string RawQuery { get; set; }
+        public required string RawQuery { get; init; }
 
         /// <summary>
         /// Search part of a query.
@@ -20,12 +20,12 @@ namespace Wox.Plugin
         /// Since we allow user to switch a exclusive plugin to generic plugin, 
         /// so this property will always give you the "real" query part of the query
         /// </summary>
-        public required string Search { get; set; }
+        public required string Search { get; init; }
 
         /// <summary>
         /// The raw query splited into a string array.
         /// </summary>
-        public required string[] Terms { get; set; }
+        public required string[] Terms { get; init; }
 
         /// <summary>
         /// Query can be splited into multiple terms by whitespace
@@ -37,7 +37,7 @@ namespace Wox.Plugin
         /// </summary>
         public const string ActionKeywordSeperater = ";";
 
-        public Keyword? ActionKeyword { get; set; }
+        public Keyword ActionKeyword { get; init; }
 
         /// <summary>
         /// Return first search split by space if it has
@@ -54,7 +54,7 @@ namespace Wox.Plugin
         {
             try
             {
-                return ActionKeyword is null ? Terms[index] : Terms[index + 1];
+                return ActionKeyword.IsGlobal ? Terms[index] : Terms[index + 1];
             }
             catch (IndexOutOfRangeException)
             {
@@ -68,7 +68,7 @@ namespace Wox.Plugin
         {
             RawQuery = "",
             Search = "",
-            Terms = new string[0]
+            Terms = []
         };
 
         public bool IsEmpty => string.IsNullOrEmpty(RawQuery);
@@ -78,11 +78,11 @@ namespace Wox.Plugin
     public record struct Keyword(string Key)
     {
         public static readonly Keyword Global = new("*");
-        public static readonly Keyword Empty = new("");
+        public static readonly Keyword Empty = new(string.Empty);
 
-        public readonly bool IsGlobal => Equals(Global) || Equals(Empty);
+        public readonly bool IsGlobal => Equals(Global);
 
-        public readonly bool IsEmpty => string.IsNullOrWhiteSpace(Key);
+        public readonly bool IsEmpty => Equals(Empty) || string.IsNullOrWhiteSpace(Key);
 
         public override readonly string ToString()
         {

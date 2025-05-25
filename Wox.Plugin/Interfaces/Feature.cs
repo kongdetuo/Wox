@@ -7,16 +7,6 @@ namespace Wox.Plugin
 {
     public interface IFeatures { }
 
-    public interface IContextMenu : IFeatures
-    {
-        List<Result> LoadContextMenus(Result selectedResult);
-    }
-
-    public interface IAsyncContextMenu : IFeatures
-    {
-        Task<List<Result>> LoadContextMenusAsync(Result selectedResult);
-    }
-
     /// <summary>
     /// Represent plugins that support internationalization
     /// </summary>

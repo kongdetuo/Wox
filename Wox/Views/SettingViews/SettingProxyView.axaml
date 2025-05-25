@@ -1,0 +1,47 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Wox.Views.SettingViews.SettingProxyView">
+	<ListBox>
+		<StackPanel>
+			<DockPanel>
+				<CheckBox IsChecked="{Binding Settings.Proxy.Enabled}" DockPanel.Dock="Right"/>
+				<TextBlock Text="{DynamicResource enableProxy}" />
+			</DockPanel>
+			<Grid Margin="16" IsEnabled="{Binding Settings.Proxy.Enabled}">
+				<Grid.Styles>
+					<Style Selector="TextBox">
+						<Setter Property="Margin" Value="4" />
+					</Style>
+					<Style Selector="TextBlock">
+						<Setter Property="HorizontalAlignment" Value="Right" />
+					</Style>
+				</Grid.Styles>
+				<Grid.RowDefinitions>
+					<RowDefinition />
+					<RowDefinition />
+					<RowDefinition />
+					<RowDefinition />
+				</Grid.RowDefinitions>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="100" />
+					<ColumnDefinition Width="200" />
+
+				</Grid.ColumnDefinitions>
+				<TextBlock Text="{DynamicResource server}" Grid.Row="0" Grid.Column="0" Padding="5" />
+				<TextBox Text="{Binding Settings.Proxy.Server}" Grid.Row="0" Grid.Column="1" Padding="5" />
+				<TextBlock Text="{DynamicResource port}" Grid.Row="1" Grid.Column="0" Padding="5" />
+				<TextBox Text="{Binding Settings.Proxy.Port }" Grid.Row="1" Grid.Column="1" Padding="5" />
+				<TextBlock Text="{DynamicResource userName}" Grid.Row="2" Grid.Column="0" Padding="5" />
+				<TextBox Text="{Binding Settings.Proxy.UserName}" Grid.Row="2" Grid.Column="1" Padding="5" />
+				<TextBlock Text="{DynamicResource password}" Grid.Row="3" Grid.Column="0" Padding="5" />
+				<TextBox Text="{Binding Settings.Proxy.Password}" Grid.Row="3" Grid.Column="1" Padding="5" />
+			</Grid>
+			<Button Content="{DynamicResource testProxy}" IsEnabled="{Binding Settings.Proxy.Enabled}"
+				Width="80" HorizontalAlignment="Left" Margin="10" Click="OnTestProxyClick" />
+		</StackPanel>
+	</ListBox>
+
+</UserControl>

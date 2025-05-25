@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Interop;
-using System.Windows.Markup;
-using System.Windows.Media;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Threading;
 using NLog;
 using Wox.Core.Resource;
 using Wox.Infrastructure;
@@ -35,17 +33,6 @@ namespace Wox.Themes
             _themeDirectories.Add(UserDirectoryPath);
             MakesureThemeDirectoriesExist();
 
-            var dicts = Application.Current.Resources.MergedDictionaries;
-            _oldResource = dicts.First(d =>
-            {
-                var p = d.Source.AbsolutePath;
-                var dir = Path.GetDirectoryName(p).NonNull();
-                var info = new DirectoryInfo(dir);
-                var f = info.Name;
-                var e = Path.GetExtension(p);
-                var found = f == Folder && e == Extension;
-                return found;
-            });
 
             // https://github.com/Wox-launcher/Wox/issues/2935
             var support = Environment.OSVersion.Version.Major >= new Version(10, 0).Major;
@@ -89,9 +76,9 @@ namespace Wox.Themes
                 var dicts = Application.Current.Resources.MergedDictionaries;
 
                 dicts.Remove(_oldResource);
-                var newResource = GetResourceDictionary();
-                dicts.Add(newResource);
-                _oldResource = newResource;
+                //var newResource = GetResourceDictionary();
+                //dicts.Add(newResource);
+                //_oldResource = newResource;
                 //SetBlurForWindow();
             }
             catch (DirectoryNotFoundException)
@@ -99,104 +86,12 @@ namespace Wox.Themes
                 Logger.WoxError($"Theme <{theme}> path can't be found");
                 if (theme != defaultTheme)
                 {
-                    MessageBox.Show(string.Format(InternationalizationManager.Instance.GetTranslation("theme_load_failure_path_not_exists"), theme));
-                    ChangeTheme(defaultTheme);
-                }
-                return false;
-            }
-            catch (XamlParseException)
-            {
-                Logger.WoxError($"Theme <{theme}> fail to parse");
-                if (theme != defaultTheme)
-                {
-                    MessageBox.Show(string.Format(InternationalizationManager.Instance.GetTranslation("theme_load_failure_parse_error"), theme));
+                    //MessageBox.Show(string.Format(InternationalizationManager.Instance.GetTranslation("theme_load_failure_path_not_exists"), theme));
                     ChangeTheme(defaultTheme);
                 }
                 return false;
             }
             return true;
-        }
-
-        public ResourceDictionary GetResourceDictionary()
-        {
-            var uri = GetThemePath(Settings.Theme);
-            var dict = new ResourceDictionary
-            {
-                Source = new Uri(uri, UriKind.Absolute)
-            };
-
-            Style queryBoxStyle = dict["QueryBoxStyle"] as Style;
-            if (queryBoxStyle != null)
-            {
-                queryBoxStyle.Setters.Add(new Setter(TextBox.FontFamilyProperty, new FontFamily(Settings.QueryBoxFont)));
-                queryBoxStyle.Setters.Add(new Setter(TextBox.FontStyleProperty, FontHelper.GetFontStyleFromInvariantStringOrNormal(Settings.QueryBoxFontStyle)));
-                queryBoxStyle.Setters.Add(new Setter(TextBox.FontWeightProperty, FontHelper.GetFontWeightFromInvariantStringOrNormal(Settings.QueryBoxFontWeight)));
-                queryBoxStyle.Setters.Add(new Setter(TextBox.FontStretchProperty, FontHelper.GetFontStretchFromInvariantStringOrNormal(Settings.QueryBoxFontStretch)));
-
-                var caretBrushPropertyValue = queryBoxStyle.Setters.OfType<Setter>().Any(x => x.Property == TextBox.CaretBrushProperty);
-                var foregroundPropertyValue = queryBoxStyle.Setters.OfType<Setter>().FirstOrDefault(x => x.Property == TextBox.ForegroundProperty)?.Value;
-                if (!caretBrushPropertyValue && foregroundPropertyValue != null)
-                    queryBoxStyle.Setters.Add(new Setter(TextBox.CaretBrushProperty, foregroundPropertyValue));
-            }
-
-            var queryTextSuggestionBoxStyle = new Style(typeof(TextBox), queryBoxStyle);
-            bool hasSuggestion = false;
-            if (dict.Contains("QueryTextSuggestionBoxStyle"))
-            {
-                queryTextSuggestionBoxStyle = dict["QueryTextSuggestionBoxStyle"] as Style;
-                hasSuggestion = true;
-            }
-            dict["QueryTextSuggestionBoxStyle"] = queryTextSuggestionBoxStyle;
-            if (queryTextSuggestionBoxStyle != null)
-            {
-                queryTextSuggestionBoxStyle.Setters.Add(new Setter(TextBox.FontFamilyProperty, new FontFamily(Settings.QueryBoxFont)));
-                queryTextSuggestionBoxStyle.Setters.Add(new Setter(TextBox.FontStyleProperty, FontHelper.GetFontStyleFromInvariantStringOrNormal(Settings.QueryBoxFontStyle)));
-                queryTextSuggestionBoxStyle.Setters.Add(new Setter(TextBox.FontWeightProperty, FontHelper.GetFontWeightFromInvariantStringOrNormal(Settings.QueryBoxFontWeight)));
-                queryTextSuggestionBoxStyle.Setters.Add(new Setter(TextBox.FontStretchProperty, FontHelper.GetFontStretchFromInvariantStringOrNormal(Settings.QueryBoxFontStretch)));
-            }
-
-            var queryBoxStyleSetters = queryBoxStyle.Setters.OfType<Setter>().ToList();
-            var queryTextSuggestionBoxStyleSetters = queryTextSuggestionBoxStyle.Setters.OfType<Setter>().ToList();
-            foreach (Setter setter in queryBoxStyleSetters)
-            {
-                if (setter.Property == TextBox.BackgroundProperty)
-                    continue;
-                if (setter.Property == TextBox.ForegroundProperty)
-                    continue;
-                if (queryTextSuggestionBoxStyleSetters.All(x => x.Property != setter.Property))
-                    queryTextSuggestionBoxStyle.Setters.Add(setter);
-            }
-
-            if (!hasSuggestion)
-            {
-                var backgroundBrush = queryBoxStyle.Setters.OfType<Setter>().FirstOrDefault(x => x.Property == TextBox.BackgroundProperty)?.Value ??
-                    (dict["BaseQuerySuggestionBoxStyle"] as Style).Setters.OfType<Setter>().FirstOrDefault(x => x.Property == TextBox.BackgroundProperty).Value;
-                queryBoxStyle.Setters.OfType<Setter>().FirstOrDefault(x => x.Property == TextBox.BackgroundProperty).Value = Brushes.Transparent;
-                if (queryTextSuggestionBoxStyle.Setters.OfType<Setter>().Any(x => x.Property == TextBox.BackgroundProperty))
-                {
-                    queryTextSuggestionBoxStyle.Setters.OfType<Setter>().First(x => x.Property == TextBox.BackgroundProperty).Value = backgroundBrush;
-                }
-                else
-                {
-                    queryTextSuggestionBoxStyle.Setters.Add(new Setter(TextBox.BackgroundProperty, backgroundBrush));
-                }
-            }
-
-            Style resultItemStyle = dict["ItemTitleStyle"] as Style;
-            Style resultSubItemStyle = dict["ItemSubTitleStyle"] as Style;
-            Style resultItemSelectedStyle = dict["ItemTitleSelectedStyle"] as Style;
-            Style resultSubItemSelectedStyle = dict["ItemSubTitleSelectedStyle"] as Style;
-            if (resultItemStyle != null && resultSubItemStyle != null && resultSubItemSelectedStyle != null && resultItemSelectedStyle != null)
-            {
-                Setter fontFamily = new Setter(TextBlock.FontFamilyProperty, new FontFamily(Settings.ResultFont));
-                Setter fontStyle = new Setter(TextBlock.FontStyleProperty, FontHelper.GetFontStyleFromInvariantStringOrNormal(Settings.ResultFontStyle));
-                Setter fontWeight = new Setter(TextBlock.FontWeightProperty, FontHelper.GetFontWeightFromInvariantStringOrNormal(Settings.ResultFontWeight));
-                Setter fontStretch = new Setter(TextBlock.FontStretchProperty, FontHelper.GetFontStretchFromInvariantStringOrNormal(Settings.ResultFontStretch));
-
-                Setter[] setters = { fontFamily, fontStyle, fontWeight, fontStretch };
-                Array.ForEach(new[] { resultItemStyle, resultSubItemStyle, resultItemSelectedStyle, resultSubItemSelectedStyle }, o => Array.ForEach(setters, p => o.Setters.Add(p)));
-            }
-            return dict;
         }
 
         public List<string> LoadAvailableThemes()
@@ -234,15 +129,11 @@ namespace Wox.Themes
         {
 
             var uiSettings = new Windows.UI.ViewManagement.UISettings();
-            uiSettings.ColorValuesChanged +=
-                (sender, args) =>
-                {
-                    Application.Current.Dispatcher.Invoke(
-                        () =>
-                        {
-                            ChangeTheme(Settings.Theme);
-                        });
-                };
+            uiSettings.ColorValuesChanged += (sender, args) => Dispatcher.UIThread.Invoke(() =>
+            {
+                ChangeTheme(Settings.Theme);
+            });
+
             UISettings = uiSettings;
         }
 
@@ -313,26 +204,26 @@ namespace Wox.Themes
             //}
         }
 
-        private void SetWindowAccent(Window w, AccentState state)
-        {
-            var windowHelper = new WindowInteropHelper(w);
-            var accent = new AccentPolicy { AccentState = state };
-            var accentStructSize = Marshal.SizeOf(accent);
+        //private void SetWindowAccent(Window w, AccentState state)
+        //{
+        //    var windowHelper = new WindowInteropHelper(w);
+        //    var accent = new AccentPolicy { AccentState = state };
+        //    var accentStructSize = Marshal.SizeOf(accent);
 
-            var accentPtr = Marshal.AllocHGlobal(accentStructSize);
-            Marshal.StructureToPtr(accent, accentPtr, false);
+        //    var accentPtr = Marshal.AllocHGlobal(accentStructSize);
+        //    Marshal.StructureToPtr(accent, accentPtr, false);
 
-            var data = new WindowCompositionAttributeData
-            {
-                Attribute = WindowCompositionAttribute.WCA_ACCENT_POLICY,
-                SizeOfData = accentStructSize,
-                Data = accentPtr
-            };
+        //    var data = new WindowCompositionAttributeData
+        //    {
+        //        Attribute = WindowCompositionAttribute.WCA_ACCENT_POLICY,
+        //        SizeOfData = accentStructSize,
+        //        Data = accentPtr
+        //    };
 
-            SetWindowCompositionAttribute(windowHelper.Handle, ref data);
+        //    SetWindowCompositionAttribute(windowHelper.Handle, ref data);
 
-            Marshal.FreeHGlobal(accentPtr);
-        }
+        //    Marshal.FreeHGlobal(accentPtr);
+        //}
         #endregion
     }
 }

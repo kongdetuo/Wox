@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
-using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Windows.Automation.Peers;
 using Microsoft.Win32;
 using NLog;
 using Wox.Infrastructure;

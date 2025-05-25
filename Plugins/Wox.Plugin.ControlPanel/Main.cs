@@ -25,10 +25,10 @@ namespace Wox.Plugin.ControlPanel
             controlPanelItems = ControlPanelList.Create();
         }
 
-        public List<Result> Query(Query query)
+        public List<IResult> Query(Query query)
         {
             var st = System.Diagnostics.Stopwatch.StartNew();
-            List<Result> results = new List<Result>();
+            List<IResult> results = new List<IResult>();
             foreach (var item in controlPanelItems)
             {
                 var titleMatch = StringMatcher.FuzzySearch(query.Search, item.LocalizedString);
@@ -36,12 +36,12 @@ namespace Wox.Plugin.ControlPanel
                 item.Score = titleMatch.Score;
                 if (item.Score > 0)
                 {
-                    var result = new Result
+                    var result = new Result1
                     {
-                        Title = new( item.LocalizedString, titleMatch.MatchData),
+                        Title = item.LocalizedString,
                         SubTitle = item.InfoTip,
                         Score = item.Score,
-                        IcoPath = item.IconPath,
+                        IconLoader = context.API.IconHelper.FromEmbededIcon(item.IconPath,null),
                         Action = e =>
                         {
                             try
@@ -67,7 +67,7 @@ namespace Wox.Plugin.ControlPanel
             }
             var s = st.ElapsedMilliseconds;
 
-            List<Result> panelItems = results.OrderByDescending(o => o.Score).Take(5).ToList();
+            List<IResult> panelItems = results.OrderByDescending(o => o.Score).Take(5).ToList();
             return panelItems;
         }
 

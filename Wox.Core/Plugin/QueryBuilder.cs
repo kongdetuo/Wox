@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Primitives;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Wox.Plugin;
 
@@ -22,7 +21,7 @@ namespace Wox.Core.Plugin
             var possibleActionKeyword = new Keyword(terms[0]);
 
             if ((terms.Length > 1 || text.EndsWith(Query.TermSeperater))
-                && PluginManager.AllPlugins.Where(p => !p.Metadata.Disabled).Any(p => p.MatchKeyWord(terms[0])))
+                && PluginManager.AllKeys.Contains(possibleActionKeyword))
             { // use non global plugin for query
                 actionKeyword = possibleActionKeyword.Key;
 
@@ -40,7 +39,7 @@ namespace Wox.Core.Plugin
             {
                 Terms = terms,
                 RawQuery = rawQuery,
-                ActionKeyword = string.IsNullOrEmpty(actionKeyword) ? null : new Keyword(actionKeyword),
+                ActionKeyword = string.IsNullOrEmpty(actionKeyword) ? Keyword.Global : new Keyword(actionKeyword),
                 Search = search,
             };
 

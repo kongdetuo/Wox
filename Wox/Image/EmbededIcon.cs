@@ -1,16 +1,15 @@
-﻿using NLog;
+﻿using Avalonia.Platform;
+using Avalonia;
+using NLog;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Drawing;
 using System.Runtime.InteropServices;
-using System.Windows;
-using System.Windows.Interop;
-using System.Windows.Media.Imaging;
+using Vortice.WIC;
 using Wox.Infrastructure.Logger;
 namespace Wox.Image
 {
-    class EmbededIcon
+    static class EmbededIcon
     {
         private delegate bool EnumResNameDelegate(IntPtr hModule, IntPtr lpszType, IntPtr lpszName, IntPtr lParam);
         [DllImport("kernel32.dll", EntryPoint = "EnumResourceNamesW", CharSet = CharSet.Unicode, SetLastError = true)]
@@ -36,13 +35,11 @@ namespace Wox.Image
             // https://gist.github.com/jnm2/79ed8330ceb30dea44793e3aa6c03f5b
 
             string iconStringRaw = path.Substring(key.Length);
-            var iconString = new List<string>(iconStringRaw.Split(new[] { ',' }, 2));
+            var iconString = new List<string>(iconStringRaw.Split([','], 2));
             IntPtr iconPtr = IntPtr.Zero;
             IntPtr dataFilePointer;
             IntPtr iconIndex;
             uint LOAD_LIBRARY_AS_DATAFILE = 0x00000002;
-
-            Logger.WoxTrace($"{nameof(iconStringRaw)}: {iconStringRaw}");
 
             if (string.IsNullOrEmpty(iconString[0]))
             {
@@ -62,7 +59,7 @@ namespace Wox.Image
                 // C:\WINDOWS\system32\mblctr.exe,0
                 // %SystemRoot%\System32\FirewallControlPanel.dll,-1
                 var index = Math.Abs(int.Parse(iconString[1]));
-                iconIndex = (IntPtr)index;
+                iconIndex = index;
                 iconPtr = LoadImage(dataFilePointer, iconIndex, 1, iconSize, iconSize, 0);
             }
 
@@ -82,7 +79,6 @@ namespace Wox.Image
                     if (error != userStoppedResourceEnumeration)
                     {
                         Win32Exception exception = new Win32Exception(error);
-                        exception.Data.Add(nameof(path), path);
                         throw exception;
                     }
                 }
@@ -90,21 +86,42 @@ namespace Wox.Image
             }
 
             FreeLibrary(dataFilePointer);
-            // BitmapSource image;
-            if (iconPtr != IntPtr.Zero)
-            {
-                var image = Imaging.CreateBitmapSourceFromHIcon(iconPtr, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions()).ToAvaloniaBitmap();
+            return CreateBitmapSourceFromHIcon(iconPtr);
+        }
 
-                DestroyIcon(iconPtr);
-                return image;
-            }
-            else
+        public static Avalonia.Media.Imaging.Bitmap? CreateBitmapSourceFromHIcon(nint ptr)
+        {
+            if (ptr != IntPtr.Zero)
             {
-                var e = new ArgumentException($"iconPtr zero {path}");
-                e.Data.Add(nameof(path), path);
-                throw e;
+                
+                using var factory = new IWICImagingFactory();
+                using var bitmap = factory.CreateBitmapFromHICON(ptr);
+                var result = bitmap.ToAvaloniaBitmap();
+                return result;
             }
             return null;
         }
+
+        public static Avalonia.Media.Imaging.Bitmap? ToAvaloniaBitmap(this IWICBitmap? bitmap)
+        {
+            if (bitmap == null)
+            {
+                return null;
+            }
+            using var wicBitmapLock = bitmap.Lock(BitmapLockFlags.Read);
+
+            wicBitmapLock.GetSize(out var width, out var height);
+
+            return new Avalonia.Media.Imaging.Bitmap(
+                    Avalonia.Platform.PixelFormat.Bgra8888,
+                    AlphaFormat.Unpremul,
+                    wicBitmapLock.Data.DataPointer,
+                    new PixelSize((int)width, (int)height),
+                    new Avalonia.Vector(96, 96),
+                    (int)wicBitmapLock.Stride
+                );
+
+        }
+
     }
 }
